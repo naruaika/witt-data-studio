@@ -12,8 +12,9 @@ A powerful, intuitive, and integrated data platform for data analysts.
   <img src="docs/screenshot-1.png" alt="Eruo Data Studio" />
 </span>
 
-
 **Disclaimer:** We know this project sounds ambitious! We're actively exploring the best path forward, balancing community needs with what's technically achievable. Our direction and approaches may evolve as we learn and build.
+
+**Note:** This project will soon be renamed to **Witt Data Studio** as I'm currently working actively on a new version written from scratch.
 
 ## Status
 
