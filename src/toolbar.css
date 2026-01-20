@@ -1,0 +1,84 @@
+.mtoolbar-tab,
+.mtoolbar-view {
+    font-size: 82%;
+}
+.mtoolbar-tab button,
+.mtoolbar-tab toggle,
+.mtoolbar-view button {
+    min-height: 20px;
+    padding: 2px 8px;
+    font-weight: normal;
+}
+.mtoolbar-tab {
+    padding: 6px;
+    padding-bottom: 0;
+    font-size: 90%;
+}
+.mtoolbar-tab button {
+    border-radius: 13px;
+}
+.mtoolbar-tab button.circular {
+    min-width: 26px;
+    padding: 0;
+}
+.mtoolbar-tab toggle indicatorbin,
+.mtoolbar-tab toggle label {
+    padding: 0;
+}
+.mtoolbar-view {
+    margin: 6px;
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+    border-radius: 9px;
+}
+.mtoolbar-view > scrolledwindow > viewport > * {
+    padding: 6px;
+}
+.mtoolbar-view button,
+.mtoolbar-view checkbutton {
+    padding: 0 6px;
+    border-radius: 5px;
+}
+.mtoolbar-view checkbutton:hover {
+    background-color: color-mix(in srgb, currentColor 5%, transparent);
+}
+.mtoolbar-view checkbutton check {
+    margin: 1px;
+    padding: 2px;
+    border-radius: 4px;
+}
+.mtoolbar-view checkbutton label {
+    margin-left: 3px;
+}
+.mtoolbar-view .caption {
+    font-size: 90%;
+}
+.mtoolbar-view image:not(.arrow) {
+    -gtk-icon-size: 20px;
+}
+
+.mtoolbar-tab {
+    margin: -3px 0;
+}
+.mtoolbar-tab > viewport > box {
+    padding: 3px 0;
+}
+.mtoolbar-tab toggle {
+    background: none;
+    border-radius: 0;
+    opacity: 0.75;
+    transition-property: none;
+}
+.mtoolbar-tab toggle:hover {
+    background-color: color-mix(in srgb, currentColor 5%, transparent);
+    box-shadow: 0 -3px color-mix(in srgb, currentColor 5%, transparent),
+                0 3px color-mix(in srgb, currentColor 20%, transparent);
+    opacity: 1.0;
+}
+.mtoolbar-tab toggle:checked {
+    box-shadow: 0 3px var(--accent-bg-color);
+    opacity: 1.0;
+}
+.mtoolbar-tab toggle:checked:hover {
+    box-shadow: 0 -3px color-mix(in srgb, currentColor 5%, transparent),
+                0 3px var(--accent-bg-color);
+}

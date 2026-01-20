@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="SheetEditor" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <property name="overflow">hidden</property>
+    <child>
+      <object class="GtkOverlay" id="Container">
+        <property name="hexpand">true</property>
+        <property name="vexpand">true</property>
+        <child>
+          <object class="SheetCanvas" id="Canvas"/>
+        </child>
+        <child type="overlay">
+          <object class="GtkScrollbar" id="HorizontalScrollbar">
+            <property name="orientation">horizontal</property>
+            <property name="valign">end</property>
+            <style>
+              <class name="bottom"/>
+              <class name="overlay-indicator"/>
+            </style>
+          </object>
+        </child>
+        <child type="overlay">
+          <object class="GtkScrollbar" id="VerticalScrollbar">
+            <property name="orientation">vertical</property>
+            <property name="halign">end</property>
+            <style>
+              <class name="right"/>
+              <class name="overlay-indicator"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </child>
+    <style>
+      <class name="sheet-editor"/>
+    </style>
+  </template>
+</interface>

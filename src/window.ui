@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="Adw" version="1.0"/>
+  <requires lib="gtk" version="4.0"/>
+  <template class="Window" parent="AdwApplicationWindow">
+    <property name="title" translatable="yes">Witt Data Studio</property>
+    <property name="width-request">362</property>
+    <property name="height-request">362</property>
+    <property name="default-width">1440</property>
+    <property name="default-height">900</property>
+    <child>
+      <object class="AdwBreakpoint">
+        <condition>max-width: 420sp</condition>
+        <setter object="TabBar" property="visible">false</setter>
+        <setter object="TabButton" property="visible">true</setter>
+        <setter object="TitleSpacer" property="visible">true</setter>
+      </object>
+    </child>
+    <property name="content">
+      <object class="AdwTabOverview" id="TabOverview">
+        <property name="view">TabView</property>
+        <property name="child">
+          <object class="GtkOverlay" id="Container">
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+            <child>
+              <object class="AdwToolbarView">
+                <property name="hexpand">true</property>
+                <property name="vexpand">true</property>
+
+                <!-- Window Title -->
+                <child type="top">
+                  <object class="GtkBox" id="TitleBar">
+                    <property name="orientation">horizontal</property>
+                    <property name="margin-top">6</property>
+                    <property name="margin-bottom">6</property>
+                    <child>
+                      <object class="GtkWindowControls">
+                        <property name="side">start</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox" id="TitleSpacer">
+                        <property name="hexpand">true</property>
+                        <property name="visible">false</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwTabBar" id="TabBar">
+                        <property name="margin-end">6</property>
+                        <property name="hexpand">true</property>
+                        <property name="expand-tabs">false</property>
+                        <property name="autohide">false</property>
+                        <property name="view">TabView</property>
+                        <style>
+                          <class name="inline"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwTabButton" id="TabButton">
+                        <property name="margin-start">6</property>
+                        <property name="margin-end">6</property>
+                        <property name="visible">false</property>
+                        <property name="view">TabView</property>
+                        <signal name="clicked" handler="_on_tab_button_clicked"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuButton">
+                        <property name="margin-end">6</property>
+                        <property name="primary">true</property>
+                        <property name="icon-name">open-menu-symbolic</property>
+                        <property name="tooltip-text" translatable="yes">Main Menu</property>
+                        <property name="menu-model">primary_menu</property>
+                        <style>
+                          <class name="flat"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkWindowControls">
+                        <property name="side">end</property>
+                      </object>
+                    </child>
+                    <style>
+                      <class name="mtitlebar"/>
+                    </style>
+                  </object>
+                </child>
+
+                <!-- Window Content -->
+                <property name="content">
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkSeparator">
+                        <property name="orientation">horizontal</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="Toolbar" id="Toolbar"/>
+                    </child>
+                    <child>
+                      <object class="GtkSeparator">
+                        <property name="orientation">horizontal</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwTabView" id="TabView">
+                        <property name="valign">fill</property>
+                        <property name="halign">fill</property>
+                        <property name="hexpand">true</property>
+                        <property name="vexpand">true</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparator">
+                        <property name="orientation">horizontal</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="orientation">horizontal</property>
+                        <property name="height-request">28</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+    <style>
+      <class name="mwindow"/>
+    </style>
+  </template>
+
+  <menu id="primary_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Open File...</attribute>
+        <attribute name="action">app.open-file</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Un_do</attribute>
+        <attribute name="action">win.undo</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Redo</attribute>
+        <attribute name="action">win.redo</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Save</attribute>
+        <attribute name="action">win.save</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Save _As...</attribute>
+        <attribute name="action">win.save-as</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Command _Palette</attribute>
+        <attribute name="action">win.command-palette</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_About Witt Data Studio</attribute>
+        <attribute name="action">app.about</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">E_xit</attribute>
+        <attribute name="action">app.exit</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <menu id="new_sheet_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">New _Sheet</attribute>
+        <attribute name="action">win.new-sheet</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">New _Chart</attribute>
+        <attribute name="action">win.new-chart</attribute>
+      </item>
+    </section>
+  </menu>
+</interface>

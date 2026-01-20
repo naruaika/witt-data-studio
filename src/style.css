@@ -1,0 +1,66 @@
+@import url('resource://com/macipra/witt/command-palette.css');
+@import url('resource://com/macipra/witt/toolbar.css');
+@import url('resource://com/macipra/witt/window.css');
+
+@import url('resource://com/macipra/witt/node/style.css');
+@import url('resource://com/macipra/witt/sheet/style.css');
+
+flowbox.navigation-sidebar {
+    padding: 0 2px;
+}
+flowbox.navigation-sidebar > * {
+    margin: 0;
+    padding: 0;
+}
+flowbox.navigation-sidebar .arrow-right {
+    padding: 0 2px;
+}
+flowbox.navigation-sidebar .active-item {
+    background-color: color-mix(in srgb, currentColor 15%, transparent);
+}
+flowbox.navigation-sidebar .active-item:hover {
+    background-color: color-mix(in srgb, currentColor 20%, transparent);
+}
+flowbox.navigation-sidebar .active-item .arrow-right {
+    background-color: color-mix(in srgb, currentColor 15%, transparent);
+}
+flowbox.navigation-sidebar .active-item .arrow-right:hover {
+    background-color: color-mix(in srgb, currentColor 25%, transparent);
+}
+
+tabbar.inline tabbox {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.rotate-90deg {
+    transform: rotate(90deg);
+}
+.rotate-180deg {
+    transform: rotate(180deg);
+}
+.rotate-270deg {
+    transform: rotate(270deg);
+}
+
+.top-1px {
+    margin-top: -1px;
+}
+.bottom-1px {
+    margin-bottom: -1px;
+}
+.left-1px {
+    margin-left: -1px;
+}
+.right-1px {
+    margin-right: -1px;
+}
+
+.menu .separator.title {
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.floating-sheet {
+    background-color: RGB(from var(--shade-color) r g b / calc(alpha * 2));
+}

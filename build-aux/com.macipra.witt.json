@@ -1,0 +1,54 @@
+{
+    "id" : "com.macipra.witt",
+    "runtime" : "org.gnome.Platform",
+    "runtime-version" : "49",
+    "sdk" : "org.gnome.Sdk",
+    "command" : "witt-data-studio",
+    "finish-args" : [
+        "--device=dri",
+        "--share=ipc",
+        "--share=network",
+        "--socket=fallback-x11",
+        "--socket=wayland",
+        "--filesystem=host"
+    ],
+    "cleanup" : [
+        "/include",
+        "/lib/pkgconfig",
+        "/man",
+        "/share/doc",
+        "/share/gtk-doc",
+        "/share/man",
+        "/share/pkgconfig",
+        "*.la",
+        "*.a"
+    ],
+    "modules" : [
+        "python3-python-dateutil.json",
+        "python3-pyarrow-aarch64.json",
+        "python3-pyarrow-x86_64.json",
+        "python3-numpy-aarch64.json",
+        "python3-numpy-x86_64.json",
+        "python3-scipy-aarch64.json",
+        "python3-scipy-x86_64.json",
+        "python3-polars-aarch64.json",
+        "python3-polars-x86_64.json",
+        "python3-lark.json",
+        "python3-fastexcel-aarch64.json",
+        "python3-fastexcel-x86_64.json",
+        "python3-witt-strutil.json",
+        "python3-pyopengl.json",
+        "python3-pyopengl-accelerate.json",
+        {
+            "name" : "witt-data-studio",
+            "builddir" : true,
+            "buildsystem" : "meson",
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/naruaika/witt-data-studio"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>@APP_ID@</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>AGPL-3.0-or-later</project_license>
+
+  <name>Witt Data Studio</name>
+  <summary>Analyses structured data</summary>
+  <description>
+    <p>A business intelligence tool for the GNOME desktop.</p>
+  </description>
+
+  <developer id="com.macipra">
+    <name>Naufan Rusyda Faikar</name>
+  </developer>
+
+  <url type="homepage">https://github.com/naruaika/witt-data-studio</url>
+  <url type="vcs-browser">https://github.com/naruaika/witt-data-studio</url>
+  <url type="bugtracker">https://github.com/naruaika/witt-data-studio/issues</url>
+  <url type="translate">https://github.com/naruaika/witt-data-studio</url>
+
+  <!--
+  <url type="faq">https://example.org/faq</url>
+  <url type="help">https://example.org/help</url>
+  <url type="donation">https://example.org/donate</url>
+  <url type="contact">https://example.org/contact</url>
+  <url type="contribute">https://example.org/contribute</url>
+  -->
+
+  <translation type="gettext">witt-data-studio</translation>
+  <launchable type="desktop-id">com.macipra.witt.desktop</launchable>
+  <content_rating type="oars-1.1" />
+
+  <branding>
+    <color type="primary" scheme_preference="light">#ff00ff</color>
+    <color type="primary" scheme_preference="dark">#993d3d</color>
+  </branding>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>https://github.com/naruaika/witt-data-studio/raw/master/docs/screenshot.png</image>
+      <caption>Witt Data Studio</caption>
+    </screenshot>
+  </screenshots>
+
+  <!--
+  <releases>
+    <release version="1.0.1" date="2024-01-18">
+      <url type="details">https://example.org/changelog.html#version_1.0.1</url>
+      <description translate="no">
+        <p>Release description</p>
+        <ul>
+          <li>List of changes</li>
+          <li>List of changes</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+  -->
+
+</component>

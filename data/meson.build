@@ -1,6 +1,6 @@
 desktop_file = i18n.merge_file(
-        input: 'com.macipra.eruo.desktop.in',
-       output: 'com.macipra.eruo.desktop',
+        input: '@0@.desktop.in'.format(base_application_id),
+       output: '@0@.desktop'.format(base_application_id),
          type: 'desktop',
        po_dir: '../po',
       install: true,
@@ -13,8 +13,8 @@ if desktop_utils.found()
 endif
 
 appstream_file = i18n.merge_file(
-        input: 'com.macipra.eruo.metainfo.xml.in',
-       output: 'com.macipra.eruo.metainfo.xml',
+        input: '@0@.metainfo.xml.in'.format(base_application_id),
+       output: '@0@.metainfo.xml'.format(base_application_id),
        po_dir: '../po',
       install: true,
   install_dir: get_option('datadir') / 'metainfo'
@@ -24,22 +24,11 @@ appstreamcli = find_program('appstreamcli', required: false, disabler: true)
 test('Validate appstream file', appstreamcli,
      args: ['validate', '--no-net', '--explain', appstream_file])
 
-install_data('com.macipra.eruo.gschema.xml',
-  install_dir: get_option('datadir') / 'glib-2.0' / 'schemas'
-)
-
-gnome = import('gnome')
-
-pkgdatadir = get_option('prefix') / get_option('datadir') / meson.project_name()
-moduledir = pkgdatadir / 'eruo_data_studio'
-icondir = 'icons' / 'hicolor' / 'scalable' / 'actions'
-
-gnome.compile_resources('eruo-data-studio',
-  'eruo-data-studio.gresource.xml',
-  gresource_bundle: true,
-  source_dir: ['../src', icondir],
-  install: true,
-  install_dir: pkgdatadir,
+configure_file(
+          input: '@0@.gschema.xml.in'.format(base_application_id),
+         output: '@0@.gschema.xml'.format(base_application_id),
+  configuration: base_conf,
+    install_dir: get_option('datadir') / 'glib-2.0' / 'schemas'
 )
 
 compile_schemas = find_program('glib-compile-schemas', required: false, disabler: true)
@@ -49,11 +38,13 @@ test('Validate schema file',
 
 service_conf = configuration_data()
 service_conf.set('bindir', get_option('prefix') / get_option('bindir'))
+service_conf.set('APP_ID', application_id)
+
 configure_file(
-  input: 'com.macipra.eruo.service.in',
-  output: 'com.macipra.eruo.service',
+          input: '@0@.service.in'.format(base_application_id),
+         output: '@0@.service'.format(base_application_id),
   configuration: service_conf,
-  install_dir: get_option('datadir') / 'dbus-1' / 'services'
+    install_dir: get_option('datadir') / 'dbus-1' / 'services'
 )
 
 subdir('icons')
