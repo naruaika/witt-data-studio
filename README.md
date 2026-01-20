@@ -74,7 +74,7 @@ To override some environment variables or to add command-line arguments to the a
 
 ```txt
 #!/bin/bash
-__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia GTK_DEBUG= WDS_DEBUG= POLARS_VERBOSE= /app/bin/witt-data-studio "~/Datasets/AnimeQuotes.csv" "$@"
+__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia GTK_DEBUG= WDS_DEBUG= POLARS_VERBOSE= /app/bin/witt-data-studio "$@"
 ```
 
 With `debugpy` in Visual Studio Code, you'll need to setup `.vscode/launch.json` for example:
