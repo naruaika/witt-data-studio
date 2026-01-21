@@ -1,5 +1,11 @@
+desktop_file = configure_file(
+          input: '@0@.desktop.in'.format(base_application_id),
+         output: '@0@.desktop.in'.format(base_application_id),
+  configuration: base_conf,
+)
+
 desktop_file = i18n.merge_file(
-        input: '@0@.desktop.in'.format(base_application_id),
+        input: desktop_file,
        output: '@0@.desktop'.format(base_application_id),
          type: 'desktop',
        po_dir: '../po',
@@ -12,6 +18,11 @@ if desktop_utils.found()
   test('Validate desktop file', desktop_utils, args: [desktop_file])
 endif
 
+appstream_file = configure_file(
+          input: '@0@.metainfo.xml.in'.format(base_application_id),
+         output: '@0@.metainfo.xml.in'.format(base_application_id),
+  configuration: base_conf,
+)
 appstream_file = i18n.merge_file(
         input: '@0@.metainfo.xml.in'.format(base_application_id),
        output: '@0@.metainfo.xml'.format(base_application_id),

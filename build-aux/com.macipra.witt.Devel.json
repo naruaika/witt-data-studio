@@ -45,8 +45,6 @@
         "python3-fastexcel-aarch64.json",
         "python3-fastexcel-x86_64.json",
         "python3-witt-strutil-devel.json",
-        "python3-pyopengl.json",
-        "python3-pyopengl-accelerate.json",
         {
             "name" : "witt-data-studio",
             "builddir" : true,
