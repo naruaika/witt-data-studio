@@ -340,7 +340,7 @@ class FileImportWindow(Adw.Window):
                 viewer = node
                 break
         if not viewer:
-            x_position = (canvas_width - viewport_width) / 2
+            x_position = (canvas_width  - viewport_width)  / 2
             y_position = (canvas_height - viewport_height) / 2
             viewer = NodeViewer.new(x_position + (viewport_width  - 175) / 2 + 50,
                                     y_position + (viewport_height - 100) / 2)

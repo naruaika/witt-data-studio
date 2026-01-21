@@ -63,12 +63,13 @@ class NodeEditorGroup():
 
 
 @Gtk.Template(resource_path = '/com/macipra/witt/node/editor.ui')
-class NodeEditor(Gtk.Box):
+class NodeEditor(Gtk.Overlay):
 
     __gtype_name__ = 'NodeEditor'
 
     ScrolledWindow = Gtk.Template.Child()
     Canvas         = Gtk.Template.Child()
+    Minimap        = Gtk.Template.Child()
 
     ICON_NAME     = 'user-home-symbolic'
     ACTION_PREFIX = 'node'
@@ -107,8 +108,8 @@ class NodeEditor(Gtk.Box):
         self._prev_dark = style_manager.get_dark()
         self._curr_dark = self._prev_dark
 
-        self._cursor_x_position = 0
-        self._cursor_y_position = 0
+        self._cursor_x_position: float = 0
+        self._cursor_y_position: float = 0
 
         self._grid_texture = None
 
@@ -143,11 +144,14 @@ class NodeEditor(Gtk.Box):
 
     def refresh_ui(self) -> None:
         """"""
-        from ..window import Window
         window = self.get_root()
+
+        from ..window import Window
         if isinstance(window, Window):
             if self == window.get_selected_editor():
                 window.Toolbar.populate()
+
+        self.queue_draw()
 
     def do(self,
            action: Action,
@@ -169,11 +173,12 @@ class NodeEditor(Gtk.Box):
 
     def queue_draw(self) -> None:
         """"""
-        pass
+        self.Minimap.queue_draw()
 
     def queue_resize(self) -> None:
         """"""
         Gtk.Widget.queue_resize(self)
+        self.queue_draw()
 
     def get_command_list(self) -> list[dict]:
         """"""
@@ -203,78 +208,6 @@ class NodeEditor(Gtk.Box):
             command_list.append(command)
 
         return command_list
-
-    def _draw_grid(self,
-                   snapshot: Gtk.Snapshot,
-                   ) ->      None:
-        """"""
-        vadjustment = self.ScrolledWindow.get_vadjustment()
-        hadjustment = self.ScrolledWindow.get_hadjustment()
-        scroll_y_position = vadjustment.get_value()
-        scroll_x_position = hadjustment.get_value()
-
-        width = self.get_width()
-        height = self.get_height()
-
-        minor_step = 25
-        major_step = minor_step * 5
-
-        def do_draw() -> None:
-            """"""
-            y = -(scroll_y_position % major_step)
-            while y <= height:
-                x = -(scroll_x_position % major_step)
-                while x <= width:
-                    bounds = Graphene.Rect().init(x, y, major_step, major_step)
-                    snapshot.append_texture(self._grid_texture, bounds)
-                    x += major_step
-                y += major_step
-
-        has_texture = self._grid_texture is not None
-        zoom_changed = self._prev_zoom == self._curr_zoom
-        style_changed = self._prev_dark == self._curr_dark
-        if has_texture and zoom_changed and style_changed:
-            do_draw()
-            return
-
-        self._prev_zoom = self._curr_zoom
-        self._prev_dark = self._curr_dark
-
-        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, major_step, major_step)
-        context = cairo.Context(surface)
-        context.set_antialias(cairo.Antialias.NONE)
-
-        if self._curr_dark:
-            color = (0.25, 0.25, 0.25, 1.0)
-        else:
-            color = (0.85, 0.85, 0.85, 1.0)
-        context.set_source_rgba(*color)
-
-        y = 0.0
-        while y <= major_step:
-            x = 0.0
-            while x <= major_step:
-                context.arc(x, y, 1.0, 0, 2 * math.pi)
-                context.fill()
-                if (
-                    y % major_step == 0 and
-                    x % major_step == 0
-                ):
-                    context.arc(x, y, 2.0, 0, 2 * math.pi)
-                    context.fill()
-                x += minor_step
-            y += minor_step
-
-        pixbuf = GdkPixbuf.Pixbuf.new_from_data(data            = surface.get_data(),
-                                                colorspace      = GdkPixbuf.Colorspace.RGB,
-                                                has_alpha       = True,
-                                                bits_per_sample = 8,
-                                                width           = major_step,
-                                                height          = major_step,
-                                                rowstride       = surface.get_stride())
-        self._grid_texture = Gdk.Texture.new_for_pixbuf(pixbuf)
-
-        do_draw()
 
     def _setup_actions(self) -> None:
         """"""
@@ -380,15 +313,15 @@ class NodeEditor(Gtk.Box):
                 'context':     context,
             })
 
-        create_command('duplicate',             f"{_('Selection')}: {_('Duplicate Node(s)')}",
+        create_command('duplicate',             f"{_('Clipboard')}: {_('Duplicate Node(s)')}",
                                                 shortcuts = ['<Primary>d'],
                                                 context   = 'node_focus')
-        create_command('delete',                f"{_('Selection')}: {_('Delete Node(s)')}",
+        create_command('delete',                f"{_('Clipboard')}: {_('Delete Node(s)')}",
                                                 shortcuts = ['Delete'],
                                                 context   = 'node_focus')
-        create_command('select-all',            f"{_('Selection')}: {_('Select All')}",
+        create_command('select-all',            f"{_('Clipboard')}: {_('Select All')}",
                                                 shortcuts = ['<Primary>a'])
-        create_command('select-none',           f"{_('Selection')}: {_('Select None')}",
+        create_command('select-none',           f"{_('Clipboard')}: {_('Select None')}",
                                                 shortcuts = ['<Shift><Primary>a'],
                                                 context   = 'node_focus')
 
@@ -431,6 +364,11 @@ class NodeEditor(Gtk.Box):
         controller = Gtk.EventControllerMotion()
         controller.connect('motion', self._on_motion)
         self.add_controller(controller)
+
+        vadjustment = self.ScrolledWindow.get_vadjustment()
+        hadjustment = self.ScrolledWindow.get_hadjustment()
+        hadjustment.connect('value-changed', lambda *_: self.queue_draw())
+        vadjustment.connect('value-changed', lambda *_: self.queue_draw())
 
     def _on_motion(self,
                    motion: Gtk.EventControllerMotion,
@@ -481,12 +419,13 @@ class NodeEditor(Gtk.Box):
         vadjustment.set_value(scroll_y_position)
         hadjustment.set_value(scroll_x_position)
 
-    def _scroll_to_edge_node(self) -> None:
+    def _fit_nodes_to_viewport(self) -> None:
         """"""
-        from sys import maxsize
+        # TODO: implement viewport' zoom
+        # TODO: adjust zoom to fit nodes
 
-        scroll_x_position = maxsize
-        scroll_y_position = maxsize
+        scroll_x_position = self.Canvas.get_width()
+        scroll_y_position = self.Canvas.get_height()
 
         for node in self.nodes:
             scroll_x_position = min(scroll_x_position, node.x)
@@ -524,7 +463,7 @@ class NodeEditor(Gtk.Box):
             if not self.nodes:
                 self._setup_default_nodes()
             if self._should_init_nodes:
-                self._scroll_to_edge_node()
+                self._fit_nodes_to_viewport()
 
             GLib.idle_add(self.do_collect_points)
 
@@ -547,6 +486,78 @@ class NodeEditor(Gtk.Box):
         while child:
             self.snapshot_child(child, snapshot)
             child = child.get_next_sibling()
+
+    def _draw_grid(self,
+                   snapshot: Gtk.Snapshot,
+                   ) ->      None:
+        """"""
+        vadjustment = self.ScrolledWindow.get_vadjustment()
+        hadjustment = self.ScrolledWindow.get_hadjustment()
+        scroll_y_position = vadjustment.get_value()
+        scroll_x_position = hadjustment.get_value()
+
+        width = self.get_width()
+        height = self.get_height()
+
+        minor_step = 25
+        major_step = minor_step * 5
+
+        def do_draw() -> None:
+            """"""
+            y = -(scroll_y_position % major_step)
+            while y <= height:
+                x = -(scroll_x_position % major_step)
+                while x <= width:
+                    bounds = Graphene.Rect().init(x, y, major_step, major_step)
+                    snapshot.append_texture(self._grid_texture, bounds)
+                    x += major_step
+                y += major_step
+
+        has_texture = self._grid_texture is not None
+        zoom_changed = self._prev_zoom == self._curr_zoom
+        style_changed = self._prev_dark == self._curr_dark
+        if has_texture and zoom_changed and style_changed:
+            do_draw()
+            return
+
+        self._prev_zoom = self._curr_zoom
+        self._prev_dark = self._curr_dark
+
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, major_step, major_step)
+        context = cairo.Context(surface)
+        context.set_antialias(cairo.Antialias.NONE)
+
+        if self._curr_dark:
+            color = (0.25, 0.25, 0.25, 1.0)
+        else:
+            color = (0.85, 0.85, 0.85, 1.0)
+        context.set_source_rgba(*color)
+
+        y = 0.0
+        while y <= major_step:
+            x = 0.0
+            while x <= major_step:
+                context.arc(x, y, 1.0, 0, 2 * math.pi)
+                context.fill()
+                if (
+                    y % major_step == 0 and
+                    x % major_step == 0
+                ):
+                    context.arc(x, y, 2.0, 0, 2 * math.pi)
+                    context.fill()
+                x += minor_step
+            y += minor_step
+
+        pixbuf = GdkPixbuf.Pixbuf.new_from_data(data            = surface.get_data(),
+                                                colorspace      = GdkPixbuf.Colorspace.RGB,
+                                                has_alpha       = True,
+                                                bits_per_sample = 8,
+                                                width           = major_step,
+                                                height          = major_step,
+                                                rowstride       = surface.get_stride())
+        self._grid_texture = Gdk.Texture.new_for_pixbuf(pixbuf)
+
+        do_draw()
 
     def do_close_page(self,
                       tab_page: Adw.TabPage,
@@ -613,6 +624,8 @@ class NodeEditor(Gtk.Box):
 
         GLib.idle_add(self.do_collect_points, self.selected_nodes)
 
+        self.queue_draw()
+
     def _on_delete_action(self,
                           action:    Gio.SimpleAction,
                           parameter: GLib.Variant,
@@ -641,6 +654,8 @@ class NodeEditor(Gtk.Box):
 
         GLib.idle_add(self.do_collect_points)
 
+        self.queue_draw()
+
     def _on_select_all_action(self,
                               action:    Gio.SimpleAction,
                               parameter: GLib.Variant,
@@ -655,6 +670,8 @@ class NodeEditor(Gtk.Box):
             if isinstance(node.parent, NodeViewer):
                 self.select_viewer(node)
 
+        self.queue_draw()
+
     def _on_select_none_action(self,
                                action:    Gio.SimpleAction,
                                parameter: GLib.Variant,
@@ -662,6 +679,8 @@ class NodeEditor(Gtk.Box):
         """"""
         for node in self.nodes:
             node.unselect()
+
+        self.queue_draw()
 
     def create_node(self,
                     name: 'str',
@@ -694,6 +713,8 @@ class NodeEditor(Gtk.Box):
         # by a proper timing in which can't be
         # sure to always works.
 
+        self.queue_draw()
+
     def select_viewer(self,
                       target: 'NodeFrame',
                       ) ->    'None':
@@ -708,6 +729,8 @@ class NodeEditor(Gtk.Box):
                 node.set_active(False)
 
         # TODO: update window.TabView
+
+        self.queue_draw()
 
     def add_link(self,
                  socket1: 'NodeSocket',
@@ -737,6 +760,8 @@ class NodeEditor(Gtk.Box):
 
         nodes = [socket1.Frame, socket2.Frame]
         GLib.idle_add(self.do_collect_points, nodes)
+
+        self.queue_draw()
 
     def collect_points(self) -> None:
         """"""
@@ -873,6 +898,8 @@ class NodeEditor(Gtk.Box):
             node.y = int(min(max(0, node.y + offset_y), node._max_y))
             self.Canvas.move(node, node.x, node.y)
 
+        self.queue_draw()
+
     def end_move_selections(self) -> None:
         """"""
         for node in self.selected_nodes:
@@ -880,6 +907,8 @@ class NodeEditor(Gtk.Box):
         self.collect_points()
 
         gc.collect()
+
+        self.queue_draw()
 
     def select_by_click(self,
                         node:  'NodeFrame' = None,

@@ -109,6 +109,14 @@
 }
 .node-body expander-widget title {
     min-height: 28px;
+    margin-left: -10px;
+    margin-right: -10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 0;
+}
+.node-body expander-widget title:only-child:hover {
+    background-color: color-mix(in srgb, currentColor 5%, transparent);
 }
 .node-body expander-widget title + * {
     padding-bottom: 5px;

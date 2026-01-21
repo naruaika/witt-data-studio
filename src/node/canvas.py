@@ -31,9 +31,6 @@ class NodeCanvas(Gtk.Fixed):
         """"""
         super().__init__()
 
-        self.set_size_request(16_384, 16_384)
-        self.add_css_class('node-canvas')
-
         self._setup_controllers()
 
     def do_snapshot(self,

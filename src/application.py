@@ -145,6 +145,7 @@ class Application(Adw.Application):
 
         from .toolbar import Toolbar
         from .node.canvas import NodeCanvas
+        from .node.minimap import NodeMinimap
         from .sheet.canvas import SheetCanvas
 
         GObject.type_register(GtkSource.View)
@@ -152,6 +153,7 @@ class Application(Adw.Application):
 
         GObject.type_register(Toolbar)
         GObject.type_register(NodeCanvas)
+        GObject.type_register(NodeMinimap)
         GObject.type_register(SheetCanvas)
 
         Config.set_tbl_width_chars(-1)

@@ -1,1 +1,5 @@
 @import url('resource://com/macipra/witt/toolbar.css');
+
+.mtoolbar-view {
+    background-color: var(--headerbar-bg-color);
+}

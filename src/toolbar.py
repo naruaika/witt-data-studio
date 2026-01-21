@@ -59,14 +59,10 @@ class Toolbar(Gtk.Box):
     NewViewerButton          = Gtk.Template.Child()
     NewConstantsButton       = Gtk.Template.Child()
 
-    SelectionSection         = Gtk.Template.Child()
+    ClipboardSection         = Gtk.Template.Child()
     PasteButton              = Gtk.Template.Child()
     CutButton                = Gtk.Template.Child()
     CopyButton               = Gtk.Template.Child()
-    DuplicateButton          = Gtk.Template.Child()
-    DeleteButton             = Gtk.Template.Child()
-    SelectAllButton          = Gtk.Template.Child()
-    SelectNoneButton         = Gtk.Template.Child()
 
 #   ExecutionSection         = Gtk.Template.Child()
 #   AutoRunButton            = Gtk.Template.Child()
@@ -306,7 +302,7 @@ class Toolbar(Gtk.Box):
                         ],
                     ),
                     (
-                        self.SelectionSection,
+                        self.ClipboardSection,
                         (
                             NodeEditor,
                             ChartEditor,
@@ -335,34 +331,6 @@ class Toolbar(Gtk.Box):
                                     NodeEditor,
                                     ChartEditor,
                                     SheetEditor,
-                                ),
-                            ),
-                            (
-                                self.DuplicateButton,
-                                (
-                                    NodeEditor,
-                                    ChartEditor,
-                                    SheetEditor,
-                                ),
-                            ),
-                            (
-                                self.DeleteButton,
-                                (
-                                    NodeEditor,
-                                    ChartEditor,
-                                    SheetEditor,
-                                ),
-                            ),
-                            (
-                                self.SelectAllButton,
-                                (
-                                    NodeEditor,
-                                ),
-                            ),
-                            (
-                                self.SelectNoneButton,
-                                (
-                                    NodeEditor,
                                 ),
                             ),
                         ],

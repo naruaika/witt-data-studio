@@ -82,6 +82,146 @@
                     <property name="orientation">horizontal</property>
                     <property name="spacing">6</property>
 
+                    <!-- Clipboard Section -->
+                    <child>
+                      <object class="GtkBox" id="ClipboardSection">
+                        <property name="name">clipboard</property>
+                        <property name="orientation">horizontal</property>
+                        <property name="spacing">6</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <property name="vexpand">false</property>
+                            <property name="halign">start</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkGrid">
+                                <property name="vexpand">true</property>
+                                <child>
+                                  <object class="GtkButton" id="PasteButton">
+                                    <property name="name">paste</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Paste</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'paste'</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">vertical</property>
+                                        <property name="homogeneous">true</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-paste-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Paste</property>
+                                            <property name="vexpand">true</property>
+                                            <property name="valign">start</property>
+                                            <property name="lines">2</property>
+                                            <property name="wrap">true</property>
+                                            <property name="justify">center</property>
+                                            <property name="max-width-chars">0</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">0</property>
+                                      <property name="row">0</property>
+                                      <property name="row-span">2</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkButton" id="CutButton">
+                                    <property name="name">cut</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Cut</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'cut'</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">horizontal</property>
+                                        <property name="spacing">6</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-cut-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Cut</property>
+                                            <property name="vexpand">true</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">1</property>
+                                      <property name="row">0</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkButton" id="CopyButton">
+                                    <property name="name">copy</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Copy</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'copy'</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">horizontal</property>
+                                        <property name="spacing">6</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-copy-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Copy</property>
+                                            <property name="vexpand">true</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">1</property>
+                                      <property name="row">1</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Clipboard</property>
+                                <style>
+                                  <class name="caption"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSeparator">
+                            <property name="orientation">vertical</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
                     <!-- Input & Output Section -->
                     <child>
                       <object class="GtkBox" id="InputOutputSection">
@@ -572,7 +712,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Ascending</property>
+                                            <property name="label" translatable="yes">A-Z</property>
                                             <property name="vexpand">true</property>
                                           </object>
                                         </child>
@@ -605,7 +745,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Descending</property>
+                                            <property name="label" translatable="yes">Z-A</property>
                                             <property name="vexpand">true</property>
                                           </object>
                                         </child>
@@ -842,278 +982,6 @@
                             <child>
                               <object class="GtkLabel">
                                 <property name="label" translatable="yes">Workflow</property>
-                                <style>
-                                  <class name="caption"/>
-                                </style>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkSeparator">
-                            <property name="orientation">vertical</property>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-
-                    <!-- Selection Section -->
-                    <child>
-                      <object class="GtkBox" id="SelectionSection">
-                        <property name="name">selection</property>
-                        <property name="orientation">horizontal</property>
-                        <property name="spacing">6</property>
-                        <child>
-                          <object class="GtkBox">
-                            <property name="orientation">vertical</property>
-                            <property name="vexpand">false</property>
-                            <property name="halign">start</property>
-                            <property name="spacing">6</property>
-                            <child>
-                              <object class="GtkGrid">
-                                <property name="vexpand">true</property>
-                                <child>
-                                  <object class="GtkButton" id="PasteButton">
-                                    <property name="name">paste</property>
-                                    <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Paste</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'paste'</property>
-                                    <child>
-                                      <object class="GtkBox">
-                                        <property name="orientation">vertical</property>
-                                        <property name="homogeneous">true</property>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="icon-name">xxx-paste-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Paste</property>
-                                            <property name="vexpand">true</property>
-                                            <property name="valign">start</property>
-                                            <property name="lines">2</property>
-                                            <property name="wrap">true</property>
-                                            <property name="justify">center</property>
-                                            <property name="max-width-chars">0</property>
-                                          </object>
-                                        </child>
-                                      </object>
-                                    </child>
-                                    <layout>
-                                      <property name="column">0</property>
-                                      <property name="row">0</property>
-                                      <property name="row-span">2</property>
-                                    </layout>
-                                    <style>
-                                      <class name="flat"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkButton" id="CutButton">
-                                    <property name="name">cut</property>
-                                    <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Cut</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'cut'</property>
-                                    <child>
-                                      <object class="GtkBox">
-                                        <property name="orientation">horizontal</property>
-                                        <property name="spacing">6</property>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="icon-name">xxx-cut-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Cut</property>
-                                            <property name="vexpand">true</property>
-                                          </object>
-                                        </child>
-                                      </object>
-                                    </child>
-                                    <layout>
-                                      <property name="column">1</property>
-                                      <property name="row">0</property>
-                                    </layout>
-                                    <style>
-                                      <class name="flat"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkButton" id="CopyButton">
-                                    <property name="name">copy</property>
-                                    <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Copy</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'copy'</property>
-                                    <child>
-                                      <object class="GtkBox">
-                                        <property name="orientation">horizontal</property>
-                                        <property name="spacing">6</property>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="icon-name">xxx-copy-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Copy</property>
-                                            <property name="vexpand">true</property>
-                                          </object>
-                                        </child>
-                                      </object>
-                                    </child>
-                                    <layout>
-                                      <property name="column">1</property>
-                                      <property name="row">1</property>
-                                    </layout>
-                                    <style>
-                                      <class name="flat"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkButton" id="DuplicateButton">
-                                    <property name="name">duplicate</property>
-                                    <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Duplicate</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'duplicate'</property>
-                                    <child>
-                                      <object class="GtkBox">
-                                        <property name="orientation">horizontal</property>
-                                        <property name="spacing">6</property>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="icon-name">xxx-replicate-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Duplicate</property>
-                                            <property name="vexpand">true</property>
-                                          </object>
-                                        </child>
-                                      </object>
-                                    </child>
-                                    <layout>
-                                      <property name="column">2</property>
-                                      <property name="row">0</property>
-                                    </layout>
-                                    <style>
-                                      <class name="flat"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkButton" id="DeleteButton">
-                                    <property name="name">delete</property>
-                                    <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Delete</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'delete'</property>
-                                    <child>
-                                      <object class="GtkBox">
-                                        <property name="orientation">horizontal</property>
-                                        <property name="spacing">6</property>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="icon-name">xxx-trash-can-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Delete</property>
-                                            <property name="vexpand">true</property>
-                                          </object>
-                                        </child>
-                                      </object>
-                                    </child>
-                                    <layout>
-                                      <property name="column">2</property>
-                                      <property name="row">1</property>
-                                    </layout>
-                                    <style>
-                                      <class name="flat"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkButton" id="SelectAllButton">
-                                    <property name="name">select-all</property>
-                                    <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Select All</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'select-all'</property>
-                                    <child>
-                                      <object class="GtkBox">
-                                        <property name="orientation">horizontal</property>
-                                        <property name="spacing">6</property>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="icon-name">xxx-select-02-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Select All</property>
-                                            <property name="vexpand">true</property>
-                                          </object>
-                                        </child>
-                                      </object>
-                                    </child>
-                                    <layout>
-                                      <property name="column">3</property>
-                                      <property name="row">0</property>
-                                    </layout>
-                                    <style>
-                                      <class name="flat"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkButton" id="SelectNoneButton">
-                                    <property name="name">select-none</property>
-                                    <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Select None</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'select-none'</property>
-                                    <child>
-                                      <object class="GtkBox">
-                                        <property name="orientation">horizontal</property>
-                                        <property name="spacing">6</property>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="icon-name">xxx-select-01-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Select None</property>
-                                            <property name="vexpand">true</property>
-                                          </object>
-                                        </child>
-                                      </object>
-                                    </child>
-                                    <layout>
-                                      <property name="column">3</property>
-                                      <property name="row">1</property>
-                                    </layout>
-                                    <style>
-                                      <class name="flat"/>
-                                    </style>
-                                  </object>
-                                </child>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkLabel">
-                                <property name="label" translatable="yes">Selection</property>
                                 <style>
                                   <class name="caption"/>
                                 </style>

@@ -66,6 +66,7 @@ node_sources = [
   'node/editor.py',
   'node/frame.py',
   'node/link.py',
+  'node/minimap.py',
   'node/repository.py',
   'node/socket.py',
   'node/widget.py',

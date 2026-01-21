@@ -31,7 +31,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                             _('Select one or more columns to keep'),
                         ],
                         'list-check',
-                        '$all-columns:checked',
+                        '$all-columns',
                     ),
                 ],
             )
