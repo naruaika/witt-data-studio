@@ -25,3 +25,6 @@ jobs:
         manifest-path: build-aux/com.macipra.witt.json
         cache-key: flatpak-builder-${{ github.sha }}
         verbose: true
+    - name: Validate AppStream
+      run: |
+        flatpak run --command=appstreamcli org.flatpak.Builder validate /app/share/metainfo/com.macipra.witt.metainfo.xml
