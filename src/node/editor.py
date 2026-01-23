@@ -34,6 +34,7 @@ import gc
 import math
 
 from ..core.action import Action
+from ..core.history import History
 
 Point2D:  TypeAlias = tuple[float, float]
 Scalar2D: TypeAlias = tuple[Point2D, Point2D]
@@ -101,23 +102,27 @@ class NodeEditor(Gtk.Overlay):
         self.selected_nodes: 'list'['NodeFrame'] = []
         self.removed_socket: 'NodeSocket'        = None
 
-        self._prev_zoom: float = 1.0
-        self._curr_zoom: float = 1.0
+        self.history = History('global')
+
+        self._prev_zoom = 1.0
+        self._curr_zoom = 1.0
 
         style_manager   = Adw.StyleManager.get_default()
         self._prev_dark = style_manager.get_dark()
         self._curr_dark = self._prev_dark
 
-        self._cursor_x_position: float = 0
-        self._cursor_y_position: float = 0
+        self._dots_grid_texture = None
 
-        self._grid_texture = None
+        self._cursor_x_position = 0
+        self._cursor_y_position = 0
 
-        self.is_managing_nodes = False # to group actions
-                                       # for undo/redo op
+        self._origin_x_position = 0
+        self._origin_y_position = 0
 
         self._editor_init_setup = False
         self._should_init_nodes = len(nodes) > 0
+
+        self.history.freezing = True
 
         for node in nodes:
             self.add_node(node)
@@ -128,6 +133,8 @@ class NodeEditor(Gtk.Overlay):
             if link.out_socket.Frame not in nodes:
                 continue
             self.links.append(link)
+
+        self.history.freezing = False
 
         self._setup_actions()
         self._setup_commands()
@@ -157,14 +164,26 @@ class NodeEditor(Gtk.Overlay):
            action: Action,
            ) ->    bool:
         """"""
+        if self.history.do(action):
+            self.refresh_ui()
+            self.grab_focus()
+            return True
         return False
 
     def undo(self) -> bool:
         """"""
+        if actions := self.history.undo():
+            self.refresh_ui()
+            self.grab_focus()
+            return True
         return False
 
     def redo(self) -> bool:
         """"""
+        if actions := self.history.redo():
+            self.refresh_ui()
+            self.grab_focus()
+            return True
         return False
 
     def cleanup(self) -> None:
@@ -173,6 +192,7 @@ class NodeEditor(Gtk.Overlay):
 
     def queue_draw(self) -> None:
         """"""
+        self.Canvas.queue_draw()
         self.Minimap.queue_draw()
 
     def queue_resize(self) -> None:
@@ -404,15 +424,19 @@ class NodeEditor(Gtk.Overlay):
         y_position = scroll_y_position + (viewport_height - 111) / 2
         # This is only an estimate and it is no required to be near accurate
 
-        frame1 = NodeViewer.new(x_position + offset, y_position)
-        frame2 = NodeSheet.new(x_position - offset, y_position)
+        viewer = NodeViewer.new(x_position + offset, y_position)
+        sheet = NodeSheet.new(x_position - offset, y_position)
 
-        in_socket = frame2.contents[0].Socket
-        out_socket = frame1.contents[-1].Socket
+        in_socket = sheet.contents[0].Socket
+        out_socket = viewer.contents[-1].Socket
 
-        self.add_node(frame1)
-        self.add_node(frame2)
+        self.history.grouping = True
+
+        self.add_node(viewer)
+        self.add_node(sheet)
         self.add_link(in_socket, out_socket)
+
+        self.history.grouping = False
 
         vadjustment = self.ScrolledWindow.get_vadjustment()
         hadjustment = self.ScrolledWindow.get_hadjustment()
@@ -460,18 +484,18 @@ class NodeEditor(Gtk.Overlay):
             if not window.TabView.get_width():
                 return Gdk.EVENT_STOP
 
-            if not self.nodes:
-                self._setup_default_nodes()
-            if self._should_init_nodes:
-                self._fit_nodes_to_viewport()
+            if not self._editor_init_setup:
+                if not self.nodes:
+                    self._setup_default_nodes()
+                if self._should_init_nodes:
+                    self._fit_nodes_to_viewport()
+                self._editor_init_setup = True
 
             GLib.idle_add(self.do_collect_points)
 
             return Gdk.EVENT_PROPAGATE
 
-        if not self._editor_init_setup:
-            GLib.idle_add(do_init_setup)
-            self._editor_init_setup = True
+        GLib.idle_add(do_init_setup)
 
     def do_snapshot(self,
                     snapshot: Gtk.Snapshot,
@@ -480,16 +504,16 @@ class NodeEditor(Gtk.Overlay):
         self._style_manager = Adw.StyleManager.get_default()
         self._curr_dark = self._style_manager.get_dark()
 
-        self._draw_grid(snapshot)
+        self._draw_dots_grid(snapshot)
 
         child = self.get_first_child()
         while child:
             self.snapshot_child(child, snapshot)
             child = child.get_next_sibling()
 
-    def _draw_grid(self,
-                   snapshot: Gtk.Snapshot,
-                   ) ->      None:
+    def _draw_dots_grid(self,
+                        snapshot: Gtk.Snapshot,
+                        ) ->      None:
         """"""
         vadjustment = self.ScrolledWindow.get_vadjustment()
         hadjustment = self.ScrolledWindow.get_hadjustment()
@@ -509,11 +533,11 @@ class NodeEditor(Gtk.Overlay):
                 x = -(scroll_x_position % major_step)
                 while x <= width:
                     bounds = Graphene.Rect().init(x, y, major_step, major_step)
-                    snapshot.append_texture(self._grid_texture, bounds)
+                    snapshot.append_texture(self._dots_grid_texture, bounds)
                     x += major_step
                 y += major_step
 
-        has_texture = self._grid_texture is not None
+        has_texture = self._dots_grid_texture is not None
         zoom_changed = self._prev_zoom == self._curr_zoom
         style_changed = self._prev_dark == self._curr_dark
         if has_texture and zoom_changed and style_changed:
@@ -555,7 +579,7 @@ class NodeEditor(Gtk.Overlay):
                                                 width           = major_step,
                                                 height          = major_step,
                                                 rowstride       = surface.get_stride())
-        self._grid_texture = Gdk.Texture.new_for_pixbuf(pixbuf)
+        self._dots_grid_texture = Gdk.Texture.new_for_pixbuf(pixbuf)
 
         do_draw()
 
@@ -602,59 +626,49 @@ class NodeEditor(Gtk.Overlay):
         node = self.create_node(name,
                                 scroll_x_position + 50,#self._cursor_x_position
                                 scroll_y_position + 50)#self._cursor_y_position
+
         if node:
+            self.history.grouping = True
             self.add_node(node)
             self.select_by_click(node)
+            self.history.grouping = False
 
     def _on_duplicate_action(self,
                              action:    Gio.SimpleAction,
                              parameter: GLib.Variant,
                              ) ->       None:
         """"""
+        if not self.selected_nodes:
+            return
+
+        self.history.grouping = True
+
         selected = copy(self.selected_nodes)
 
-        # TODO: retain the connection within cloned nodes
+        self.select_by_click()
 
         for node in selected:
             cloned = node.parent.clone()
-            self.Canvas.put(cloned, cloned.x, cloned.y)
-            self.nodes.append(cloned)
-            node.unselect()
-            cloned.select()
+            self.add_node(cloned)
+            self.select_by_click(cloned, True)
+
+        # TODO: retain the links between cloned nodes
+
+        self.history.grouping = False
 
         GLib.idle_add(self.do_collect_points, self.selected_nodes)
-
-        self.queue_draw()
 
     def _on_delete_action(self,
                           action:    Gio.SimpleAction,
                           parameter: GLib.Variant,
                           ) ->       None:
         """"""
-        while self.selected_nodes:
-            node = self.selected_nodes[0]
-            self.selected_nodes.remove(node)
-            self.nodes.remove(node)
-            for content in node.contents:
-                if not content.Socket:
-                    continue
-                for link in content.Socket.links:
-                    self.links.remove(link)
-                    if link.in_socket.auto_remove:
-                        content = link.in_socket.Content
-                        content.do_remove(content)
-                    if link.out_socket.auto_remove:
-                        content = link.out_socket.Content
-                        content.do_remove(content)
-                    link.unlink()
-            node.unparent()
-            del node
+        if not self.selected_nodes:
+            return
 
-        gc.collect()
-
-        GLib.idle_add(self.do_collect_points)
-
-        self.queue_draw()
+        from .action import ActionDeleteNode
+        action = ActionDeleteNode(self, self.selected_nodes)
+        self.do(action)
 
     def _on_select_all_action(self,
                               action:    Gio.SimpleAction,
@@ -663,24 +677,24 @@ class NodeEditor(Gtk.Overlay):
         """"""
         from .repository import NodeViewer
 
-        self.selected_nodes.clear()
+        self.history.grouping = True
+
+        self.select_by_click()
 
         for node in self.nodes:
-            node.select()
+            self.select_by_click(node, True)
+
             if isinstance(node.parent, NodeViewer):
                 self.select_viewer(node)
 
-        self.queue_draw()
+        self.history.grouping = False
 
     def _on_select_none_action(self,
                                action:    Gio.SimpleAction,
                                parameter: GLib.Variant,
                                ) ->       None:
         """"""
-        for node in self.nodes:
-            node.unselect()
-
-        self.queue_draw()
+        self.select_by_click()
 
     def create_node(self,
                     name: 'str',
@@ -693,75 +707,20 @@ class NodeEditor(Gtk.Overlay):
 
     def add_node(self,
                  node: 'NodeFrame',
-                 ) ->  'None':
+                 ) ->  'bool':
         """"""
-        self.Canvas.put(node, node.x, node.y)
-        self.nodes.append(node)
-
-        from .repository import NodeViewer
-        if isinstance(node.parent, NodeViewer):
-            self.select_viewer(node)
-
-        GLib.idle_add(self.do_collect_points, [node])
-
-        # TODO: scroll to the newly added node
-        # if the editor is in view, especially
-        # if that node is automatically linked
-        # and arranged (not at random places).
-        # Calling Gtk.Viewport.scroll_to() did
-        # not solve the problem unless delayed
-        # by a proper timing in which can't be
-        # sure to always works.
-
-        self.queue_draw()
-
-    def select_viewer(self,
-                      target: 'NodeFrame',
-                      ) ->    'None':
-        """"""
-        from .repository import NodeViewer
-
-        for node in self.nodes:
-            if node == target:
-                node.set_active(True)
-                continue
-            if isinstance(node.parent, NodeViewer):
-                node.set_active(False)
-
-        # TODO: update window.TabView
-
-        self.queue_draw()
+        from .action import ActionAddNode
+        action = ActionAddNode(self, [node])
+        return self.do(action)
 
     def add_link(self,
                  socket1: 'NodeSocket',
                  socket2: 'NodeSocket',
-                 ) ->     'None':
+                 ) ->     'bool':
         """"""
-        # Make sure the first socket is from a node output
-        if socket1.is_input():
-            socket1, socket2 = socket2, socket1
-
-        # Skip if there's already a link between the two sockets
-        for link in self.links:
-            if link.in_socket == socket1 and link.out_socket == socket2:
-                return
-
-        # Unlink the target socket from a linkage if there's any
-        # since it doesn't make sense to have multiple inputs.
-        # Meanwhile, it makes sense to have multiple outputs from
-        # a single socket from any node.
-        if socket2.links:
-            link = socket2.links[0]
-            self.links.remove(link)
-            link.unlink()
-
-        link = NodeLink(socket1, socket2)
-        self.links.append(link)
-
-        nodes = [socket1.Frame, socket2.Frame]
-        GLib.idle_add(self.do_collect_points, nodes)
-
-        self.queue_draw()
+        from .action import ActionAddLink
+        action = ActionAddLink(self, socket1, socket2)
+        return self.do(action)
 
     def collect_points(self) -> None:
         """"""
@@ -876,26 +835,34 @@ class NodeEditor(Gtk.Overlay):
 
     def begin_move_selections(self) -> None:
         """"""
-        canvas_width = self.Canvas.get_width()
+        canvas_width  = self.Canvas.get_width()
         canvas_height = self.Canvas.get_height()
 
         # Calculate maximum position to prevent the nodes
         # from go beyond the canvas boundaries which will
         # make them no longer accessible
         for node in self.selected_nodes:
-            node_width = node.get_width()
+            node_width  = node.get_width()
             node_height = node.get_height()
-            node._max_x = canvas_width - node_width
+            node._max_x = canvas_width  - node_width
             node._max_y = canvas_height - node_height
+            node._old_x = node.x
+            node._old_y = node.y
+
+        self._origin_x_position = self._cursor_x_position
+        self._origin_y_position = self._cursor_y_position
 
     def update_move_selections(self,
                                offset_x: float,
                                offset_y: float,
                                ) ->      None:
         """"""
+        offset_x = self._cursor_x_position - self._origin_x_position
+        offset_y = self._cursor_y_position - self._origin_y_position
+
         for node in self.selected_nodes:
-            node.x = int(min(max(0, node.x + offset_x), node._max_x))
-            node.y = int(min(max(0, node.y + offset_y), node._max_y))
+            node.x = int(min(max(0, node._old_x + offset_x), node._max_x))
+            node.y = int(min(max(0, node._old_y + offset_y), node._max_y))
             self.Canvas.move(node, node.x, node.y)
 
         self.queue_draw()
@@ -903,79 +870,45 @@ class NodeEditor(Gtk.Overlay):
     def end_move_selections(self) -> None:
         """"""
         for node in self.selected_nodes:
-            node.compute_points()
-        self.collect_points()
+            old_position = (node._old_x, node._old_y)
+            new_position = (node.x, node.y)
+            positions = (old_position, new_position)
+            self.move_node(node, positions)
 
-        gc.collect()
+    def move_node(self,
+                  node:      'NodeFrame',
+                  positions: 'tuple',
+                  ) ->       'None':
+        """"""
+        from .action import ActionMoveNode
+        action = ActionMoveNode(self, [node], [positions])
+        self.do(action)
 
-        self.queue_draw()
+    def select_viewer(self,
+                      viewer: 'NodeFrame',
+                      ) ->    'bool':
+        """"""
+        from .action import ActionSelectViewer
+        action = ActionSelectViewer(self, viewer)
+        return self.do(action)
 
     def select_by_click(self,
                         node:  'NodeFrame' = None,
                         combo: 'bool'      = False,
-                        ) ->   'None':
+                        ) ->   'bool':
         """"""
-        from .repository import NodeViewer
-
-        self.grab_focus()
-
-        if combo:
-            node.toggle()
-            if isinstance(node.parent, NodeViewer):
-                self.select_viewer(node)
-            return
-
-        while self.selected_nodes:
-            _node = self.selected_nodes[0]
-            _node.unselect()
-
-        if node:
-            node.select()
-            if isinstance(node.parent, NodeViewer):
-                self.select_viewer(node)
-
-        self.refresh_ui()
+        from .action import ActionSelectByClick
+        action = ActionSelectByClick(self, node, combo)
+        return self.do(action)
 
     def select_by_rubberband(self,
                              combo: bool,
-                             ) ->   None:
+                             ) ->   bool:
         """"""
-        if not combo:
-            while self.selected_nodes:
-                node = self.selected_nodes[0]
-                node.unselect()
+        from .action import ActionSelectByRubberband
+        action = ActionSelectByRubberband(self, combo)
+        return self.do(action)
 
-        p1, p2 = self.rubber_band
-        x1, y1 = p1
-        x2, y2 = p2
-        sel_x = min(x1, x2)
-        sel_y = min(y1, y2)
-        sel_width = abs(x1 - x2)
-        sel_height = abs(y1 - y2)
-        sel_right = sel_x + sel_width
-        sel_bottom = sel_y + sel_height
-
-        for node in self.nodes:
-            allocation = node.get_allocation()
-            node_x = allocation.x
-            node_y = allocation.y
-            node_width = allocation.width
-            node_height = allocation.height
-            node_right = node_x + node_width
-            node_bottom = node_y + node_height
-            if (
-                sel_x      < node_right  and
-                sel_right  > node_x      and
-                sel_y      < node_bottom and
-                sel_bottom > node_y
-            ):
-                node.toggle()
-
-        self.rubber_band = None
-
-        self.refresh_ui()
-
-from .canvas import NodeCanvas
 from .frame import NodeFrame
 from .socket import NodeSocket
 from .socket import NodeSocketType

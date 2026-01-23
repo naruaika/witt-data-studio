@@ -41,6 +41,7 @@ import gc
 
 from ..core.action import Action
 from ..core.datatable import DataTable
+from ..core.history import History
 from ..node.frame import NodeFrame
 
 Row:        TypeAlias = int
@@ -102,6 +103,8 @@ class SheetEditor(Gtk.Box):
 
         self.frame = frame
 
+        self.history = History('sheet')
+
         self._setup_actions()
         self._setup_commands()
 
@@ -129,29 +132,31 @@ class SheetEditor(Gtk.Box):
             if self == window.get_selected_editor():
                 window.Toolbar.populate()
 
+        self.queue_draw(refresh = True)
+
     def do(self,
            action: Action,
            ) ->    bool:
         """"""
-        if self.document.do(action):
-            self.queue_draw(refresh = True)
+        if self.history.do(action):
             self.refresh_ui()
+            self.grab_focus()
             return True
         return False
 
     def undo(self) -> bool:
         """"""
-        if action := self.document.undo():
-            self.queue_draw(refresh = True)
+        if action := self.history.undo():
             self.refresh_ui()
+            self.grab_focus()
             return True
         return False
 
     def redo(self) -> bool:
         """"""
-        if action := self.document.redo():
-            self.queue_draw(refresh = True)
+        if action := self.history.redo():
             self.refresh_ui()
+            self.grab_focus()
             return True
         return False
 
@@ -320,19 +325,19 @@ class SheetEditor(Gtk.Box):
         create_command('remove-columns',        f"{_('Table')}: {get_title_from_layout('remove-columns')}...")
 
         create_command('keep-rows',             '$placeholder')
-        create_command('keep-top-k-rows',       f"{_('Table')}: {_('Keep Top K Rows')}...")
-        create_command('keep-bottom-k-rows',    f"{_('Table')}: {_('Keep Bottom K Rows')}...")
-        create_command('keep-first-k-rows',     f"{_('Table')}: {_('Keep First K Rows')}...")
-        create_command('keep-last-k-rows',      f"{_('Table')}: {_('Keep Last K Rows')}...")
-        create_command('keep-range-of-rows',    f"{_('Table')}: {_('Keep Range of Rows')}...")
-        create_command('keep-every-nth-rows',   f"{_('Table')}: {_('Keep Every nth Rows')}...")
-        create_command('keep-duplicate-rows',   f"{_('Table')}: {_('Keep Duplicate Rows')}...")
+        create_command('keep-top-k-rows',       f"{_('Table')}: {get_title_from_layout('keep-top-k-rows')}...")
+        create_command('keep-bottom-k-rows',    f"{_('Table')}: {get_title_from_layout('keep-bottom-k-rows')}...")
+        create_command('keep-first-k-rows',     f"{_('Table')}: {get_title_from_layout('keep-first-k-rows')}...")
+        create_command('keep-last-k-rows',      f"{_('Table')}: {get_title_from_layout('keep-last-k-rows')}...")
+        create_command('keep-range-of-rows',    f"{_('Table')}: {get_title_from_layout('keep-range-of-rows')}...")
+        create_command('keep-every-nth-rows',   f"{_('Table')}: {get_title_from_layout('keep-every-nth-rows')}...")
+        create_command('keep-duplicate-rows',   f"{_('Table')}: {get_title_from_layout('keep-duplicate-rows')}...")
 
         create_command('remove-rows',           '$placeholder')
-        create_command('remove-first-k-rows',   f"{_('Table')}: {_('Remove First K Rows')}...")
-        create_command('remove-last-k-rows',    f"{_('Table')}: {_('Remove Last K Rows')}...")
-        create_command('remove-range-of-rows',  f"{_('Table')}: {_('Remove Range of Rows')}...")
-        create_command('remove-duplicate-rows', f"{_('Table')}: {_('Remove Duplicate Rows')}...")
+        create_command('remove-first-k-rows',   f"{_('Table')}: {get_title_from_layout('remove-first-k-rows')}...")
+        create_command('remove-last-k-rows',    f"{_('Table')}: {get_title_from_layout('remove-last-k-rows')}...")
+        create_command('remove-range-of-rows',  f"{_('Table')}: {get_title_from_layout('remove-range-of-rows')}...")
+        create_command('remove-duplicate-rows', f"{_('Table')}: {get_title_from_layout('remove-duplicate-rows')}...")
 
         create_command('new-sheet',             f"{_('Create')}: {_('Sheet')}",
                                                 context = None)
@@ -593,14 +598,34 @@ class SheetEditor(Gtk.Box):
             if arg == '$column':
                 func_args[idx] = column_name
 
+        window = self.get_root()
+        editor = window.node_editor
+
+        def do_reposition(curr_node: NodeFrame,
+                          prev_node: NodeFrame) -> None:
+            """"""
+            # TODO: improve the overall placement algorithm
+            offset_x = (prev_node.get_width() or 175)
+            old_position = (curr_node.x, curr_node.y)
+            new_position = (curr_node.x - offset_x - 50, curr_node.y)
+            editor.move_node(curr_node, (old_position, new_position))
+            prev_node = curr_node
+            for content in curr_node.contents:
+                if not (socket := content.Socket):
+                    continue
+                if not socket.is_input():
+                    continue
+                for link in socket.links:
+                    curr_socket = link.in_socket
+                    curr_node = curr_socket.Frame
+                    do_reposition(curr_node, prev_node)
+                prev_node = curr_node
+
         def do_transform(func_args: list[Any] = [],
                          **kwargs:  dict,
                          ) ->       bool:
             """"""
-            window = self.get_root()
-            editor = window.node_editor
-
-            editor.is_managing_nodes = True
+            editor.history.grouping = True
 
             # Find the related node content
             contents = self.frame.contents[1:-1]
@@ -617,9 +642,6 @@ class SheetEditor(Gtk.Box):
             link = self_socket.links[0]
             pair_socket = link.in_socket
             pair_node = pair_socket.Frame
-
-            editor.links.remove(link)
-            link.unlink()
 
             # Create a new appropriate node
             x = self.frame.x - 175 - 50
@@ -640,27 +662,9 @@ class SheetEditor(Gtk.Box):
             editor.add_link(pair_socket, content.Socket)
 
             # Re-position all nodes to the left recursively
-            # TODO: improve the overall placement algorithm
-            def do_reposition(curr_node: NodeFrame,
-                              prev_node: NodeFrame) -> None:
-                """"""
-                offset_x = (prev_node.get_width() or 175)
-                curr_node.x = curr_node.x - offset_x - 50
-                editor.Canvas.move(curr_node, curr_node.x, curr_node.y)
-                prev_node = curr_node
-                for content in curr_node.contents:
-                    if not (socket := content.Socket):
-                        continue
-                    if not socket.is_input():
-                        continue
-                    for link in socket.links:
-                        curr_socket = link.in_socket
-                        curr_node = curr_socket.Frame
-                        do_reposition(curr_node, prev_node)
-                    prev_node = curr_node
             do_reposition(pair_node, transformer)
 
-            editor.is_managing_nodes = False
+            editor.history.grouping = False
 
             self.grab_focus()
 
@@ -737,7 +741,7 @@ class SheetEditor(Gtk.Box):
         window = self.get_root()
         editor = window.node_editor
 
-        editor.is_managing_nodes = True
+        editor.history.grouping = True
 
         # Find the current active viewer node
         viewer = None
@@ -760,7 +764,7 @@ class SheetEditor(Gtk.Box):
         out_socket = viewer.contents[-1].Socket
         editor.add_link(in_socket, out_socket)
 
-        editor.is_managing_nodes = False
+        editor.history.grouping = False
 
 from .canvas import SheetCanvas
 from .display import SheetDisplay

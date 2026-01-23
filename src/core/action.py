@@ -19,9 +19,14 @@
 
 class Action():
 
-    def __init__(self) -> None:
+    def __init__(self,
+                 owner: str  = 'global',
+                 flags: list = [],
+                 ) ->   None:
         """"""
-        self.flags: list[str] = []
+        self.owner = owner
+        self.flags = flags
+        self.group = None
 
     def do(self,
            undoable: bool = True,

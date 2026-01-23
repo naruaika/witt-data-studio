@@ -331,7 +331,7 @@ class FileImportWindow(Adw.Window):
         viewport_width = window.TabView.get_width()
         viewport_height = window.TabView.get_height()
 
-        editor.is_managing_nodes = True
+        editor.history.grouping = True
 
         # Find the current active or create a new viewer node
         viewer = None
@@ -379,7 +379,7 @@ class FileImportWindow(Adw.Window):
 
         window.activate_action('win.focus-editor')
 
-        editor.is_managing_nodes = False
+        editor.history.grouping = False
 
     #
     # Default UI

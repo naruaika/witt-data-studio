@@ -101,13 +101,18 @@ class NodeFrame(Adw.Bin):
         # Calculate maximum position to prevent the nodes
         # from go beyond the canvas boundaries which will
         # make them no longer accessible
+
         parent = self.get_parent()
-        frame_width = self.get_width()
-        frame_height = self.get_height()
-        parent_width = parent.get_width()
+
+        frame_width   = self.get_width()
+        frame_height  = self.get_height()
+        parent_width  = parent.get_width()
         parent_height = parent.get_height()
-        self._max_x = parent_width - frame_width
+
+        self._max_x = parent_width  - frame_width
         self._max_y = parent_height - frame_height
+        self._old_x = self.x
+        self._old_y = self.y
 
         # Prevent from triggering the released event
         gesture.set_state(Gtk.EventSequenceState.DENIED)
@@ -362,11 +367,13 @@ class NodeFrame(Adw.Bin):
     def toggle(self) -> None:
         """"""
         editor = self.get_editor()
+
         if self.has_css_class('selected'):
             self.remove_css_class('selected')
             if self in editor.selected_nodes:
                 editor.selected_nodes.remove(self)
             self.is_selected = False
+
         else:
             self.add_css_class('selected')
             if self not in editor.selected_nodes:

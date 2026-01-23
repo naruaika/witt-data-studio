@@ -17,62 +17,13 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-from collections import deque
-
-from .action import Action
-
 class Document():
-
-    # Should we move all data storage and processing
-    # to a compiled language, i.e. Rust? We discourage
-    # the users for applying expensive computation to
-    # non-tabular data. But we cannot prevent them from
-    # doing so and sometimes the users just don't aware.
-    # Flag this as TODO for now.
 
     def __init__(self,
                  title: str = 'Document',
                  ) ->   None:
         """"""
         self.title = title
-
-        self._undo_stack: deque[Action] = deque()
-        self._redo_stack: deque[Action] = deque()
-
-    def do(self,
-           action:   Action,
-           undoable: bool = True,
-           ) ->      bool:
-        """"""
-        if action.do(undoable):
-            if undoable:
-                self._undo_stack.append(action)
-                for action in self._redo_stack:
-                    action.clean()
-                self._redo_stack.clear()
-            return True
-        return False
-
-    def undo(self) -> Action:
-        """"""
-        if len(self._undo_stack) == 0:
-            return None
-        action = self._undo_stack.pop()
-        if not action.undo():
-            return None
-        action.clean()
-        self._redo_stack.append(action)
-        return action
-
-    def redo(self) -> Action:
-        """"""
-        if len(self._redo_stack) == 0:
-            return None
-        action = self._redo_stack.pop()
-        if not action.do():
-            return None
-        self._undo_stack.append(action)
-        return action
 
     def has_data(self) -> bool:
         """"""

@@ -206,7 +206,7 @@ class Application(Adw.Application):
                     content1 = node1.contents[source['content']]
                     content2 = node2.contents[target['content']]
 
-                    link = NodeLink(content1.Socket, content2.Socket)
+                    link = NodeLink(content1.Socket, content2.Socket).link()
                     links.append(link)
                 except:
                     pass # TODO: show errors to user

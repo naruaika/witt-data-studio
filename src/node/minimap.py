@@ -121,7 +121,7 @@ class NodeMinimap(Adw.Bin):
         path = builder.to_path()
 
         stroke = Gsk.Stroke(1.0)
-        color = self._style_manager.get_accent_color_rgba()
+        color = Gdk.RGBA(0.5, 0.5, 0.5, 1.0)
         snapshot.append_stroke(path, stroke, color)
 
         fill_rule = Gsk.FillRule.WINDING

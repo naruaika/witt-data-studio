@@ -117,10 +117,10 @@ class Window(Adw.ApplicationWindow):
         create_action('focus-editor',       self._on_focus_editor_action,
                                             ['Escape'])
 
-#       create_action('undo',               lambda *_: None,
-#                                           ['<Primary>z'])
-#       create_action('redo',               lambda *_: None,
-#                                           ['<Shift><Primary>z'])
+        create_action('undo',               self._on_undo,
+                                            ['<Primary>z'])
+        create_action('redo',               self._on_redo,
+                                            ['<Shift><Primary>z'])
 
         create_action('save',               self._on_save,
                                             ['<Primary>s'])
@@ -154,10 +154,12 @@ class Window(Adw.ApplicationWindow):
         create_command('win.focus-editor',  _('Focus Editor'),
                                             shortcuts = ['Escape'])
 
-#       create_command('win.undo',          _('Undo'),
-#                                           shortcuts = ['<Primary>z'])
-#       create_command('win.redo',          _('Redo'),
-#                                           shortcuts = ['<Shift><Primary>z'])
+        # TODO: add context for undo and redo command
+
+        create_command('win.undo',          _('Undo'),
+                                            shortcuts = ['<Primary>z'])
+        create_command('win.redo',          _('Redo'),
+                                            shortcuts = ['<Shift><Primary>z'])
 
         create_command('win.save',          _('Save'),
                                             shortcuts = ['<Primary>s'])
@@ -226,6 +228,22 @@ class Window(Adw.ApplicationWindow):
         if self.CommandPalette.get_visible():
             self.CommandPalette.popdown()
 
+    def _on_undo(self,
+                 action:    Gio.SimpleAction,
+                 parameter: GLib.Variant,
+                 ) ->       None:
+        """"""
+        editor = self.get_selected_editor()
+        editor.undo()
+
+    def _on_redo(self,
+                 action:    Gio.SimpleAction,
+                 parameter: GLib.Variant,
+                 ) ->       None:
+        """"""
+        editor = self.get_selected_editor()
+        editor.redo()
+
     def _on_save(self,
                  action:    Gio.SimpleAction,
                  parameter: GLib.Variant,
@@ -275,6 +293,8 @@ class Window(Adw.ApplicationWindow):
                          ) ->        None:
         """"""
         self.Toolbar.populate()
+
+        # TODO: update undo/redo menu item
 
         editor = self.get_selected_editor()
         editor.grab_focus()

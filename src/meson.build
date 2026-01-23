@@ -41,6 +41,7 @@ core_sources = [
   'core/datatable.py',
   'core/document.py',
   'core/file_manager.py',
+  'core/history.py',
   'core/parser_command_context.py',
   'core/parser_sheet_formula.py',
   'core/plugin_repository.py',

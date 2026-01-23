@@ -31,15 +31,19 @@ class NodeLink():
         self.out_socket = out_socket
         self.compatible = compatible
 
-        in_socket.links.append(self)
-        out_socket.links.append(self)
+    def link(self) -> 'NodeLink':
+        """"""
+        self.in_socket.links.append(self)
+        self.out_socket.links.append(self)
 
-        in_socket.Content.do_link(out_socket, in_socket.Content)
-        out_socket.Content.do_link(in_socket, out_socket.Content)
-        # Implementors should manually prevent the workflow from
-        # being processed twice or recursively at worst.
+        self.in_socket.Content.do_link(self.out_socket, self.in_socket.Content)
+        self.out_socket.Content.do_link(self.in_socket, self.out_socket.Content)
+        # Implementors should manually prevent the workflow from being processed
+        # twice or recursively at worst.
 
-    def unlink(self) -> None:
+        return self
+
+    def unlink(self) -> 'NodeLink':
         """"""
         in_socket = self.in_socket
         out_socket = self.out_socket
@@ -49,3 +53,5 @@ class NodeLink():
 
         in_socket.Content.do_unlink(in_socket)
         out_socket.Content.do_unlink(out_socket)
+
+        return self
