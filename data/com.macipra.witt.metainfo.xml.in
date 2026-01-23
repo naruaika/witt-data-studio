@@ -5,7 +5,7 @@
   <project_license>AGPL-3.0-or-later</project_license>
 
   <name>Witt Data Studio</name>
-  <summary>Analyses structured data</summary>
+  <summary>A business intelligence tool for the GNOME desktop</summary>
   <description>
     <p>A business intelligence tool for the GNOME desktop.</p>
   </description>

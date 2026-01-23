@@ -23,8 +23,9 @@ appstream_file = configure_file(
          output: '@0@.metainfo.xml.in'.format(base_application_id),
   configuration: base_conf,
 )
+
 appstream_file = i18n.merge_file(
-        input: '@0@.metainfo.xml.in'.format(base_application_id),
+        input: appstream_file,
        output: '@0@.metainfo.xml'.format(base_application_id),
        po_dir: '../po',
       install: true,
