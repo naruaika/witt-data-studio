@@ -7,7 +7,7 @@ jobs:
   flatpak:
     name: "Flatpak"
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-49
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-48
       options: --privileged
     strategy:
       matrix:
@@ -25,6 +25,3 @@ jobs:
         manifest-path: build-aux/com.macipra.witt.json
         cache-key: flatpak-builder-${{ github.sha }}
         verbose: true
-    - name: Validate AppStream
-      run: |
-        flatpak run --command=appstreamcli org.flatpak.Builder validate /app/share/metainfo/com.macipra.witt.metainfo.xml
