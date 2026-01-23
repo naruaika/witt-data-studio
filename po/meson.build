@@ -1,1 +1,1 @@
-i18n.gettext('eruo-data-studio', preset: 'glib')
+i18n.gettext('witt-data-studio', preset: 'glib')

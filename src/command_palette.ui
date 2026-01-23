@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="Adw" version="1.0"/>
+  <template class="CommandPalette" parent="AdwBin">
+    <property name="visible">false</property>
+    <child>
+      <object class="AdwClamp">
+        <property name="valign">start</property>
+        <property name="margin-top">52</property>
+        <property name="margin-bottom">6</property>
+        <property name="margin-start">6</property>
+        <property name="margin-end">6</property>
+        <property name="maximum-size">620</property>
+        <property name="child">
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkEntry" id="Entry">
+                    <property name="hexpand">true</property>
+                    <property name="placeholder-text">Search menus...</property>
+                    <property name="primary-icon-name">edit-find-symbolic</property>
+                    <signal name="changed" handler="_on_entry_changed" swapped="no"/>
+                    <signal name="delete-text" handler="_on_entry_deleted" swapped="no"/>
+                    <signal name="activate" handler="_on_entry_activated" swapped="no"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow" id="ScrolledWindow">
+                    <property name="halign">fill</property>
+                    <property name="hexpand">true</property>
+                    <property name="max-content-width">620</property>
+                    <property name="max-content-height">476</property>
+                    <property name="propagate-natural-height">true</property>
+                    <child>
+                      <object class="GtkListView" id="ListView">
+                        <property name="model">
+                          <object class="GtkSingleSelection" id="Selection">
+                            <property name="model">
+                              <object class="GListStore" id="ListStore"/>
+                            </property>
+                          </object>
+                        </property>
+                        <signal name="activate" handler="_on_list_view_activated" swapped="no"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <style>
+              <class name="command-palette"/>
+            </style>
+          </object>
+        </property>
+      </object>
+    </child>
+    <style>
+      <class name="floating-sheet"/>
+    </style>
+  </template>
+</interface>

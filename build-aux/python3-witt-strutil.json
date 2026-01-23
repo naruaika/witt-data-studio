@@ -1,0 +1,14 @@
+{
+    "name": "python3-witt-strutil",
+    "buildsystem": "simple",
+    "build-commands": [
+        "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"witt-strutil\" --no-build-isolation"
+    ],
+    "sources": [
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/6d/f4/4af37df2ae23ccc8d21d1d2a9743573cab5ebdc1969b33d4fa2c32eba430/witt_strutil-0.1.0-cp313-abi3-manylinux_2_34_x86_64.whl",
+            "sha256": "c1950fe4074465a6bba0d919b26b6793aa523199541c25d46cb3f1deb8d3909f"
+        }
+    ]
+}

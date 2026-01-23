@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="Adw" version="1.0"/>
+  <requires lib="gtk" version="4.0"/>
+  <template class="NodeFrame" parent="AdwBin">
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="width-request">175</property>
+        <property name="height-request">-1</property>
+        <property name="margin-top">10</property>
+        <property name="margin-bottom">10</property>
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="GtkBox" id="Head">
+            <property name="orientation">horizontal</property>
+            <child>
+              <object class="GtkLabel" id="Title">
+                <property name="xalign">0.0</property>
+                <property name="hexpand">true</property>
+                <property name="margin-top">5</property>
+                <property name="margin-bottom">5</property>
+                <property name="margin-start">10</property>
+                <property name="margin-end">10</property>
+                <style>
+                  <class name="node-title"/>
+                </style>
+              </object>
+            </child>
+            <style>
+              <class name="node-head"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="Body">
+            <property name="orientation">vertical</property>
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+            <property name="spacing">5</property>
+            <style>
+              <class name="node-body"/>
+            </style>
+          </object>
+        </child>
+        <style>
+          <class name="node-frame"/>
+        </style>
+      </object>
+    </child>
+  </template>
+</interface>

@@ -1,0 +1,5 @@
+@import url('resource://com/macipra/witt/node/socket.css');
+
+.node-socket {
+    background-color: var(--light-3);
+}

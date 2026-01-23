@@ -1,6 +1,4 @@
 #!/bin/bash
-cd plugins/polars/eruo-strutil
+cd plugins/polars/witt-strutil
 maturin develop
 maturin build --release
-cp target/wheels/*.whl ../../../dist/
-cd ../../..

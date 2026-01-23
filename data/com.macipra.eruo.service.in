@@ -1,3 +1,0 @@
-[D-BUS Service]
-Name=com.macipra.eruo
-Exec=@bindir@/eruo-data-studio --gapplication-service

@@ -1,0 +1,10 @@
+.mwindow {
+    background-color: var(--view-bg-color);
+    color: var(--view-fg-color);
+}
+.mwindow .mtitlebar windowcontrols.start > button:first-child {
+    margin-left: 6px;
+}
+.mwindow .mtitlebar windowcontrols.end > button:last-child {
+    margin-right: 6px;
+}

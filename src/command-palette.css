@@ -1,0 +1,20 @@
+.command-palette {
+    padding: 6px;
+    background-color: var(--view-bg-color);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 40px var(--popover-shade-color);
+    border-radius: 15px;
+}
+.command-palette listview {
+    background-color: transparent;
+}
+.command-palette listview > row {
+    padding: 0;
+    border-radius: 9px;
+}
+.command-palette listview > row > box {
+    padding: 8px 10px;
+}
+.command-palette listview > row:selected {
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+}

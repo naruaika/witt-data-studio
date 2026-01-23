@@ -1,0 +1,71 @@
+#!@PYTHON@
+
+# witt-data-studio.in
+#
+# Copyright 2025 Naufan Rusyda Faikar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+import os
+import sys
+import signal
+import locale
+import gettext
+
+APP_ID = '@APP_ID@'
+VERSION = '@VERSION@'
+localedir = '@localedir@'
+pkgdatadir = '@pkgdatadir@'
+
+sys.path.insert(1, pkgdatadir)
+signal.signal(signal.SIGINT, signal.SIG_DFL)
+locale.bindtextdomain('witt-data-studio', localedir)
+locale.textdomain('witt-data-studio')
+gettext.install('witt-data-studio', localedir)
+
+if __name__ == '__main__':
+
+    debug_mode = os.environ.get('WDS_DEBUG', '0')
+    debug_mode = int(debug_mode or '0')
+    try:
+        import debugpy
+        if debug_mode > 0:
+            debugpy.listen(('127.0.0.1', 5678))
+            if debug_mode > 1:
+                debugpy.wait_for_client()
+    except ModuleNotFoundError:
+        pass
+
+    # Force to use OpenGL instead of Vulkan
+    # for the best performance at this time
+    # os.environ['GSK_RENDERER'] = 'gl'
+
+    import gi
+    gi.require_version('Adw', '1')
+    gi.require_version('Gdk', '4.0')
+    gi.require_version('GObject', '2.0')
+    gi.require_version('Gtk', '4.0')
+    gi.require_version('GtkSource', '5')
+    gi.require_version('WebKit', '6.0')
+
+    from gi.repository import Gio
+    resource_path = 'witt-data-studio.gresource'
+    resource_path = os.path.join(pkgdatadir, resource_path)
+    resource = Gio.Resource.load(resource_path)
+    resource._register()
+
+    from witt_data_studio import main
+    sys.exit(main.main(APP_ID, VERSION))

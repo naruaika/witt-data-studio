@@ -1,34 +1,36 @@
-project('eruo-data-studio',
+project('witt-data-studio',
           version: '0.1.0',
     meson_version: '>= 1.0.0',
   default_options: [ 'warning_level=2', 'werror=false', ],
 )
 
-i18n = import('i18n')
-gnome = import('gnome')
+i18n   = import('i18n')
+gnome  = import('gnome')
 python = import('python')
 
+if get_option('profile') == 'devel'
+  profile = '.Devel'
+else
+  profile = ''
+endif
+
+base_application_id = 'com.macipra.witt'
+application_id      = base_application_id + profile
+
 pkgdatadir = get_option('prefix') / get_option('datadir') / meson.project_name()
-moduledir = pkgdatadir
+moduledir  = pkgdatadir / 'witt_data_studio'
+icondir    = meson.project_source_root() / 'data' / 'icons' / 'hicolor'
+acticondir = icondir / 'scalable' / 'actions'
 
-conf = configuration_data()
-conf.set('PYTHON', python.find_installation('python3').full_path())
-conf.set('VERSION', meson.project_version())
-conf.set('localedir', get_option('prefix') / get_option('localedir'))
-conf.set('pkgdatadir', pkgdatadir)
-
-configure_file(
-  input: 'eruo-data-studio.in',
-  output: 'eruo-data-studio',
-  configuration: conf,
-  install: true,
-  install_dir: get_option('bindir'),
-  install_mode: 'r-xr-xr-x'
-)
-
-install_subdir('src', install_dir: moduledir)
+base_conf = configuration_data()
+base_conf.set(    'PYTHON', python.find_installation('python3').full_path())
+base_conf.set(    'APP_ID', application_id)
+base_conf.set(   'VERSION', meson.project_version())
+base_conf.set( 'localedir', get_option('prefix') / get_option('localedir'))
+base_conf.set('pkgdatadir', pkgdatadir)
 
 subdir('data')
+subdir('src')
 subdir('po')
 
 gnome.post_install(

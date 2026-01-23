@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Witt Data Studio
+Exec=witt-data-studio
+Icon=@APP_ID@
+Terminal=false
+Type=Application
+Categories=Utility;
+Keywords=business-intelligence;data-analysis;data-visualization;data-mining;
+MimeType=text/csv;text/plain;application/vnd.apache.parquet;
+StartupNotify=true
+DBusActivatable=true

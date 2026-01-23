@@ -1,0 +1,13 @@
+@import url('resource://com/macipra/witt/node/frame.css');
+
+.node-frame {
+    background-color: var(--sidebar-bg-color);
+}
+
+.node-head {
+    color: var(--light-1);
+}
+
+.selected .node-head {
+    color: var(--dark-5);
+}

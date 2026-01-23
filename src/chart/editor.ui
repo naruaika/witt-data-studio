@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="ChartEditor" parent="GtkOverlay">
+    <property name="overflow">hidden</property>
+    <child type="overlay">
+      <object class="GtkScrollbar" id="HorizontalScrollbar">
+        <property name="orientation">horizontal</property>
+        <property name="valign">end</property>
+        <style>
+          <class name="bottom"/>
+          <class name="overlay-indicator"/>
+        </style>
+      </object>
+    </child>
+    <child type="overlay">
+      <object class="GtkScrollbar" id="VerticalScrollbar">
+        <property name="orientation">vertical</property>
+        <property name="halign">end</property>
+        <style>
+          <class name="right"/>
+          <class name="overlay-indicator"/>
+        </style>
+      </object>
+    </child>
+    <style>
+      <class name="chart-editor"/>
+    </style>
+  </template>
+</interface>

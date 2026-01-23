@@ -1,0 +1,171 @@
+.node-frame {
+    background-color: var(--light-3);
+    font-size: 13px;
+    border-radius: 8px;
+    box-shadow: 0 0 0 1px var(--border-color),
+                0 0 20px var(--shade-color);
+}
+
+.node-frame .monospace {
+    font-size: 13px;
+}
+
+.node-head {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    background-color: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+.node-body {
+    padding: 10px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    background-color: var(--view-bg-color);
+}
+
+.node-body button {
+    padding: 2px 8px;
+    font-weight: normal;
+}
+
+.node-body entry {
+    min-height: 24px;
+    padding: 2px 8px;
+}
+
+.node-body spinbutton {
+    min-height: 24px;
+}
+
+.node-body checkbutton {
+    padding: 4px;
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+}
+.node-body checkbutton:not(:first-child) {
+    margin-top: -1px;
+}
+.node-body checkbutton:hover {
+    background-color: color-mix(in srgb, currentColor 15%, transparent);
+}
+
+.node-body box.linked.vertical > *:dir(ltr):not(:first-child),
+.node-body box.linked.vertical > *:dir(rtl):not(:last-child) {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+.node-body box.linked.vertical > *:dir(ltr):not(:last-child),
+.node-body box.linked.vertical > *:dir(rtl):not(:first-child) {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.node-body box.linked:not(.vertical) > *:dir(ltr):not(:first-child),
+.node-body box.linked:not(.vertical) > *:dir(rtl):not(:last-child) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.node-body box.linked:not(.vertical) > *:dir(ltr):not(:last-child),
+.node-body box.linked:not(.vertical) > *:dir(rtl):not(:first-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+/*
+.node-body box.linked.vertical > *:dir(ltr):not(:first-child) {
+    margin-top: -1px;
+}
+.node-body box.linked:not(.vertical) > *:dir(ltr):not(:first-child),
+.node-body box.linked:not(.vertical) > *:dir(rtl):not(:last-child) {
+    margin-left: -1px;
+}
+*/
+
+.node-body flowbox {
+    padding: 3px;
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+    border-radius: 9px;
+}
+.node-body flowbox > * {
+    margin: 0;
+    padding: 0;
+}
+.node-body flowbox flowboxchild > * {
+    padding: 0;
+}
+
+.node-body popover listview.navigation-sidebar {
+    padding: 0;
+}
+.node-body popover listview.navigation-sidebar row {
+    padding: 0 12px;
+    margin: 0;
+}
+
+.node-body expander-widget {
+    margin-left: -10px;
+    margin-right: -10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    background-color: color-mix(in srgb, currentColor 5%, transparent);
+}
+.node-body expander-widget title {
+    min-height: 28px;
+    margin-left: -10px;
+    margin-right: -10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 0;
+}
+.node-body expander-widget title:only-child:hover {
+    background-color: color-mix(in srgb, currentColor 5%, transparent);
+}
+.node-body expander-widget title + * {
+    padding-bottom: 5px;
+}
+/*
+.node-body expander-widget expander {
+    margin: 4px 0;
+    margin-right: 4px;
+    padding: 2px;
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+    border-radius: 50%;
+}
+*/
+.node-body expander-widget checkbutton {
+    background-color: color-mix(in srgb, currentColor 5%, transparent);
+}
+.node-body expander-widget checkbutton:hover {
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.node-body button.has-open-popup {
+    background-color: color-mix(in srgb, currentColor 15%, transparent);
+}
+
+.node-body .image-button {
+    padding: 0;
+}
+
+.node-body .node-label {
+    min-height: 28px;
+}
+
+.node-body .success .node-socket {
+    background-color: var(--success-color);
+}
+.node-body .warning .node-socket {
+    background-color: var(--warning-color);
+}
+.node-body .error .node-socket {
+    background-color: var(--error-color);
+}
+
+.selected .node-frame {
+    background-color: var(--accent-color);
+    box-shadow: 0 0 0 1px var(--accent-color),
+                0 0 20px 0 var(--shade-color);
+}
+
+.selected .node-head {
+    color: var(--light-1);
+    background-color: var(--accent-color);
+}

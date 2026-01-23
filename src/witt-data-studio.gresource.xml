@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/com/macipra/witt">
+    <file preprocess="xml-stripblanks">command_palette.ui</file>
+    <file preprocess="xml-stripblanks">file_import_window.ui</file>
+    <file preprocess="xml-stripblanks">toolbar.ui</file>
+    <file preprocess="xml-stripblanks">window.ui</file>
+
+    <file>style.css</file>
+    <file>style-dark.css</file>
+    <file>command-palette.css</file>
+    <file>command-palette-dark.css</file>
+    <file>toolbar.css</file>
+    <file>toolbar-dark.css</file>
+    <file>window.css</file>
+    <file>window-dark.css</file>
+
+    <file preprocess="xml-stripblanks">chart/editor.ui</file>
+
+    <file>chart/style.css</file>
+    <file>chart/style-dark.css</file>
+    <file>chart/editor.css</file>
+    <file>chart/editor-dark.css</file>
+    <file>chart/canvas.css</file>
+    <file>chart/canvas-dark.css</file>
+
+    <file preprocess="xml-stripblanks">node/editor.ui</file>
+    <file preprocess="xml-stripblanks">node/frame.ui</file>
+
+    <file>node/style.css</file>
+    <file>node/style-dark.css</file>
+    <file>node/editor.css</file>
+    <file>node/editor-dark.css</file>
+    <file>node/canvas.css</file>
+    <file>node/canvas-dark.css</file>
+    <file>node/frame.css</file>
+    <file>node/frame-dark.css</file>
+    <file>node/content.css</file>
+    <file>node/content-dark.css</file>
+    <file>node/socket.css</file>
+    <file>node/socket-dark.css</file>
+
+    <file preprocess="xml-stripblanks">sheet/editor.ui</file>
+    <file preprocess="xml-stripblanks">sheet/transform_window.ui</file>
+
+    <file>sheet/style.css</file>
+    <file>sheet/style-dark.css</file>
+    <file>sheet/editor.css</file>
+    <file>sheet/editor-dark.css</file>
+    <file>sheet/canvas.css</file>
+    <file>sheet/canvas-dark.css</file>
+  </gresource>
+
+  <gresource prefix="/com/macipra/witt/icons/scalable/actions/">
+    <file preprocess="xml-stripblanks">box-dotted-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">edit-find-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">folder-open-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">go-next-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">go-previous-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">object-select-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">open-menu-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">profit-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">sidebar-show-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">table-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">up-small-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">user-home-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">value-increase-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">value-decrease-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">window-close-symbolic.svg</file>
+
+    <file preprocess="xml-stripblanks">xxx-aggregator-count-rows-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-book-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-calculation-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-calendar-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-carousel-horizontal-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-catalog-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-chemistry-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-circle-outline-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-column-delete-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-column-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-copy-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-cut-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-data-set-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-data-table-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-database-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-decision-tree-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-delete-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-diagram-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-document-import-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-education-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-forum-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-group-resource-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-help-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-hourglass-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-idea-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-information-square-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-insert-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-label-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-migrate-alt-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-notebook-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-parameter-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-paste-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-play-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-recently-viewed-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-renew-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-replicate-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-repo-artifact-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-row-delete-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-row-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-search-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-select-01-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-select-02-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-shuffle-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-sort-ascending-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-sort-descending-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-split-screen-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-text-font-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-time-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-transpose-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-trash-can-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-triangle-outline-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-types-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-value-variable-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-video-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-view-symbolic.svg</file>
+  </gresource>
+</gresources>
