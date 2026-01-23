@@ -24,5 +24,3 @@ jobs:
         bundle: com.macipra.witt.flatpak
         manifest-path: build-aux/com.macipra.witt.json
         cache-key: flatpak-builder-${{ github.sha }}
-        build-dir: _build
-        state-dir: .flatpak
