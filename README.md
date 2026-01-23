@@ -4,7 +4,15 @@
 
 **Witt Data Studio** is a powerful, user-friendly, and integrated data platform.
 
-The word "witt", I believe, is the past form of "wit" which means "understanding, intellect, sense; knowledge, consciousness, conscience". **Disclaimer:** We know this project sounds ambitious! We're actively exploring the best path forward, balancing community needs with what's technically achievable. Our direction and approaches may evolve as we learn and build.
+The word "witt", we believe, is the past form of "wit" which means "understanding, intellect, sense; knowledge, consciousness, conscience". The word "data" is an important addition to further differentiate it from *Wit Studio*, the Japanese animation studio best known for producing *Attack on Titan*.
+
+**Disclaimer:** We know this project sounds ambitious! We're actively exploring the best path forward, balancing community needs with what's technically achievable. Our direction and approaches may evolve as we learn and build.
+
+<img src="docs/screenshot-1.png" alt="Witt Data Studio" />
+
+<img src="docs/screenshot-2.png" alt="Witt Data Studio" />
+
+**Note:** All screenshots above do not represent the final product.
 
 ## Status
 
@@ -152,4 +160,4 @@ Or more specialized solutions:
 - Positron (Free)
 - OriginPro (Paid)
 
-**Disclaimer:** I'm not affiliated or sponsored by any of the companies that developed the above products. I simply want to help you find the one that best suits your workflow.
+**Disclaimer:** We're not affiliated or sponsored by any of the companies that developed the above products. We simply want to help you find the one that best suits your workflow.
