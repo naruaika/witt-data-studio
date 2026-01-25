@@ -180,6 +180,44 @@ class ActionMoveNode(Action):
 
 
 
+class ActionEditNode(Action):
+
+    def __init__(self,
+                 editor: NodeEditor,
+                 node:   NodeFrame,
+                 values: tuple,
+                 ) ->    None:
+        """"""
+        super().__init__()
+
+        self.editor = editor
+        self.node   = node
+        self.values = values
+
+    def do(self,
+           undoable: bool = True,
+           ) ->      bool:
+        """"""
+        self.node.do_restore(self.values[1])
+
+        GLib.idle_add(self.editor.do_collect_points, [self.node])
+
+        return True
+
+    def undo(self) -> bool:
+        """"""
+        freezing = self.editor.history.freezing
+        self.editor.history.freezing = True
+
+        values = (self.values[1], self.values[0])
+        ActionEditNode(self.editor, self.node, values).do()
+
+        self.editor.history.freezing = freezing
+
+        return True
+
+
+
 class ActionAddLink(Action):
 
     def __init__(self,
@@ -343,6 +381,7 @@ class ActionSelectViewer(Action):
         return True
 
 
+
 class ActionSelectByClick(Action):
 
     def __init__(self,
@@ -393,6 +432,18 @@ class ActionSelectByClick(Action):
             node.select()
 
         return True
+
+    def isduplicate(self,
+                    action: Action,
+                    ) ->    bool:
+        """"""
+        if self.combo:
+            return False
+
+        if self.editor.selected_nodes == [self.node]:
+            return True
+
+        return False
 
 
 
@@ -471,3 +522,9 @@ class ActionSelectByRubberband(Action):
             node.select()
 
         return True
+
+    def isduplicate(self,
+                    action: Action,
+                    ) ->    bool:
+        """"""
+        return False # TODO

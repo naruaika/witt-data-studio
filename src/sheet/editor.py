@@ -649,7 +649,6 @@ class SheetEditor(Gtk.Box):
             transformer = editor.create_node(func_name, x, y)
             transformer.set_data(*func_args)
             editor.add_node(transformer)
-            editor.select_by_click(transformer)
 
             # Manipulate so that the transformer node seem to
             # be reconnected to the sheet node
@@ -663,6 +662,8 @@ class SheetEditor(Gtk.Box):
 
             # Re-position all nodes to the left recursively
             do_reposition(pair_node, transformer)
+
+            editor.select_by_click(transformer)
 
             editor.history.grouping = False
 

@@ -106,9 +106,9 @@ class FileManager():
             else:
                 from .file_import_window import FileImportWindow
                 import_window = FileImportWindow(file_path,
-                                                callback,
-                                                transient_for = window,
-                                                application   = application)
+                                                 callback,
+                                                 transient_for = window,
+                                                 application   = application)
                 import_window.present()
 
         dialog.open(window, None, on_dialog_dismissed)

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>@APP_ID@</id>
+  <id>com.macipra.witt</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>AGPL-3.0-or-later</project_license>
 
   <name>Witt Data Studio</name>
-  <summary>Analyses structured data</summary>
+  <summary>A business intelligence tool for the GNOME desktop</summary>
   <description>
     <p>A business intelligence tool for the GNOME desktop.</p>
   </description>
@@ -38,19 +38,22 @@
 
   <screenshots>
     <screenshot type="default">
-      <image>https://github.com/naruaika/witt-data-studio/raw/master/docs/screenshot.png</image>
+      <image>https://github.com/naruaika/witt-data-studio/raw/master/docs/screenshot-1.png</image>
+      <caption>Witt Data Studio</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/naruaika/witt-data-studio/raw/master/docs/screenshot-2.png</image>
       <caption>Witt Data Studio</caption>
     </screenshot>
   </screenshots>
 
   <!--
   <releases>
-    <release version="1.0.1" date="2024-01-18">
-      <url type="details">https://example.org/changelog.html#version_1.0.1</url>
+    <release version="0.1.0" date="2026-01-01">
+      <url type="details">https://github.com/naruaika/witt-data-studio/raw/master/CHANGELOG.md#010</url>
       <description translate="no">
         <p>Release description</p>
         <ul>
-          <li>List of changes</li>
           <li>List of changes</li>
         </ul>
       </description>

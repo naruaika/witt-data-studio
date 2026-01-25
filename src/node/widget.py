@@ -17,6 +17,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+from copy import copy
 from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import Gtk
@@ -48,7 +49,15 @@ class NodeCheckButton(Gtk.CheckButton):
             active = button.get_active()
             set_data(active)
 
-        self.connect('toggled', on_toggled)
+        self.handler_id = self.connect('toggled', on_toggled)
+
+    def set_data(self,
+                 value: bool,
+                 ) ->   None:
+        """"""
+        self.handler_block(self.handler_id)
+        self.set_active(value)
+        self.handler_unblock(self.handler_id)
 
 
 
@@ -70,7 +79,7 @@ class NodeCheckGroup(Gtk.Box):
                        value:  str,
                        ) ->    None:
             """"""
-            selection = get_data()
+            selection = copy(get_data())
             if button.get_active():
                 selection.append(value)
             else:
@@ -85,8 +94,8 @@ class NodeCheckGroup(Gtk.Box):
                               label        = column,
                               tooltip_text = column)
             active = column in get_data()
-            check = Gtk.CheckButton(active = active,
-                                    child  = label)
+            check = Gtk.CheckButton(child  = label,
+                                    active = active)
             check.connect('toggled', on_toggled, column)
             self.append(check)
 
@@ -228,6 +237,15 @@ class NodeComboButton(Gtk.Button):
 
         self.connect('clicked', on_clicked, label)
 
+    def set_data(self,
+                 value: str,
+                 ) ->   None:
+        """"""
+        box = self.get_child()
+        subbox = box.get_last_child()
+        label = subbox.get_first_child()
+        label.set_label(value)
+
 
 
 class NodeEntry(Gtk.Entry):
@@ -241,30 +259,80 @@ class NodeEntry(Gtk.Entry):
         """"""
         super().__init__(text = get_data())
 
-        def on_changed(entry: Gtk.Entry) -> None:
+        def on_activated(entry: Gtk.Entry) -> None:
             """"""
             set_data(entry.get_text())
 
-        self.connect('changed', on_changed)
+        self.connect('activate', on_activated)
 
-        def on_deleted(entry:     Gtk.Entry,
-                       start_pos: int,
-                       end_pos:   int,
-                       ) ->       None:
-            """"""
-            set_data(entry.get_text())
+    def set_data(self,
+                 value: str,
+                 ) ->   None:
+        """"""
+        self.set_text(value)
 
-        self.connect('delete-text', on_deleted)
 
-        def on_inserted(entry:    Gtk.Entry,
-                        text:     str,
-                        lenght:   int,
-                        position: int,
-                        ) ->      None:
-            """"""
-            set_data(text)
 
-        self.connect('insert-text', on_inserted)
+class NodeFileChooser(Gtk.Button):
+
+    __gtype_name__ = 'NodeFileChooser'
+
+    def __init__(self,
+                 get_data:   callable,
+                 on_clicked: callable,
+                 ) ->        None:
+        """"""
+        box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
+                      spacing     = 6)
+
+        label = Gtk.Label(label     = get_data() or _('Choose File...'),
+                          xalign    = 0.0,
+                          hexpand   = True,
+                          ellipsize = Pango.EllipsizeMode.END)
+        box.append(label)
+
+        icon = Gtk.Image(icon_name = 'folder-open-symbolic')
+        box.append(icon)
+
+        super().__init__(child = box)
+
+        self.connect('clicked', on_clicked)
+
+    def set_data(self,
+                 value: str,
+                 ) ->   None:
+        """"""
+        box = self.get_child()
+        label = box.get_first_child()
+        if value:
+            label.set_label(value)
+            label.set_ellipsize(Pango.EllipsizeMode.START)
+        else:
+            label.set_label(_('Choose File...'))
+            label.set_ellipsize(Pango.EllipsizeMode.END)
+        self.set_tooltip_text(value)
+
+
+
+class NodeLabel(Gtk.Label):
+
+    __gtype_name__ = 'NodeLabel'
+
+    def __init__(self,
+                 label:  str,
+                 linked: bool = False,
+                 ) ->    None:
+        """"""
+        super().__init__(label     = label,
+                         xalign    = 1.0,
+                         ellipsize = Pango.EllipsizeMode.END)
+
+        self.add_css_class('node-label')
+
+        if linked:
+            label.set_xalign(0.0)
+            label.add_css_class('after-socket')
+            label.add_css_class('node-widget')
 
 
 
@@ -307,25 +375,27 @@ class NodeSpinButton(Gtk.Button):
             value = int(value) if digits == 0 else float(value)
             lower = lower if lower is not None else float_info.min
             upper = upper if upper is not None else float_info.max
+
             adjustment = Gtk.Adjustment(value          = value,
                                         lower          = lower,
                                         upper          = upper,
                                         step_increment = 1,
                                         page_increment = 10,
                                         page_size      = 10)
-            container = button.get_parent()
             spin = Gtk.SpinButton(numeric    = True,
                                   adjustment = adjustment,
                                   hexpand    = True,
                                   digits     = digits)
+
             spin.add_css_class('node-widget')
             if button.has_css_class('before-socket'):
                 spin.add_css_class('before-socket')
             if button.has_css_class('after-socket'):
                 spin.add_css_class('after-socket')
+
+            container = button.get_parent()
             container.insert_child_after(spin, button)
             button.unparent()
-            spin.grab_focus()
 
             args = (container, button, label, spin)
             text = spin.get_first_child()
@@ -364,5 +434,19 @@ class NodeSpinButton(Gtk.Button):
             controller.connect('key-pressed', on_key_pressed, args)
             text.add_controller(controller)
 
+            def do_focus() -> bool:
+                """"""
+                spin.grab_focus()
+                return Gdk.EVENT_PROPAGATE
+            GLib.timeout_add(50, do_focus)
+
         args = (label, lower, upper)
         self.connect('clicked', on_clicked, *args)
+
+    def set_data(self,
+                 value: float,
+                 ) ->   None:
+        """"""
+        box = self.get_child()
+        label = box.get_last_child()
+        label.set_label(str(value))

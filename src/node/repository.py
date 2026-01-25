@@ -20,6 +20,7 @@
 from copy import deepcopy
 from gi.repository import Gdk
 from gi.repository import GLib
+from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Pango
 from polars import DataFrame
@@ -30,6 +31,7 @@ import gc
 from ..core.utils import generate_uuid
 from ..core.utils import unique_name
 
+from .action import ActionEditNode
 from .data_type import Sheet
 from .frame import NodeFrame
 from .content import NodeContent
@@ -39,6 +41,8 @@ from .widget import NodeCheckButton
 from .widget import NodeCheckGroup
 from .widget import NodeComboButton
 from .widget import NodeEntry
+from .widget import NodeFileChooser
+from .widget import NodeLabel
 from .widget import NodeSpinButton
 
 def _iscompatible(pair_socket:  NodeSocket,
@@ -70,6 +74,23 @@ def _isreconnected(pair_socket:  NodeSocket,
     self_content.node_uid = incoming_node_uid
 
     return False
+
+
+def _take_snapshot(node:     'NodeTemplate',
+                   callback: 'callable',
+                   *args:    'list',
+                   **kwargs: 'dict',
+                   ) ->      'None':
+    """"""
+
+    old_data = node.do_save()
+    callback(*args, **kwargs)
+    new_data = node.do_save()
+
+    editor = node.frame.get_editor()
+    values = (old_data, new_data)
+    action = ActionEditNode(editor, node.frame, values)
+    editor.do(action, add_only = True)
 
 
 
@@ -148,9 +169,10 @@ class NodeBoolean(NodeTemplate):
         """"""
         self.frame.data['value'] = args[0]
 
-        content = self.frame.contents[0]
-        check = content.Widget
-        check.set_active(args[0])
+        widget = self.frame.contents[0].Widget
+        widget.set_data(args[0])
+
+        self.frame.do_execute(backward = False)
 
     def do_save(self) -> bool:
         """"""
@@ -173,8 +195,7 @@ class NodeBoolean(NodeTemplate):
 
         def set_data(value: bool) -> None:
             """"""
-            self.frame.data['value'] = value
-            self.frame.do_execute(backward = False)
+            _take_snapshot(self, self.set_data, value)
 
         check = NodeCheckButton(title    = _('Value'),
                                 get_data = get_data,
@@ -215,11 +236,10 @@ class NodeDecimal(NodeTemplate):
         """"""
         self.frame.data['value'] = args[0]
 
-        content = self.frame.contents[0]
-        button = content.Widget
-        box = button.get_child()
-        label = box.get_last_child()
-        label.set_label(str(args[0]))
+        widget = self.frame.contents[0].Widget
+        widget.set_data(args[0])
+
+        self.frame.do_execute(backward = False)
 
     def do_save(self) -> float:
         """"""
@@ -242,8 +262,7 @@ class NodeDecimal(NodeTemplate):
 
         def set_data(value: float) -> None:
             """"""
-            self.frame.data['value'] = value
-            self.frame.do_execute(backward = False)
+            _take_snapshot(self, self.set_data, value)
 
         spin = NodeSpinButton(title    = _('Value'),
                               get_data = get_data,
@@ -285,11 +304,10 @@ class NodeInteger(NodeTemplate):
         """"""
         self.frame.data['value'] = args[0]
 
-        content = self.frame.contents[0]
-        button = content.Widget
-        box = button.get_child()
-        label = box.get_last_child()
-        label.set_label(str(args[0]))
+        widget = self.frame.contents[0].Widget
+        widget.set_data(args[0])
+
+        self.frame.do_execute(backward = False)
 
     def do_save(self) -> int:
         """"""
@@ -312,8 +330,7 @@ class NodeInteger(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            self.frame.data['value'] = value
-            self.frame.do_execute(backward = False)
+            _take_snapshot(self, self.set_data, value)
 
         spin = NodeSpinButton(title    = _('Value'),
                               get_data = get_data,
@@ -356,9 +373,10 @@ class NodeString(NodeTemplate):
         """"""
         self.frame.data['value'] = args[0]
 
-        content = self.frame.contents[0]
-        entry = content.Widget
-        entry.set_text(args[0])
+        widget = self.frame.contents[0].Widget
+        widget.set_data(args[0])
+
+        self.frame.do_execute(backward = False)
 
     def do_save(self) -> str:
         """"""
@@ -381,8 +399,7 @@ class NodeString(NodeTemplate):
 
         def set_data(value: str) -> None:
             """"""
-            self.frame.data['value'] = value
-            self.frame.do_execute(backward = False)
+            _take_snapshot(self, self.set_data, value)
 
         entry = NodeEntry(get_data, set_data)
         socket_type = NodeSocketType.OUTPUT
@@ -412,10 +429,14 @@ class NodeReadFile(NodeTemplate):
         self.frame.do_save    = self.do_save
         self.frame.do_restore = self.do_restore
 
+        self.frame.data['file-path']       = ''
+        self.frame.data['all-columns']     = []
+        self.frame.data['kwargs']          = {}
+        self.frame.data['refresh-columns'] = False
+        self.frame.data['column-expanded'] = False
+
         self._add_output_table()
         self._add_file_chooser()
-
-        self.frame.data['refresh-columns'] = False
 
         return self.frame
 
@@ -430,18 +451,19 @@ class NodeReadFile(NodeTemplate):
         self.frame.data['all-columns'] = all_columns
         self.frame.data['kwargs']      = kwargs
 
-        # Set the label of the file chooser button
-        button = self.frame.contents[1].Widget
-        button.set_tooltip_text(file_path)
-        box = button.get_child()
-        label = box.get_first_child()
-        label.set_label(file_path)
-        label.set_ellipsize(Pango.EllipsizeMode.START)
+        widget = self.frame.contents[1].Widget
+        widget.set_data(file_path)
 
-        # Delete previously generated contents
         while len(self.frame.contents) > 2:
             content = self.frame.contents[-1]
             self.frame.remove_content(content)
+
+        # TODO: re-link all previous sockets
+
+        if not file_path:
+            self.frame.data['table'] = DataFrame()
+            self.frame.do_execute(backward = False)
+            return
 
         from ..core.utils import get_file_format
         file_format = get_file_format(file_path)
@@ -462,6 +484,11 @@ class NodeReadFile(NodeTemplate):
 #           case _ if file_format in SPREADSHEET_FILES:
 #               ...
 
+        if file_format in {'csv', 'tsv', 'txt', 'parquet'}:
+            if self.frame.data['column-expanded']:
+                widget = self.frame.contents[-1].Widget
+                widget.set_expanded(True)
+
         self.frame.do_execute(backward = False)
 
     def do_process(self,
@@ -469,11 +496,6 @@ class NodeReadFile(NodeTemplate):
                    self_content: NodeContent,
                    ) ->          None:
         """"""
-        out_socket = self.frame.contents[0].Socket
-
-        if not out_socket.links:
-            return
-
         file_path = self.frame.data.get('file-path')
 
         if not file_path:
@@ -591,6 +613,10 @@ class NodeReadFile(NodeTemplate):
             self.frame.remove_content(content)
             self._add_columns_selector()
 
+            if self.frame.data['column-expanded']:
+                widget = self.frame.contents[-1].Widget
+                widget.set_expanded(True)
+
         self.frame.data['refresh-columns'] = False
 
         self.frame.is_processing = False
@@ -599,8 +625,8 @@ class NodeReadFile(NodeTemplate):
         """"""
         return {
             'file-path':   self.frame.data['file-path'],
-            'all-columns': self.frame.data['all-columns'],
-            'kwargs':      self.frame.data['kwargs'],
+            'all-columns': deepcopy(self.frame.data['all-columns']),
+            'kwargs':      deepcopy(self.frame.data['kwargs']),
         }
 
     def do_restore(self,
@@ -617,23 +643,20 @@ class NodeReadFile(NodeTemplate):
 
     def _add_output_table(self) -> None:
         """"""
-        uuid = self.add_data(DataFrame())
+        self.frame.data['table'] = DataFrame()
 
         def get_data() -> DataFrame:
             """"""
-            return self.frame.data[uuid]
+            return self.frame.data['table']
 
         def set_data(value: DataFrame) -> None:
             """"""
-            self.frame.data[uuid] = value
+            self.frame.data['table'] = value
             self.frame.do_execute(backward = False)
 
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 1.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-        label.add_css_class('node-label')
+        widget = NodeLabel(_('Table'))
         socket_type = NodeSocketType.OUTPUT
-        self.frame.add_content(widget      = label,
+        self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
                                data_type   = DataFrame,
                                get_data    = get_data,
@@ -641,28 +664,22 @@ class NodeReadFile(NodeTemplate):
 
     def _add_file_chooser(self) -> None:
         """"""
-        box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
-                      spacing     = 6)
-
-        label = Gtk.Label(label     = _('Choose File...'),
-                          xalign    = 0.0,
-                          hexpand   = True,
-                          ellipsize = Pango.EllipsizeMode.END)
-        box.append(label)
-
-        icon = Gtk.Image(icon_name = 'folder-open-symbolic')
-        box.append(icon)
-
-        button = Gtk.Button(child = box)
-        self.frame.add_content(button, None)
+        def get_data() -> str:
+            """"""
+            return self.frame.data['file-path']
 
         def on_clicked(button: Gtk.Button) -> None:
             """"""
+            def callback(*args, **kwargs) -> None:
+                """"""
+                _take_snapshot(self, self.set_data, *args, **kwargs)
             from ..file_manager import FileManager
             window = self.frame.get_root()
-            FileManager.open_file(window, self.set_data)
+            FileManager.open_file(window, callback)
 
-        button.connect('clicked', on_clicked)
+        chooser = NodeFileChooser(get_data   = get_data,
+                                  on_clicked = on_clicked)
+        self.frame.add_content(chooser)
 
     def _add_file_delimiter(self) -> None:
         """"""
@@ -686,9 +703,12 @@ class NodeReadFile(NodeTemplate):
 
         def set_data(value: str) -> None:
             """"""
-            self.frame.data['kwargs']['separator'] = value
-            self.frame.data['refresh-columns'] = True
-            self.frame.do_execute(backward = False)
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['kwargs']['separator'] = value
+                self.frame.data['refresh-columns'] = True
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         from ..file_import_csv_view import SEPARATOR_OPTS
         combo = NodeComboButton(title    = _('Column Separator'),
@@ -707,9 +727,12 @@ class NodeReadFile(NodeTemplate):
 
         def set_data(value: str) -> None:
             """"""
-            self.frame.data['kwargs']['quote_char'] = value
-            self.frame.data['refresh-columns'] = True
-            self.frame.do_execute(backward = False)
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['kwargs']['quote_char'] = value
+                self.frame.data['refresh-columns'] = True
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         from ..file_import_csv_view import QUOTE_CHAR_OPTS
         combo = NodeComboButton(title    = _('Quote Character'),
@@ -728,9 +751,12 @@ class NodeReadFile(NodeTemplate):
 
         def set_data(value: str) -> None:
             """"""
-            self.frame.data['kwargs']['decimal_comma'] = value
-            self.frame.data['refresh-columns'] = True
-            self.frame.do_execute(backward = False)
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['kwargs']['decimal_comma'] = value
+                self.frame.data['refresh-columns'] = True
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         from ..file_import_csv_view import DECIMAL_COMMA_OPTS
         combo = NodeComboButton(title    = _('Decimal Separator'),
@@ -760,8 +786,11 @@ class NodeReadFile(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            self.frame.data['kwargs']['n_rows'] = value or None
-            self.frame.do_execute(backward = False)
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['kwargs']['n_rows'] = value or None
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         spin = NodeSpinButton(title    = _('No. Rows'),
                               get_data = get_data,
@@ -781,12 +810,7 @@ class NodeReadFile(NodeTemplate):
             """"""
             content.Widget.set_visible(False)
 
-            label = Gtk.Label(label     = _('No. Rows'),
-                              xalign    = 0.0,
-                              ellipsize = Pango.EllipsizeMode.END)
-            label.add_css_class('after-socket')
-            label.add_css_class('node-widget')
-            label.add_css_class('node-label')
+            label = NodeLabel(_('No. Rows'), linked = True)
             label.insert_after(content.Container, content.Socket)
 
             if not _iscompatible(pair_socket, self_content):
@@ -816,8 +840,11 @@ class NodeReadFile(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            self.frame.data['kwargs']['skip_rows'] = value - 1
-            self.frame.do_execute(backward = False)
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['kwargs']['skip_rows'] = value - 1
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         spin = NodeSpinButton(title    = _('From Row'),
                               get_data = get_data,
@@ -837,12 +864,7 @@ class NodeReadFile(NodeTemplate):
             """"""
             content.Widget.set_visible(False)
 
-            label = Gtk.Label(label     = _('From Row'),
-                              xalign    = 0.0,
-                              ellipsize = Pango.EllipsizeMode.END)
-            label.add_css_class('after-socket')
-            label.add_css_class('node-widget')
-            label.add_css_class('node-label')
+            label = NodeLabel(_('From Row'), linked = True)
             label.insert_after(content.Container, content.Socket)
 
             if not _iscompatible(pair_socket, self_content):
@@ -872,18 +894,13 @@ class NodeReadFile(NodeTemplate):
 
         def set_data(value: bool) -> None:
             """"""
-            prev_value = self.frame.data['kwargs']['has_header']
-
-            self.frame.data['kwargs']['has_header'] = value
-
-            # Changing `has_header` argument will make yet-to-be-loaded
-            # dataframe has different columns from previously specified
-            # which in turn prevents Polars from continuing the reading
-            # after the very beginning line of the file content, CMIIW.
-            if prev_value != value:
-                self.frame.data['refresh-columns'] = True
-
-            self.frame.do_execute(backward = False)
+            def callback(value: bool) -> None:
+                """"""
+                if self.frame.data['kwargs']['has_header'] != value:
+                    self.frame.data['kwargs']['has_header'] = value
+                    self.frame.data['refresh-columns'] = True
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         check = NodeCheckButton(title    = _('First Row as Header'),
                                 get_data = get_data,
@@ -901,12 +918,7 @@ class NodeReadFile(NodeTemplate):
             """"""
             content.Widget.set_visible(False)
 
-            label = Gtk.Label(label     = _('First Row as Header'),
-                              xalign    = 0.0,
-                              ellipsize = Pango.EllipsizeMode.END)
-            label.add_css_class('after-socket')
-            label.add_css_class('node-widget')
-            label.add_css_class('node-label')
+            label = NodeLabel(_('First Row as Header'), linked = True)
             label.insert_after(content.Container, content.Socket)
 
             if not _iscompatible(pair_socket, self_content):
@@ -914,7 +926,7 @@ class NodeReadFile(NodeTemplate):
 
             # Save the socket value
             kwargs = self.frame.data['kwargs']
-            self.frame.data['orig_has_header'] = kwargs['has_header']
+            self.frame.data['has-header'] = kwargs['has_header']
 
             self.frame.do_execute(pair_socket, self_content)
 
@@ -929,7 +941,7 @@ class NodeReadFile(NodeTemplate):
 
             # Restore the socket value
             kwargs = self.frame.data['kwargs']
-            kwargs['has_header'] = self.frame.data['orig_has_header']
+            kwargs['has_header'] = self.frame.data['has-header']
             kwargs['columns'] = [] # reset the specified column names
 
             self.frame.do_execute(self_content = socket.Content,
@@ -945,16 +957,26 @@ class NodeReadFile(NodeTemplate):
 
         def set_data(value: list[str]) -> None:
             """"""
-            self.frame.data['kwargs']['columns'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: list[str]) -> None:
+                """"""
+                self.frame.data['kwargs']['columns'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
-        # Which Columns to Pick?
         group = NodeCheckGroup(get_data = get_data,
                                set_data = set_data,
                                options  = self.frame.data['all-columns'])
         expander = Gtk.Expander(label = _('Columns'),
                                 child = group)
         self.frame.add_content(expander, None)
+
+        def on_expanded(widget:     Gtk.Widget,
+                        param_spec: GObject.ParamSpec,
+                        ) ->        None:
+            """"""
+            self.frame.data['column-expanded'] = expander.get_expanded()
+
+        expander.connect('notify::expanded', on_expanded)
 
 
 
@@ -1049,11 +1071,18 @@ class NodeSheet(NodeTemplate):
         """"""
         try:
             for index, value in enumerate(values):
-                tables = self.frame.data['replace-tables']
-                tables[index + 1] = value
-                # +1 because the input starts from row 2
+                index += 1 # input socket starts from index 1
+                n_ready_inputs = len(self.frame.contents) - 2
+                if index <= n_ready_inputs:
+                    widget = self.frame.contents[index].Widget
+                    widget.set_data(value['position'])
+                else:
+                    tables = self.frame.data['replace-tables']
+                    tables[index] = value
         except:
             pass # TODO: show errors to user
+
+        self.frame.do_execute(backward = False)
 
     def _add_output(self) -> None:
         """"""
@@ -1068,12 +1097,9 @@ class NodeSheet(NodeTemplate):
             self.frame.data['value'] = value
             self.frame.do_execute(backward = False)
 
-        label = Gtk.Label(label     = _('Value'),
-                          xalign    = 1.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-        label.add_css_class('node-label')
+        widget = NodeLabel(_('Value'))
         socket_type = NodeSocketType.OUTPUT
-        self.frame.add_content(widget      = label,
+        self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
                                data_type   = Sheet,
                                get_data    = get_data,
@@ -1081,21 +1107,62 @@ class NodeSheet(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+        widget = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+        widget.set_data = lambda *args: None
 
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 0.0,
-                          opacity   = 0.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-        label.add_css_class('node-label')
-        box.append(label)
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        label.set_opacity(0.0)
+        widget.append(label)
 
         socket_type = NodeSocketType.INPUT
-        content = self.frame.add_content(box,
-                                         socket_type,
-                                         DataFrame,
+        content = self.frame.add_content(widget      = widget,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame,
                                          placeholder = True,
                                          auto_remove = True)
+
+        def restore_data(title:   str,
+                         content: NodeContent) -> str:
+            """"""
+            cindex = self.frame.contents.index(content)
+            tables = self.frame.data['replace-tables']
+            if cindex in tables:
+                title = tables[cindex]['title']
+                position = tables[cindex]['position']
+                label.set_label(title)
+                self.frame.data[title] = tuple(position)
+                del tables[cindex]
+            return title
+
+        def replace_widget(title: str) -> None:
+            """"""
+            container = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+            container.add_css_class('linked')
+
+            if title not in self.frame.data:
+                self.frame.data[title] = (1, 1) # column, row
+
+            spin_col = self._add_col_spin(title)
+            spin_row = self._add_row_spin(title)
+
+            container.append(spin_col)
+            container.append(spin_row)
+
+            expander = Gtk.Expander(label = label.get_label(),
+                                    child = container)
+            widget.append(expander)
+
+            def set_data(value: tuple) -> None:
+                """"""
+                col, row = value
+                spin_col.set_data(col)
+                spin_row.set_data(row)
+                self.frame.data[title] = value
+
+            widget.set_data = set_data
+
+            label.set_visible(False)
 
         def do_link(pair_socket:  NodeSocket,
                     self_content: NodeContent,
@@ -1122,34 +1189,11 @@ class NodeSheet(NodeTemplate):
                 return # skip if the pending socket to be removed
                        # get connected again to the previous node
 
-            # Restore content data
-            cindex = self.frame.contents.index(self_content)
-            tables = self.frame.data['replace-tables']
-            if cindex in tables:
-                new_title = tables[cindex]['title']
-                position = tables[cindex]['position']
-                label.set_label(new_title)
-                self.frame.data[new_title] = tuple(position)
-                del tables[cindex]
+            new_title = restore_data(new_title, self_content)
 
             if self_content.placeholder:
                 self_content.placeholder = False
-
-                container = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
-                container.add_css_class('linked')
-
-                if new_title not in self.frame.data:
-                    self.frame.data[new_title] = (1, 1) # column, row
-
-                self._add_x_position(new_title, container)
-                self._add_y_position(new_title, container)
-
-                expander = Gtk.Expander(label = label.get_label(),
-                                        child = container)
-                box.append(expander)
-
-                label.set_visible(False)
-
+                replace_widget(new_title)
                 self._add_input()
 
             self.frame.do_execute(pair_socket, self_content)
@@ -1177,10 +1221,9 @@ class NodeSheet(NodeTemplate):
 
         content.do_remove = do_remove
 
-    def _add_x_position(self,
-                        title:     str,
-                        container: Gtk.Widget,
-                        ) ->       None:
+    def _add_col_spin(self,
+                      title: str,
+                      ) ->   NodeSpinButton:
         """"""
         def get_data() -> int:
             """"""
@@ -1188,21 +1231,24 @@ class NodeSheet(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            _, y = self.frame.data[title]
-            self.frame.data[title] = (value, y)
-            self.frame.do_execute(backward = False)
+            def callback(value: int) -> None:
+                """"""
+                _, row = self.frame.data[title]
+                self.frame.data[title] = (value, row)
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         spin = NodeSpinButton(title    = _('Column'),
                               get_data = get_data,
                               set_data = set_data,
                               lower    = 1,
                               digits   = 0)
-        container.append(spin)
 
-    def _add_y_position(self,
-                        title:     str,
-                        container: Gtk.Widget,
-                        ) ->       None:
+        return spin
+
+    def _add_row_spin(self,
+                      title: str,
+                      ) ->   NodeSpinButton:
         """"""
         def get_data() -> int:
             """"""
@@ -1210,16 +1256,20 @@ class NodeSheet(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            x, _ = self.frame.data[title]
-            self.frame.data[title] = (x, value)
-            self.frame.do_execute(backward = False)
+            def callback(value: int) -> None:
+                """"""
+                col, _ = self.frame.data[title]
+                self.frame.data[title] = (col, value)
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         spin = NodeSpinButton(title    = _('Row'),
                               get_data = get_data,
                               set_data = set_data,
                               lower    = 1,
                               digits   = 0)
-        container.append(spin)
+
+        return spin
 
 
 
@@ -1288,7 +1338,7 @@ class NodeViewer(NodeTemplate):
                 editor.set_data(value.tables, value.sparse)
 
             elif pair_socket.data_type in self.PRIMITIVE_TYPES:
-                label.set_label(str(value))
+                label.set_label(str(value) or f'[{_('Empty')}]')
 
             elif pair_socket.data_type in {DataFrame}:
                 if isinstance(value, LazyFrame):
@@ -1443,8 +1493,10 @@ class NodeChooseColumns(NodeTemplate):
         self.frame.do_save    = self.do_save
         self.frame.do_restore = self.do_restore
 
-        self.frame.data['all-columns'] = []
-        self.frame.data['columns']     = []
+        self.frame.data['all-columns']     = []
+        self.frame.data['columns']         = []
+        self.frame.data['refresh-columns'] = False
+        self.frame.data['column-expanded'] = False
 
         self._add_output()
         self._add_input()
@@ -1454,6 +1506,8 @@ class NodeChooseColumns(NodeTemplate):
     def set_data(self, *args, **kwargs) -> None:
         """"""
         self.frame.data['columns'] = args[0]
+        self.frame.data['refresh-columns'] = True
+        self.frame.do_execute(backward = False)
 
     def do_process(self,
                    pair_socket:  NodeSocket,
@@ -1491,7 +1545,7 @@ class NodeChooseColumns(NodeTemplate):
 
     def do_save(self) -> list:
         """"""
-        return self.frame.data['columns']
+        return deepcopy(self.frame.data['columns'])
 
     def do_restore(self,
                    value: list,
@@ -1515,13 +1569,9 @@ class NodeChooseColumns(NodeTemplate):
             self.frame.data['table'] = value
             self.frame.do_execute(backward = False)
 
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 1.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-
-        label.add_css_class('node-label')
+        widget = NodeLabel(_('Table'))
         socket_type = NodeSocketType.OUTPUT
-        self.frame.add_content(widget      = label,
+        self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
                                data_type   = DataFrame,
                                get_data    = get_data,
@@ -1529,10 +1579,8 @@ class NodeChooseColumns(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 0.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-        label.add_css_class('node-label')
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -1577,17 +1625,24 @@ class NodeChooseColumns(NodeTemplate):
             else:
                 self.frame.data['columns'] = table_columns
 
-        should_refresh = False
         if self.frame.data['all-columns'] != table_columns:
-            self.frame.data['all-columns'] = table_columns
-            should_refresh = True
+            self.frame.data['refresh-columns'] = True
 
-        if should_refresh or not table_columns:
+        self.frame.data['all-columns'] = table_columns
+
+        if self.frame.data['refresh-columns']:
             if len(self.frame.contents) == 3:
                 content = self.frame.contents[-1]
                 self.frame.remove_content(content)
             if table_columns:
                 self._add_selector()
+
+        if self.frame.data['column-expanded']:
+            if len(self.frame.contents) == 3:
+                widget = self.frame.contents[-1].Widget
+                widget.set_expanded(True)
+
+        self.frame.data['refresh-columns'] = False
 
     def _add_selector(self) -> None:
         """"""
@@ -1597,8 +1652,11 @@ class NodeChooseColumns(NodeTemplate):
 
         def set_data(value: list[str]) -> None:
             """"""
-            self.frame.data['columns'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: list[str]) -> None:
+                """"""
+                self.frame.data['columns'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         group = NodeCheckGroup(get_data = get_data,
                                set_data = set_data,
@@ -1606,6 +1664,14 @@ class NodeChooseColumns(NodeTemplate):
         expander = Gtk.Expander(label = _('Columns'),
                                 child = group)
         self.frame.add_content(expander, None)
+
+        def on_expanded(widget:     Gtk.Widget,
+                        param_spec: GObject.ParamSpec,
+                        ) ->        None:
+            """"""
+            self.frame.data['column-expanded'] = expander.get_expanded()
+
+        expander.connect('notify::expanded', on_expanded)
 
 
 
@@ -1627,8 +1693,10 @@ class NodeRemoveColumns(NodeTemplate):
         self.frame.do_save    = self.do_save
         self.frame.do_restore = self.do_restore
 
-        self.frame.data['all-columns'] = []
-        self.frame.data['columns']     = []
+        self.frame.data['all-columns']     = []
+        self.frame.data['columns']         = []
+        self.frame.data['refresh-columns'] = False
+        self.frame.data['column-expanded'] = False
 
         self._add_output()
         self._add_input()
@@ -1638,6 +1706,8 @@ class NodeRemoveColumns(NodeTemplate):
     def set_data(self, *args, **kwargs) -> None:
         """"""
         self.frame.data['columns'] = args[0]
+        self.frame.data['refresh-columns'] = True
+        self.frame.do_execute(backward = False)
 
     def do_process(self,
                    pair_socket:  NodeSocket,
@@ -1674,7 +1744,7 @@ class NodeRemoveColumns(NodeTemplate):
 
     def do_save(self) -> list:
         """"""
-        return self.frame.data['columns']
+        return deepcopy(self.frame.data['columns'])
 
     def do_restore(self,
                    value: list,
@@ -1698,13 +1768,9 @@ class NodeRemoveColumns(NodeTemplate):
             self.frame.data['table'] = value
             self.frame.do_execute(backward = False)
 
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 1.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-
-        label.add_css_class('node-label')
+        widget = NodeLabel(_('Table'))
         socket_type = NodeSocketType.OUTPUT
-        self.frame.add_content(widget      = label,
+        self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
                                data_type   = DataFrame,
                                get_data    = get_data,
@@ -1712,10 +1778,8 @@ class NodeRemoveColumns(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 0.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-        label.add_css_class('node-label')
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -1757,17 +1821,24 @@ class NodeRemoveColumns(NodeTemplate):
                         columns.append(column)
                 self.frame.data['columns'] = columns
 
-        should_refresh = False
         if self.frame.data['all-columns'] != table_columns:
-            self.frame.data['all-columns'] = table_columns
-            should_refresh = True
+            self.frame.data['refresh-columns'] = True
 
-        if should_refresh or not table_columns:
+        self.frame.data['all-columns'] = table_columns
+
+        if self.frame.data['refresh-columns']:
             if len(self.frame.contents) == 3:
                 content = self.frame.contents[-1]
                 self.frame.remove_content(content)
             if table_columns:
                 self._add_selector()
+
+        if self.frame.data['column-expanded']:
+            if len(self.frame.contents) == 3:
+                widget = self.frame.contents[-1].Widget
+                widget.set_expanded(True)
+
+        self.frame.data['refresh-columns'] = False
 
     def _add_selector(self) -> None:
         """"""
@@ -1777,8 +1848,11 @@ class NodeRemoveColumns(NodeTemplate):
 
         def set_data(value: list[str]) -> None:
             """"""
-            self.frame.data['columns'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: list[str]) -> None:
+                """"""
+                self.frame.data['columns'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         group = NodeCheckGroup(get_data = get_data,
                                set_data = set_data,
@@ -1786,6 +1860,14 @@ class NodeRemoveColumns(NodeTemplate):
         expander = Gtk.Expander(label = _('Columns'),
                                 child = group)
         self.frame.add_content(expander, None)
+
+        def on_expanded(widget:     Gtk.Widget,
+                        param_spec: GObject.ParamSpec,
+                        ) ->        None:
+            """"""
+            self.frame.data['column-expanded'] = expander.get_expanded()
+
+        expander.connect('notify::expanded', on_expanded)
 
 
 
@@ -1807,9 +1889,11 @@ class NodeKeepTopKRows(NodeTemplate):
         self.frame.do_save    = self.do_save
         self.frame.do_restore = self.do_restore
 
-        self.frame.data['n-rows']      = 0
-        self.frame.data['all-columns'] = []
-        self.frame.data['columns']     = []
+        self.frame.data['n-rows']          = 0
+        self.frame.data['all-columns']     = []
+        self.frame.data['columns']         = []
+        self.frame.data['refresh-columns'] = False
+        self.frame.data['column-expanded'] = False
 
         self._add_output()
         self._add_input()
@@ -1822,11 +1906,12 @@ class NodeKeepTopKRows(NodeTemplate):
         self.frame.data['n-rows']  = args[0]
         self.frame.data['columns'] = args[1]
 
-        content = self.frame.contents[2]
-        container = content.Widget
-        box = container.get_first_child()
-        value = box.get_last_child()
-        value.set_label(str(args[0]))
+        widget = self.frame.contents[2].Widget
+        widget.set_data(args[0])
+
+        self.frame.data['refresh-columns'] = True
+
+        self.frame.do_execute(backward = False)
 
     def do_process(self,
                    pair_socket:  NodeSocket,
@@ -1857,7 +1942,7 @@ class NodeKeepTopKRows(NodeTemplate):
         """"""
         return {
             'n-rows':  self.frame.data['n-rows'],
-            'columns': self.frame.data['columns'],
+            'columns': deepcopy(self.frame.data['columns']),
         }
 
     def do_restore(self,
@@ -1883,13 +1968,9 @@ class NodeKeepTopKRows(NodeTemplate):
             self.frame.data['table'] = value
             self.frame.do_execute(backward = False)
 
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 1.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-
-        label.add_css_class('node-label')
+        widget = NodeLabel(_('Table'))
         socket_type = NodeSocketType.OUTPUT
-        self.frame.add_content(widget      = label,
+        self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
                                data_type   = DataFrame,
                                get_data    = get_data,
@@ -1897,10 +1978,8 @@ class NodeKeepTopKRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 0.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-        label.add_css_class('node-label')
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -1932,8 +2011,11 @@ class NodeKeepTopKRows(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            self.frame.data['n-rows'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['n-rows'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         spin = NodeSpinButton(title    = _('No. Rows'),
                               get_data = get_data,
@@ -1965,17 +2047,24 @@ class NodeKeepTopKRows(NodeTemplate):
                         columns.append(column)
                 self.frame.data['columns'] = columns
 
-        should_refresh = False
         if self.frame.data['all-columns'] != table_columns:
-            self.frame.data['all-columns'] = table_columns
-            should_refresh = True
+            self.frame.data['refresh-columns'] = True
 
-        if should_refresh or not table_columns:
+        self.frame.data['all-columns'] = table_columns
+
+        if self.frame.data['refresh-columns']:
             if len(self.frame.contents) == 4:
                 content = self.frame.contents[-1]
                 self.frame.remove_content(content)
             if table_columns:
                 self._add_columns()
+
+        if self.frame.data['column-expanded']:
+            if len(self.frame.contents) == 4:
+                widget = self.frame.contents[-1].Widget
+                widget.set_expanded(True)
+
+        self.frame.data['refresh-columns'] = False
 
     def _add_columns(self) -> None:
         """"""
@@ -1985,8 +2074,11 @@ class NodeKeepTopKRows(NodeTemplate):
 
         def set_data(value: list[str]) -> None:
             """"""
-            self.frame.data['columns'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: list[str]) -> None:
+                """"""
+                self.frame.data['columns'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         group = NodeCheckGroup(get_data = get_data,
                                set_data = set_data,
@@ -1994,6 +2086,14 @@ class NodeKeepTopKRows(NodeTemplate):
         expander = Gtk.Expander(label = _('Based On'),
                                 child = group)
         self.frame.add_content(expander, None)
+
+        def on_expanded(widget:     Gtk.Widget,
+                        param_spec: GObject.ParamSpec,
+                        ) ->        None:
+            """"""
+            self.frame.data['column-expanded'] = expander.get_expanded()
+
+        expander.connect('notify::expanded', on_expanded)
 
 
 
@@ -2015,9 +2115,11 @@ class NodeKeepBottomKRows(NodeTemplate):
         self.frame.do_save    = self.do_save
         self.frame.do_restore = self.do_restore
 
-        self.frame.data['n-rows']      = 0
-        self.frame.data['all-columns'] = []
-        self.frame.data['columns']     = []
+        self.frame.data['n-rows']          = 0
+        self.frame.data['all-columns']     = []
+        self.frame.data['columns']         = []
+        self.frame.data['refresh-columns'] = False
+        self.frame.data['column-expanded'] = False
 
         self._add_output()
         self._add_input()
@@ -2030,11 +2132,12 @@ class NodeKeepBottomKRows(NodeTemplate):
         self.frame.data['n-rows']  = args[0]
         self.frame.data['columns'] = args[1]
 
-        content = self.frame.contents[2]
-        container = content.Widget
-        box = container.get_first_child()
-        value = box.get_last_child()
-        value.set_label(str(args[0]))
+        widget = self.frame.contents[2].Widget
+        widget.set_data(args[0])
+
+        self.frame.data['refresh-columns'] = True
+
+        self.frame.do_execute(backward = False)
 
     def do_process(self,
                    pair_socket:  NodeSocket,
@@ -2065,7 +2168,7 @@ class NodeKeepBottomKRows(NodeTemplate):
         """"""
         return {
             'n-rows':  self.frame.data['n-rows'],
-            'columns': self.frame.data['columns'],
+            'columns': deepcopy(self.frame.data['columns']),
         }
 
     def do_restore(self,
@@ -2091,13 +2194,9 @@ class NodeKeepBottomKRows(NodeTemplate):
             self.frame.data['table'] = value
             self.frame.do_execute(backward = False)
 
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 1.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-
-        label.add_css_class('node-label')
+        widget = NodeLabel(_('Table'))
         socket_type = NodeSocketType.OUTPUT
-        self.frame.add_content(widget      = label,
+        self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
                                data_type   = DataFrame,
                                get_data    = get_data,
@@ -2105,10 +2204,8 @@ class NodeKeepBottomKRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 0.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-        label.add_css_class('node-label')
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -2140,8 +2237,11 @@ class NodeKeepBottomKRows(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            self.frame.data['n-rows'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['n-rows'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         spin = NodeSpinButton(title    = _('No. Rows'),
                               get_data = get_data,
@@ -2173,17 +2273,24 @@ class NodeKeepBottomKRows(NodeTemplate):
                         columns.append(column)
                 self.frame.data['columns'] = columns
 
-        should_refresh = False
         if self.frame.data['all-columns'] != table_columns:
-            self.frame.data['all-columns'] = table_columns
-            should_refresh = True
+            self.frame.data['refresh-columns'] = True
 
-        if should_refresh or not table_columns:
+        self.frame.data['all-columns'] = table_columns
+
+        if self.frame.data['refresh-columns']:
             if len(self.frame.contents) == 4:
                 content = self.frame.contents[-1]
                 self.frame.remove_content(content)
             if table_columns:
                 self._add_columns()
+
+        if self.frame.data['column-expanded']:
+            if len(self.frame.contents) == 4:
+                widget = self.frame.contents[-1].Widget
+                widget.set_expanded(True)
+
+        self.frame.data['refresh-columns'] = False
 
     def _add_columns(self) -> None:
         """"""
@@ -2193,8 +2300,11 @@ class NodeKeepBottomKRows(NodeTemplate):
 
         def set_data(value: list[str]) -> None:
             """"""
-            self.frame.data['columns'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: list[str]) -> None:
+                """"""
+                self.frame.data['columns'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         group = NodeCheckGroup(get_data = get_data,
                                set_data = set_data,
@@ -2202,6 +2312,14 @@ class NodeKeepBottomKRows(NodeTemplate):
         expander = Gtk.Expander(label = _('Based On'),
                                 child = group)
         self.frame.add_content(expander, None)
+
+        def on_expanded(widget:     Gtk.Widget,
+                        param_spec: GObject.ParamSpec,
+                        ) ->        None:
+            """"""
+            self.frame.data['column-expanded'] = expander.get_expanded()
+
+        expander.connect('notify::expanded', on_expanded)
 
 
 
@@ -2235,11 +2353,8 @@ class NodeKeepFirstKRows(NodeTemplate):
         """"""
         self.frame.data['n-rows'] = args[0]
 
-        content = self.frame.contents[2]
-        container = content.Widget
-        box = container.get_first_child()
-        value = box.get_last_child()
-        value.set_label(str(args[0]))
+        widget = self.frame.contents[2].Widget
+        widget.set_data(args[0])
 
     def do_process(self,
                    pair_socket:  NodeSocket,
@@ -2286,13 +2401,9 @@ class NodeKeepFirstKRows(NodeTemplate):
             self.frame.data['table'] = value
             self.frame.do_execute(backward = False)
 
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 1.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-
-        label.add_css_class('node-label')
+        widget = NodeLabel(_('Table'))
         socket_type = NodeSocketType.OUTPUT
-        self.frame.add_content(widget      = label,
+        self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
                                data_type   = DataFrame,
                                get_data    = get_data,
@@ -2300,10 +2411,8 @@ class NodeKeepFirstKRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 0.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-        label.add_css_class('node-label')
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -2335,8 +2444,11 @@ class NodeKeepFirstKRows(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            self.frame.data['n-rows'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['n-rows'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         spin = NodeSpinButton(title    = _('No. Rows'),
                               get_data = get_data,
@@ -2382,11 +2494,8 @@ class NodeKeepLastKRows(NodeTemplate):
         """"""
         self.frame.data['n-rows'] = args[0]
 
-        content = self.frame.contents[2]
-        container = content.Widget
-        box = container.get_first_child()
-        value = box.get_last_child()
-        value.set_label(str(args[0]))
+        widget = self.frame.contents[2].Widget
+        widget.set_data(args[0])
 
     def do_process(self,
                    pair_socket:  NodeSocket,
@@ -2433,13 +2542,9 @@ class NodeKeepLastKRows(NodeTemplate):
             self.frame.data['table'] = value
             self.frame.do_execute(backward = False)
 
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 1.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-
-        label.add_css_class('node-label')
+        widget = NodeLabel(_('Table'))
         socket_type = NodeSocketType.OUTPUT
-        self.frame.add_content(widget      = label,
+        self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
                                data_type   = DataFrame,
                                get_data    = get_data,
@@ -2447,10 +2552,8 @@ class NodeKeepLastKRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 0.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-        label.add_css_class('node-label')
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -2482,8 +2585,11 @@ class NodeKeepLastKRows(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            self.frame.data['n-rows'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['n-rows'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         spin = NodeSpinButton(title    = _('No. Rows'),
                               get_data = get_data,
@@ -2532,17 +2638,11 @@ class NodeKeepRangeOfRows(NodeTemplate):
         self.frame.data['offset'] = args[0]
         self.frame.data['n-rows'] = args[1]
 
-        content = self.frame.contents[2]
-        container = content.Widget
-        box = container.get_first_child()
-        value = box.get_last_child()
-        value.set_label(str(args[0]))
+        widget = self.frame.contents[2].Widget
+        widget.set_data(args[0])
 
-        content = self.frame.contents[3]
-        container = content.Widget
-        box = container.get_first_child()
-        value = box.get_last_child()
-        value.set_label(str(args[1]))
+        widget = self.frame.contents[3].Widget
+        widget.set_data(args[1])
 
     def do_process(self,
                    pair_socket:  NodeSocket,
@@ -2594,13 +2694,9 @@ class NodeKeepRangeOfRows(NodeTemplate):
             self.frame.data['table'] = value
             self.frame.do_execute(backward = False)
 
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 1.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-
-        label.add_css_class('node-label')
+        widget = NodeLabel(_('Table'))
         socket_type = NodeSocketType.OUTPUT
-        self.frame.add_content(widget      = label,
+        self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
                                data_type   = DataFrame,
                                get_data    = get_data,
@@ -2608,10 +2704,8 @@ class NodeKeepRangeOfRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 0.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-        label.add_css_class('node-label')
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -2643,8 +2737,11 @@ class NodeKeepRangeOfRows(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            self.frame.data['offset'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['offset'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         spin = NodeSpinButton(title    = _('From Row'),
                               get_data = get_data,
@@ -2666,8 +2763,11 @@ class NodeKeepRangeOfRows(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            self.frame.data['n-rows'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['n-rows'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         spin = NodeSpinButton(title    = _('No. Rows'),
                               get_data = get_data,
@@ -2716,11 +2816,8 @@ class NodeKeepEveryNthRows(NodeTemplate):
         self.frame.data['nth-row'] = args[0]
         self.frame.data['offset'] = args[1]
 
-        content = self.frame.contents[2]
-        container = content.Widget
-        box = container.get_first_child()
-        value = box.get_last_child()
-        value.set_label(str(args[0]))
+        widget = self.frame.contents[2].Widget
+        widget.set_data(args[0])
 
         content = self.frame.contents[3]
         container = content.Widget
@@ -2778,13 +2875,9 @@ class NodeKeepEveryNthRows(NodeTemplate):
             self.frame.data['table'] = value
             self.frame.do_execute(backward = False)
 
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 1.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-
-        label.add_css_class('node-label')
+        widget = NodeLabel(_('Table'))
         socket_type = NodeSocketType.OUTPUT
-        self.frame.add_content(widget      = label,
+        self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
                                data_type   = DataFrame,
                                get_data    = get_data,
@@ -2792,10 +2885,8 @@ class NodeKeepEveryNthRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 0.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-        label.add_css_class('node-label')
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -2827,8 +2918,11 @@ class NodeKeepEveryNthRows(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            self.frame.data['nth-row'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['nth-row'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         spin = NodeSpinButton(title    = _('Nth Row'),
                               get_data = get_data,
@@ -2850,8 +2944,11 @@ class NodeKeepEveryNthRows(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            self.frame.data['offset'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['offset'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         spin = NodeSpinButton(title    = _('From Row'),
                               get_data = get_data,
@@ -2885,8 +2982,10 @@ class NodeKeepDuplicateRows(NodeTemplate):
         self.frame.do_save    = self.do_save
         self.frame.do_restore = self.do_restore
 
-        self.frame.data['all-columns'] = []
-        self.frame.data['columns']     = []
+        self.frame.data['all-columns']     = []
+        self.frame.data['columns']         = []
+        self.frame.data['refresh-columns'] = False
+        self.frame.data['column-expanded'] = False
 
         self._add_output()
         self._add_input()
@@ -2896,6 +2995,8 @@ class NodeKeepDuplicateRows(NodeTemplate):
     def set_data(self, *args, **kwargs) -> None:
         """"""
         self.frame.data['columns'] = args[0]
+        self.frame.data['refresh-columns'] = True
+        self.frame.do_execute(backward = False)
 
     def do_process(self,
                    pair_socket:  NodeSocket,
@@ -2924,7 +3025,7 @@ class NodeKeepDuplicateRows(NodeTemplate):
 
     def do_save(self) -> list:
         """"""
-        return self.frame.data['columns']
+        return deepcopy(self.frame.data['columns'])
 
     def do_restore(self,
                    value: list,
@@ -2948,13 +3049,9 @@ class NodeKeepDuplicateRows(NodeTemplate):
             self.frame.data['table'] = value
             self.frame.do_execute(backward = False)
 
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 1.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-
-        label.add_css_class('node-label')
+        widget = NodeLabel(_('Table'))
         socket_type = NodeSocketType.OUTPUT
-        self.frame.add_content(widget      = label,
+        self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
                                data_type   = DataFrame,
                                get_data    = get_data,
@@ -2962,10 +3059,8 @@ class NodeKeepDuplicateRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 0.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-        label.add_css_class('node-label')
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -3007,17 +3102,24 @@ class NodeKeepDuplicateRows(NodeTemplate):
                         columns.append(column)
                 self.frame.data['columns'] = columns
 
-        should_refresh = False
         if self.frame.data['all-columns'] != table_columns:
-            self.frame.data['all-columns'] = table_columns
-            should_refresh = True
+            self.frame.data['refresh-columns'] = True
 
-        if should_refresh or not table_columns:
+        self.frame.data['all-columns'] = table_columns
+
+        if self.frame.data['refresh-columns']:
             if len(self.frame.contents) == 3:
                 content = self.frame.contents[-1]
                 self.frame.remove_content(content)
             if table_columns:
                 self._add_columns()
+
+        if self.frame.data['column-expanded']:
+            if len(self.frame.contents) == 3:
+                widget = self.frame.contents[-1].Widget
+                widget.set_expanded(True)
+
+        self.frame.data['refresh-columns'] = False
 
     def _add_columns(self) -> None:
         """"""
@@ -3027,8 +3129,11 @@ class NodeKeepDuplicateRows(NodeTemplate):
 
         def set_data(value: list[str]) -> None:
             """"""
-            self.frame.data['columns'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: list[str]) -> None:
+                """"""
+                self.frame.data['columns'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         group = NodeCheckGroup(get_data = get_data,
                                set_data = set_data,
@@ -3036,6 +3141,14 @@ class NodeKeepDuplicateRows(NodeTemplate):
         expander = Gtk.Expander(label = _('Based On'),
                                 child = group)
         self.frame.add_content(expander, None)
+
+        def on_expanded(widget:     Gtk.Widget,
+                        param_spec: GObject.ParamSpec,
+                        ) ->        None:
+            """"""
+            self.frame.data['column-expanded'] = expander.get_expanded()
+
+        expander.connect('notify::expanded', on_expanded)
 
 
 
@@ -3069,11 +3182,12 @@ class NodeRemoveFirstKRows(NodeTemplate):
         """"""
         self.frame.data['n-rows'] = args[0]
 
-        content = self.frame.contents[2]
-        container = content.Widget
-        box = container.get_first_child()
-        value = box.get_last_child()
-        value.set_label(str(args[0]))
+        widget = self.frame.contents[2].Widget
+        widget.set_data(args[0])
+
+        self.frame.data['refresh-columns'] = True
+
+        self.frame.do_execute(backward = False)
 
     def do_process(self,
                    pair_socket:  NodeSocket,
@@ -3120,13 +3234,9 @@ class NodeRemoveFirstKRows(NodeTemplate):
             self.frame.data['table'] = value
             self.frame.do_execute(backward = False)
 
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 1.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-
-        label.add_css_class('node-label')
+        widget = NodeLabel(_('Table'))
         socket_type = NodeSocketType.OUTPUT
-        self.frame.add_content(widget      = label,
+        self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
                                data_type   = DataFrame,
                                get_data    = get_data,
@@ -3134,10 +3244,8 @@ class NodeRemoveFirstKRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 0.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-        label.add_css_class('node-label')
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -3169,8 +3277,11 @@ class NodeRemoveFirstKRows(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            self.frame.data['n-rows'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['n-rows'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         spin = NodeSpinButton(title    = _('No. Rows'),
                               get_data = get_data,
@@ -3216,11 +3327,8 @@ class NodeRemoveLastKRows(NodeTemplate):
         """"""
         self.frame.data['n-rows'] = args[0]
 
-        content = self.frame.contents[2]
-        container = content.Widget
-        box = container.get_first_child()
-        value = box.get_last_child()
-        value.set_label(str(args[0]))
+        widget = self.frame.contents[2].Widget
+        widget.set_data(args[0])
 
     def do_process(self,
                    pair_socket:  NodeSocket,
@@ -3267,13 +3375,9 @@ class NodeRemoveLastKRows(NodeTemplate):
             self.frame.data['table'] = value
             self.frame.do_execute(backward = False)
 
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 1.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-
-        label.add_css_class('node-label')
+        widget = NodeLabel(_('Table'))
         socket_type = NodeSocketType.OUTPUT
-        self.frame.add_content(widget      = label,
+        self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
                                data_type   = DataFrame,
                                get_data    = get_data,
@@ -3281,10 +3385,8 @@ class NodeRemoveLastKRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 0.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-        label.add_css_class('node-label')
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -3316,8 +3418,11 @@ class NodeRemoveLastKRows(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            self.frame.data['n-rows'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['n-rows'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         spin = NodeSpinButton(title    = _('No. Rows'),
                               get_data = get_data,
@@ -3366,17 +3471,11 @@ class NodeRemoveRangeOfRows(NodeTemplate):
         self.frame.data['offset'] = args[0]
         self.frame.data['n-rows'] = args[1]
 
-        content = self.frame.contents[2]
-        container = content.Widget
-        box = container.get_first_child()
-        value = box.get_last_child()
-        value.set_label(str(args[0]))
+        widget = self.frame.contents[2].Widget
+        widget.set_data(args[0])
 
-        content = self.frame.contents[3]
-        container = content.Widget
-        box = container.get_first_child()
-        value = box.get_last_child()
-        value.set_label(str(args[1]))
+        widget = self.frame.contents[3].Widget
+        widget.set_data(args[1])
 
     def do_process(self,
                    pair_socket:  NodeSocket,
@@ -3430,13 +3529,9 @@ class NodeRemoveRangeOfRows(NodeTemplate):
             self.frame.data['table'] = value
             self.frame.do_execute(backward = False)
 
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 1.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-
-        label.add_css_class('node-label')
+        widget = NodeLabel(_('Table'))
         socket_type = NodeSocketType.OUTPUT
-        self.frame.add_content(widget      = label,
+        self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
                                data_type   = DataFrame,
                                get_data    = get_data,
@@ -3444,10 +3539,8 @@ class NodeRemoveRangeOfRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 0.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-        label.add_css_class('node-label')
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -3479,8 +3572,11 @@ class NodeRemoveRangeOfRows(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            self.frame.data['offset'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['offset'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         spin = NodeSpinButton(title    = _('From Row'),
                               get_data = get_data,
@@ -3502,8 +3598,11 @@ class NodeRemoveRangeOfRows(NodeTemplate):
 
         def set_data(value: int) -> None:
             """"""
-            self.frame.data['n-rows'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['n-rows'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         spin = NodeSpinButton(title    = _('No. Rows'),
                               get_data = get_data,
@@ -3537,10 +3636,12 @@ class NodeRemoveDuplicateRows(NodeTemplate):
         self.frame.do_save    = self.do_save
         self.frame.do_restore = self.do_restore
 
-        self.frame.data['keep-rows']   = _('Any')
-        self.frame.data['keep-order']  = False
-        self.frame.data['all-columns'] = []
-        self.frame.data['columns']     = []
+        self.frame.data['keep-rows']       = _('Any')
+        self.frame.data['keep-order']      = False
+        self.frame.data['all-columns']     = []
+        self.frame.data['columns']         = []
+        self.frame.data['refresh-columns'] = False
+        self.frame.data['column-expanded'] = False
 
         self._add_output()
         self._add_input()
@@ -3555,16 +3656,15 @@ class NodeRemoveDuplicateRows(NodeTemplate):
         self.frame.data['keep-order'] = args[1]
         self.frame.data['columns']    = args[2]
 
-        content = self.frame.contents[2]
-        container = content.Widget
-        box = container.get_first_child()
-        subbox = box.get_last_child()
-        value = subbox.get_first_child()
-        value.set_label(str(args[0]))
+        widget = self.frame.contents[2].Widget
+        widget.set_data(args[0])
 
-        content = self.frame.contents[3]
-        value = content.Widget
-        value.set_active(args[1])
+        widget = self.frame.contents[3].Widget
+        widget.set_data(args[1])
+
+        self.frame.data['refresh-columns'] = True
+
+        self.frame.do_execute(backward = False)
 
     def do_process(self,
                    pair_socket:  NodeSocket,
@@ -3599,7 +3699,7 @@ class NodeRemoveDuplicateRows(NodeTemplate):
         return {
             'keep-rows':  self.frame.data['keep-rows'],
             'keep-order': self.frame.data['keep-order'],
-            'columns':    self.frame.data['columns'],
+            'columns':    deepcopy(self.frame.data['columns']),
         }
 
     def do_restore(self,
@@ -3626,13 +3726,9 @@ class NodeRemoveDuplicateRows(NodeTemplate):
             self.frame.data['table'] = value
             self.frame.do_execute(backward = False)
 
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 1.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-
-        label.add_css_class('node-label')
+        widget = NodeLabel(_('Table'))
         socket_type = NodeSocketType.OUTPUT
-        self.frame.add_content(widget      = label,
+        self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
                                data_type   = DataFrame,
                                get_data    = get_data,
@@ -3640,10 +3736,8 @@ class NodeRemoveDuplicateRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = Gtk.Label(label     = _('Table'),
-                          xalign    = 0.0,
-                          ellipsize = Pango.EllipsizeMode.END)
-        label.add_css_class('node-label')
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -3675,8 +3769,11 @@ class NodeRemoveDuplicateRows(NodeTemplate):
 
         def set_data(value: str) -> None:
             """"""
-            self.frame.data['keep-rows'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['keep-rows'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         options = {
             _('Any'):   _('Any'),
@@ -3700,8 +3797,11 @@ class NodeRemoveDuplicateRows(NodeTemplate):
 
         def set_data(value: bool) -> None:
             """"""
-            self.frame.data['keep-order'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: bool) -> None:
+                """"""
+                self.frame.data['keep-order'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         check = NodeCheckButton(title    = _('Maintain Order'),
                                 get_data = get_data,
@@ -3719,12 +3819,7 @@ class NodeRemoveDuplicateRows(NodeTemplate):
             """"""
             content.Widget.set_visible(False)
 
-            label = Gtk.Label(label     = _('Maintain Order'),
-                              xalign    = 0.0,
-                              ellipsize = Pango.EllipsizeMode.END)
-            label.add_css_class('after-socket')
-            label.add_css_class('node-widget')
-            label.add_css_class('node-label')
+            label = NodeLabel(_('Maintain Order'), linked = True)
             label.insert_after(content.Container, content.Socket)
 
             if not _iscompatible(pair_socket, self_content):
@@ -3768,17 +3863,24 @@ class NodeRemoveDuplicateRows(NodeTemplate):
                         columns.append(column)
                 self.frame.data['columns'] = columns
 
-        should_refresh = False
         if self.frame.data['all-columns'] != table_columns:
-            self.frame.data['all-columns'] = table_columns
-            should_refresh = True
+            self.frame.data['refresh-columns'] = True
 
-        if should_refresh or not table_columns:
+        self.frame.data['all-columns'] = table_columns
+
+        if self.frame.data['refresh-columns']:
             if len(self.frame.contents) == 5:
                 content = self.frame.contents[-1]
                 self.frame.remove_content(content)
             if table_columns:
                 self._add_columns()
+
+        if self.frame.data['column-expanded']:
+            if len(self.frame.contents) == 5:
+                widget = self.frame.contents[-1].Widget
+                widget.set_expanded(True)
+
+        self.frame.data['refresh-columns'] = False
 
     def _add_columns(self) -> None:
         """"""
@@ -3788,8 +3890,11 @@ class NodeRemoveDuplicateRows(NodeTemplate):
 
         def set_data(value: list[str]) -> None:
             """"""
-            self.frame.data['columns'] = value
-            self.frame.do_execute(backward = False)
+            def callback(value: list[str]) -> None:
+                """"""
+                self.frame.data['columns'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
 
         group = NodeCheckGroup(get_data = get_data,
                                set_data = set_data,
@@ -3797,6 +3902,14 @@ class NodeRemoveDuplicateRows(NodeTemplate):
         expander = Gtk.Expander(label = _('Based On'),
                                 child = group)
         self.frame.add_content(expander, None)
+
+        def on_expanded(widget:     Gtk.Widget,
+                        param_spec: GObject.ParamSpec,
+                        ) ->        None:
+            """"""
+            self.frame.data['column-expanded'] = expander.get_expanded()
+
+        expander.connect('notify::expanded', on_expanded)
 
 
 

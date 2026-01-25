@@ -178,7 +178,6 @@ class NodeCanvas(Gtk.Fixed):
         """"""
         editor = self.get_editor()
         editor.select_by_click()
-        self.grab_focus()
 
     def _on_rmb_pressed(self,
                         gesture: Gtk.GestureClick,
