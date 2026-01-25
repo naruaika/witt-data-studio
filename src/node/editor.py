@@ -392,6 +392,13 @@ class NodeEditor(Gtk.Overlay):
         hadjustment.connect('value-changed', lambda *_: self.queue_draw())
         vadjustment.connect('value-changed', lambda *_: self.queue_draw())
 
+        controller = Gtk.GestureDrag.new()
+        controller.set_button(Gdk.BUTTON_MIDDLE)
+        controller.connect('drag-begin', self._on_pan_begin)
+        controller.connect('drag-update', self._on_pan_update)
+        controller.connect('drag-end', self._on_pan_end)
+        self.Canvas.add_controller(controller)
+
     def _on_motion(self,
                    motion: Gtk.EventControllerMotion,
                    x:      float,
@@ -405,6 +412,36 @@ class NodeEditor(Gtk.Overlay):
 
         self._cursor_x_position = x + scroll_x_position
         self._cursor_y_position = y + scroll_y_position
+
+    def _on_pan_begin(self,
+                      gesture: Gtk.GestureDrag,
+                      start_x: float,
+                      start_y: float,
+                      ) ->     None:
+        """"""
+        self.Canvas.set_cursor(Gdk.Cursor.new_from_name('grabbing', None))
+
+    def _on_pan_update(self,
+                       gesture:  Gtk.GestureDrag,
+                       offset_x: float,
+                       offset_y: float,
+                       ) ->      None:
+        """"""
+        vadjustment = self.ScrolledWindow.get_vadjustment()
+        hadjustment = self.ScrolledWindow.get_hadjustment()
+        scroll_y_position = vadjustment.get_value()
+        scroll_x_position = hadjustment.get_value()
+
+        vadjustment.set_value(scroll_y_position - offset_y)
+        hadjustment.set_value(scroll_x_position - offset_x)
+
+    def _on_pan_end(self,
+                    gesture:  Gtk.GestureDrag,
+                    offset_x: float,
+                    offset_y: float,
+                    ) ->      None:
+        """"""
+        self.Canvas.set_cursor(None)
 
     def _setup_default_nodes(self) -> None:
         """"""
