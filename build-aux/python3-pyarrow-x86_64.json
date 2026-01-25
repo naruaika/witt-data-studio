@@ -7,8 +7,8 @@
     "sources": [
         {
             "type": "file",
-            "url": "https://files.pythonhosted.org/packages/1b/8b/5362443737a5307a7b67c1017c42cd104213189b4970bf607e05faf9c525/pyarrow-22.0.0-cp313-cp313-manylinux_2_28_x86_64.whl",
-            "sha256": "e0a15757fccb38c410947df156f9749ae4a3c89b2393741a50521f39a8cf202a"
+            "url": "https://files.pythonhosted.org/packages/2c/41/6a7328ee493527e7afc0c88d105ecca69a3580e29f2faaeac29308369fd7/pyarrow-23.0.0-cp313-cp313-manylinux_2_28_x86_64.whl",
+            "sha256": "4292b889cd224f403304ddda8b63a36e60f92911f89927ec8d98021845ea21be"
         }
     ],
     "only-arches": [
