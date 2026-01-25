@@ -123,6 +123,9 @@ class SheetEditor(Gtk.Box):
                    refresh: bool = True,
                    ) ->     None:
         """"""
+        # TODO: this potentially introduces unnecessary re-rendering
+        # unless we can unsure that it does nothing when the scrolls
+        # unchanged.
         self.view.update_by_scroll()
 
         from ..window import Window
