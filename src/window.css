@@ -2,9 +2,20 @@
     background-color: var(--view-bg-color);
     color: var(--view-fg-color);
 }
+
 .mwindow .mtitlebar windowcontrols.start > button:first-child {
     margin-left: 6px;
 }
 .mwindow .mtitlebar windowcontrols.end > button:last-child {
     margin-right: 6px;
 }
+
+/*
+.mwindow .mtabview {
+    margin: 0 2px;
+    transition-duration: 0.2s;
+}
+.mwindow .mtabview:focus-visible {
+    outline: 2px solid var(--accent-bg-color);
+}
+    */

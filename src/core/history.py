@@ -81,23 +81,37 @@ class History():
     def do(self,
            action:   Action,
            undoable: bool = True,
+           add_only: bool = False,
            ) ->      bool:
         """"""
         action.group = self._group_id
+
+        if self._undo_stack:
+            last_action = self._undo_stack[-1]
+            if action.isduplicate(last_action):
+                return False
+
+        def do_stack(action: Action) -> None:
+            """"""
+            self._undo_stack.append(action)
+            for action in self._redo_stack:
+                action.clean()
+            self._redo_stack.clear()
+
+        if add_only:
+            do_stack(action)
+            return True
 
         if action.do(undoable):
             if self._freezing:
                 return True
 
             if undoable:
-                self._undo_stack.append(action)
-                for action in self._redo_stack:
-                    action.clean()
-                self._redo_stack.clear()
+                do_stack(action)
 
             return True
 
-        # TODO: undo all previous actions with the same group ID
+        # TODO: undo all previous actions in the group
 
         return False
 

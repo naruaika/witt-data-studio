@@ -161,10 +161,12 @@ class NodeEditor(Gtk.Overlay):
         self.queue_draw()
 
     def do(self,
-           action: Action,
-           ) ->    bool:
+           action:   Action,
+           undoable: bool = True,
+           add_only: bool = False,
+           ) ->      bool:
         """"""
-        if self.history.do(action):
+        if self.history.do(action, undoable, add_only):
             self.refresh_ui()
             self.grab_focus()
             return True
@@ -860,6 +862,9 @@ class NodeEditor(Gtk.Overlay):
         offset_x = self._cursor_x_position - self._origin_x_position
         offset_y = self._cursor_y_position - self._origin_y_position
 
+        if abs(offset_x) < 1 and abs(offset_y) < 1:
+            return
+
         for node in self.selected_nodes:
             node.x = int(min(max(0, node._old_x + offset_x), node._max_x))
             node.y = int(min(max(0, node._old_y + offset_y), node._max_y))
@@ -869,6 +874,12 @@ class NodeEditor(Gtk.Overlay):
 
     def end_move_selections(self) -> None:
         """"""
+        offset_x = self._cursor_x_position - self._origin_x_position
+        offset_y = self._cursor_y_position - self._origin_y_position
+
+        if abs(offset_x) < 1 and abs(offset_y) < 1:
+            return
+
         for node in self.selected_nodes:
             old_position = (node._old_x, node._old_y)
             new_position = (node.x, node.y)
@@ -905,6 +916,13 @@ class NodeEditor(Gtk.Overlay):
                              combo: bool,
                              ) ->   bool:
         """"""
+        p1, p2 = self.rubber_band
+        x1, y1 = p1
+        x2, y2 = p2
+
+        if abs(x2 - x1) < 1 and abs(y2 - y1) < 1:
+            return False
+
         from .action import ActionSelectByRubberband
         action = ActionSelectByRubberband(self, combo)
         return self.do(action)

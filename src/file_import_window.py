@@ -313,7 +313,6 @@ class FileImportWindow(Adw.Window):
 
         if self.callback:
             self.callback(self.file_path,
-                          self.file_format,
                           all_columns,
                           **kwargs)
             return
@@ -362,7 +361,6 @@ class FileImportWindow(Adw.Window):
         target_position = (sheet.x - 175 - 50, sheet.y)
         reader = NodeReadFile.new(*target_position)
         editor.add_node(reader)
-        editor.select_by_click(reader)
 
         # Link the sheet to the viewer node if needed
         if not sheet.has_view():
@@ -376,6 +374,8 @@ class FileImportWindow(Adw.Window):
         editor.add_link(in_socket, out_socket)
 
         reader.set_data(self.file_path, all_columns, **kwargs)
+
+        editor.select_by_click(reader)
 
         window.activate_action('win.focus-editor')
 

@@ -41,3 +41,9 @@ class Action():
     def clean(self) -> bool:
         """"""
         return False
+
+    def isduplicate(self,
+                    action: 'Action',
+                    ) ->    'bool':
+        """"""
+        return False
