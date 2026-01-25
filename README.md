@@ -137,7 +137,9 @@ When it comes to the plugin development, usually I do this following example ste
 
 ## Licenses
 
-This project is distributed under the [GNU Affero General Public License Version 3](LICENSE) (AGPL-3). We use [GTK](https://www.gtk.org/) and [Libadwaita](https://gitlab.gnome.org/GNOME/libadwaita) to build the user interface, which are licensed under the [GNU Lesser General Public License Version 2.1](https://www.gnu.org/licenses/lgpl-2.1.en.html) (LGPL-2.1). The backend for data manipulation uses [Polars](https://pola.rs/), which is distributed under the [MIT License](https://opensource.org/license/mit). For other dependencies, see the `build-aux/requirements.txt` file. We use icons from [Carbon Design System](https://carbondesignsystem.com/elements/icons/library/), which is distributed under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
+This project is distributed under the [GNU Affero General Public License Version 3](LICENSE) (AGPL-3). **Note:** We're considering switching to the Apache License 2.0 in the near future.
+
+We use [GTK](https://www.gtk.org/) and [Libadwaita](https://gitlab.gnome.org/GNOME/libadwaita) to build the user interface, which are licensed under the [GNU Lesser General Public License Version 2.1](https://www.gnu.org/licenses/lgpl-2.1.en.html) (LGPL-2.1). The backend for data manipulation uses [Polars](https://pola.rs/), which is distributed under the [MIT License](https://opensource.org/license/mit). For other dependencies, see the `build-aux/requirements.txt` file. We use icons from [Carbon Design System](https://carbondesignsystem.com/elements/icons/library/), which is distributed under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
 
 ## Alternatives
 
