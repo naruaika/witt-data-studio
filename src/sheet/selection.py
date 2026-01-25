@@ -631,7 +631,7 @@ class SheetSelection():
 
         canvas = self.view.Canvas
         editor = canvas.get_editor()
-        editor.refresh_ui()
+        editor.refresh_ui(refresh = False)
 
     def update_by_scroll(self) -> None:
         """"""

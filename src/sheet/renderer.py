@@ -482,13 +482,13 @@ class SheetRenderer():
         # Create the cache if it doesn't exist
         if 'content' not in self.render_cache:
             self.render_cache['content'] = {
-                'surface' : ImageSurface(FORMAT_ARGB32, width, height),
-                'width'   : width,
-                'height'  : height,
-                'x_pos'   : display.scroll_x_position,
-                'y_pos'   : display.scroll_y_position,
-                'x_trans' : 0,
-                'y_trans' : 0,
+                'surface': ImageSurface(FORMAT_ARGB32, width, height),
+                'width':   width,
+                'height':  height,
+                'x_pos':   display.scroll_x_position,
+                'y_pos':   display.scroll_y_position,
+                'x_trans': 0,
+                'y_trans': 0,
             }
             use_cache = False
 

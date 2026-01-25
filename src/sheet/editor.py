@@ -119,7 +119,9 @@ class SheetEditor(Gtk.Box):
         self.Canvas.set_focusable(True)
         self.Canvas.grab_focus()
 
-    def refresh_ui(self) -> None:
+    def refresh_ui(self,
+                   refresh: bool = True,
+                   ) ->     None:
         """"""
         self.view.update_by_scroll()
 
@@ -132,7 +134,7 @@ class SheetEditor(Gtk.Box):
             if self == window.get_selected_editor():
                 window.Toolbar.populate()
 
-        self.queue_draw(refresh = True)
+        self.queue_draw(refresh)
 
     def do(self,
            action: Action,
