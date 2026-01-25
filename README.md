@@ -1,4 +1,4 @@
-<img src="data/icons/hicolor/scalable/apps/com.macipra.witt.svg" width="110px" align="left">
+<img src="data/icons/hicolor/scalable/apps/com.macipra.witt.svg" width="115px" align="left">
 
 # Witt Data Studio
 
