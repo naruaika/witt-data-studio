@@ -23,6 +23,7 @@ root_sources = [
   '__init__.py',
   'application.py',
   'command_palette.py',
+  'environment.py',
   'file_import_csv_view.py',
   'file_import_parquet_view.py',
   'file_import_window.py',

@@ -113,8 +113,8 @@ class SheetRenderer():
             cached_content = self.render_cache['content']
             cached_height = cached_content['height']
             cached_width = cached_content['width']
-            new_area_bigger_than_cached = new_width > cached_width or \
-                                          new_height > cached_height
+            new_area_bigger_than_cached = new_height > cached_height or \
+                                          new_width  > cached_width
 
             if new_area_bigger_than_cached:
                 x_offset = new_width  - self.prev_width

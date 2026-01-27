@@ -33,8 +33,7 @@ import cairo
 import gc
 import math
 
-from ..core.action import Action
-from ..core.history import History
+from .. import environment as env
 
 Point2D:  TypeAlias = tuple[float, float]
 Scalar2D: TypeAlias = tuple[Point2D, Point2D]
@@ -102,8 +101,6 @@ class NodeEditor(Gtk.Overlay):
         self.selected_nodes: 'list'['NodeFrame'] = []
         self.removed_socket: 'NodeSocket'        = None
 
-        self.history = History('global')
-
         self._prev_zoom = 1.0
         self._curr_zoom = 1.0
 
@@ -122,20 +119,7 @@ class NodeEditor(Gtk.Overlay):
         self._editor_init_setup = False
         self._should_init_nodes = len(nodes) > 0
 
-        self.history.freezing = True
-
-        for node in nodes:
-            self.add_node(node)
-
-        for link in links:
-            if link.in_socket.Frame not in nodes:
-                continue
-            if link.out_socket.Frame not in nodes:
-                continue
-            self.links.append(link)
-
-        self.history.freezing = False
-
+        self._setup_data(nodes, links)
         self._setup_actions()
         self._setup_commands()
         self._setup_controllers()
@@ -159,34 +143,6 @@ class NodeEditor(Gtk.Overlay):
                 window.Toolbar.populate()
 
         self.queue_draw()
-
-    def do(self,
-           action:   Action,
-           undoable: bool = True,
-           add_only: bool = False,
-           ) ->      bool:
-        """"""
-        if self.history.do(action, undoable, add_only):
-            self.refresh_ui()
-            self.grab_focus()
-            return True
-        return False
-
-    def undo(self) -> bool:
-        """"""
-        if actions := self.history.undo():
-            self.refresh_ui()
-            self.grab_focus()
-            return True
-        return False
-
-    def redo(self) -> bool:
-        """"""
-        if actions := self.history.redo():
-            self.refresh_ui()
-            self.grab_focus()
-            return True
-        return False
 
     def cleanup(self) -> None:
         """"""
@@ -230,6 +186,26 @@ class NodeEditor(Gtk.Overlay):
             command_list.append(command)
 
         return command_list
+
+    def _setup_data(self,
+                    nodes: list['NodeFrame'] = [],
+                    links: list['NodeLink']  = [],
+                    ) ->   None:
+        """"""
+        window = env.app.get_active_main_window()
+        window.history.freezing = True
+
+        for node in nodes:
+            self.add_node(node)
+
+        for link in links:
+            if link.in_socket.Frame not in nodes:
+                continue
+            if link.out_socket.Frame not in nodes:
+                continue
+            self.links.append(link)
+
+        window.history.freezing = False
 
     def _setup_actions(self) -> None:
         """"""
@@ -458,10 +434,12 @@ class NodeEditor(Gtk.Overlay):
         scroll_x_position = (canvas_width  - viewport_width)  / 2
         scroll_y_position = (canvas_height - viewport_height) / 2
 
+        # TODO: the geometry in the calculation should be made to be
+        # more representative of the actual geometry of the nodes
+
         offset = 175 / 2 + 50 / 2
         x_position = scroll_x_position + (viewport_width  - 175) / 2
         y_position = scroll_y_position + (viewport_height - 111) / 2
-        # This is only an estimate and it is no required to be near accurate
 
         viewer = NodeViewer.new(x_position + offset, y_position)
         sheet = NodeSheet.new(x_position - offset, y_position)
@@ -469,13 +447,13 @@ class NodeEditor(Gtk.Overlay):
         in_socket = sheet.contents[0].Socket
         out_socket = viewer.contents[-1].Socket
 
-        self.history.grouping = True
+        window.history.grouping = True
 
         self.add_node(viewer)
         self.add_node(sheet)
         self.add_link(in_socket, out_socket)
 
-        self.history.grouping = False
+        window.history.grouping = False
 
         vadjustment = self.ScrolledWindow.get_vadjustment()
         hadjustment = self.ScrolledWindow.get_hadjustment()
@@ -667,10 +645,11 @@ class NodeEditor(Gtk.Overlay):
                                 scroll_y_position + 50)#self._cursor_y_position
 
         if node:
-            self.history.grouping = True
+            window = self.get_root()
+            window.history.grouping = True
             self.add_node(node)
             self.select_by_click(node)
-            self.history.grouping = False
+            window.history.grouping = False
 
     def _on_duplicate_action(self,
                              action:    Gio.SimpleAction,
@@ -680,7 +659,8 @@ class NodeEditor(Gtk.Overlay):
         if not self.selected_nodes:
             return
 
-        self.history.grouping = True
+        window = self.get_root()
+        window.history.grouping = True
 
         selected = copy(self.selected_nodes)
 
@@ -691,9 +671,9 @@ class NodeEditor(Gtk.Overlay):
             self.add_node(cloned)
             self.select_by_click(cloned, True)
 
-        # TODO: retain the links between cloned nodes
+        # TODO: replicate the links from/to cloned nodes
 
-        self.history.grouping = False
+        window.history.grouping = False
 
         GLib.idle_add(self.do_collect_points, self.selected_nodes)
 
@@ -707,7 +687,9 @@ class NodeEditor(Gtk.Overlay):
 
         from .action import ActionDeleteNode
         action = ActionDeleteNode(self, self.selected_nodes)
-        self.do(action)
+
+        window = self.get_root()
+        window.do(action)
 
     def _on_select_all_action(self,
                               action:    Gio.SimpleAction,
@@ -716,7 +698,8 @@ class NodeEditor(Gtk.Overlay):
         """"""
         from .repository import NodeViewer
 
-        self.history.grouping = True
+        window = self.get_root()
+        window.history.grouping = True
 
         self.select_by_click()
 
@@ -726,7 +709,7 @@ class NodeEditor(Gtk.Overlay):
             if isinstance(node.parent, NodeViewer):
                 self.select_viewer(node)
 
-        self.history.grouping = False
+        window.history.grouping = False
 
     def _on_select_none_action(self,
                                action:    Gio.SimpleAction,
@@ -750,7 +733,9 @@ class NodeEditor(Gtk.Overlay):
         """"""
         from .action import ActionAddNode
         action = ActionAddNode(self, [node])
-        return self.do(action)
+
+        window = self.get_window()
+        return window.do(action)
 
     def add_link(self,
                  socket1: 'NodeSocket',
@@ -759,7 +744,9 @@ class NodeEditor(Gtk.Overlay):
         """"""
         from .action import ActionAddLink
         action = ActionAddLink(self, socket1, socket2)
-        return self.do(action)
+
+        window = self.get_window()
+        return window.do(action)
 
     def collect_points(self) -> None:
         """"""
@@ -930,7 +917,9 @@ class NodeEditor(Gtk.Overlay):
         """"""
         from .action import ActionMoveNode
         action = ActionMoveNode(self, [node], [positions])
-        self.do(action)
+
+        window = self.get_root()
+        window.do(action)
 
     def select_viewer(self,
                       viewer: 'NodeFrame',
@@ -938,7 +927,9 @@ class NodeEditor(Gtk.Overlay):
         """"""
         from .action import ActionSelectViewer
         action = ActionSelectViewer(self, viewer)
-        return self.do(action)
+
+        window = self.get_window()
+        return window.do(action)
 
     def select_by_click(self,
                         node:  'NodeFrame' = None,
@@ -947,7 +938,9 @@ class NodeEditor(Gtk.Overlay):
         """"""
         from .action import ActionSelectByClick
         action = ActionSelectByClick(self, node, combo)
-        return self.do(action)
+
+        window = self.get_window()
+        return window.do(action)
 
     def select_by_rubberband(self,
                              combo: bool,
@@ -962,7 +955,15 @@ class NodeEditor(Gtk.Overlay):
 
         from .action import ActionSelectByRubberband
         action = ActionSelectByRubberband(self, combo)
-        return self.do(action)
+
+        window = self.get_window()
+        return window.do(action)
+
+    def get_window(self) -> Gtk.Window:
+        """"""
+        if window := self.get_root():
+            return window
+        return env.app.get_active_main_window()
 
 from .frame import NodeFrame
 from .socket import NodeSocket

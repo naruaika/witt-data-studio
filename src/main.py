@@ -19,11 +19,15 @@
 
 from sys import argv
 
+from . import environment as env
 from .application import Application
 
 def main(app_id:  str,
          version: str,
          ) ->     int:
-    """The application's entry point."""
-    application = Application(app_id, version)
-    return application.run(argv)
+     """The application's entry point."""
+     app = Application(app_id, version)
+
+     env.app = app
+
+     return app.run(argv)

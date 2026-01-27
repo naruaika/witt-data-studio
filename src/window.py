@@ -25,6 +25,9 @@ from gi.repository import GObject
 from gi.repository import Gtk
 from typing import TypeAlias
 
+from .core.action import Action
+from .core.history import History
+
 from .node.editor import NodeEditor
 from .sheet.editor import SheetEditor
 from .chart.editor import ChartEditor
@@ -63,6 +66,8 @@ class Window(Adw.ApplicationWindow):
 
         self.file_path:    str  = None
         self.command_list: list = []
+
+        self.history = History()
 
         self._setup_uinterfaces()
         self._setup_controllers()
@@ -117,9 +122,9 @@ class Window(Adw.ApplicationWindow):
         create_action('focus-editor',       self._on_focus_editor_action,
                                             ['Escape'])
 
-        create_action('undo',               self._on_undo,
+        create_action('undo',               lambda *_: self.undo(),
                                             ['<Primary>z'])
-        create_action('redo',               self._on_redo,
+        create_action('redo',               lambda *_: self.redo(),
                                             ['<Shift><Primary>z'])
 
         create_action('save',               self._on_save,
@@ -228,22 +233,6 @@ class Window(Adw.ApplicationWindow):
         if self.CommandPalette.get_visible():
             self.CommandPalette.popdown()
 
-    def _on_undo(self,
-                 action:    Gio.SimpleAction,
-                 parameter: GLib.Variant,
-                 ) ->       None:
-        """"""
-        editor = self.get_selected_editor()
-        editor.undo()
-
-    def _on_redo(self,
-                 action:    Gio.SimpleAction,
-                 parameter: GLib.Variant,
-                 ) ->       None:
-        """"""
-        editor = self.get_selected_editor()
-        editor.redo()
-
     def _on_save(self,
                  action:    Gio.SimpleAction,
                  parameter: GLib.Variant,
@@ -317,6 +306,56 @@ class Window(Adw.ApplicationWindow):
         """"""
         self.TabOverview.set_open(True)
 
+    def do(self,
+           action:   Action,
+           undoable: bool = True,
+           add_only: bool = False,
+           ) ->      bool:
+        """"""
+        editor = self.get_selected_editor()
+        action.owner = editor
+
+        success = self.history.do(action,
+                                  undoable,
+                                  add_only)
+
+        if not success:
+            return False
+
+        if editor := self.get_selected_editor():
+            editor.refresh_ui()
+            editor.grab_focus()
+
+        return True
+
+    def undo(self) -> bool:
+        """"""
+        (success, actions) = self.history.undo()
+
+        first_action = actions[0]
+        action_owner = first_action.owner
+        self.go_to_editor(action_owner)
+
+        if editor := self.get_selected_editor():
+            editor.refresh_ui()
+            editor.grab_focus()
+
+        return success
+
+    def redo(self) -> bool:
+        """"""
+        (success, actions) = self.history.redo()
+
+        first_action = actions[0]
+        action_owner = first_action.owner
+        self.go_to_editor(action_owner)
+
+        if editor := self.get_selected_editor():
+            editor.refresh_ui()
+            editor.grab_focus()
+
+        return success
+
     def add_new_editor(self,
                        editor: Editor,
                        pinned: bool = False,
@@ -349,3 +388,17 @@ class Window(Adw.ApplicationWindow):
         if page := self.TabView.get_selected_page():
             return page.get_child()
         return None
+
+    def go_to_editor(self,
+                     editor: Editor,
+                     ) ->    None:
+        """"""
+        if editor == self.get_selected_editor():
+            return
+
+        for page in self.TabView.get_pages():
+            if editor == page.get_child():
+                self.TabView.set_selected_page(page)
+                break
+
+        self.present()

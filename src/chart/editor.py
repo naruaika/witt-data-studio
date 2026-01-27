@@ -22,9 +22,6 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
 
-from ..core.action import Action
-from ..core.history import History
-
 @Gtk.Template(resource_path = '/com/macipra/witt/chart/editor.ui')
 class ChartEditor(Gtk.Overlay):
 
@@ -65,8 +62,6 @@ class ChartEditor(Gtk.Overlay):
                                   self.document,
                                   self.display)
 
-        self.history = History('chart')
-
         self._setup_actions()
         self._setup_commands()
 
@@ -82,32 +77,6 @@ class ChartEditor(Gtk.Overlay):
     def refresh_ui(self) -> None:
         """"""
         pass
-
-    def do(self,
-           action: Action,
-           ) ->    bool:
-        """"""
-        if self.history.do(action):
-            self.refresh_ui()
-            self.grab_focus()
-            return True
-        return False
-
-    def undo(self) -> bool:
-        """"""
-        if action := self.history.undo():
-            self.refresh_ui()
-            self.grab_focus()
-            return True
-        return False
-
-    def redo(self) -> bool:
-        """"""
-        if action := self.history.redo():
-            self.refresh_ui()
-            self.grab_focus()
-            return True
-        return False
 
     def cleanup(self) -> None:
         """"""

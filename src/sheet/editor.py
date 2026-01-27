@@ -39,9 +39,7 @@ from typing import Any
 from typing import TypeAlias
 import gc
 
-from ..core.action import Action
 from ..core.datatable import DataTable
-from ..core.history import History
 from ..node.frame import NodeFrame
 
 Row:        TypeAlias = int
@@ -103,8 +101,6 @@ class SheetEditor(Gtk.Box):
 
         self.frame = frame
 
-        self.history = History('sheet')
-
         self._setup_actions()
         self._setup_commands()
 
@@ -138,32 +134,6 @@ class SheetEditor(Gtk.Box):
                 window.Toolbar.populate()
 
         self.queue_draw(refresh)
-
-    def do(self,
-           action: Action,
-           ) ->    bool:
-        """"""
-        if self.history.do(action):
-            self.refresh_ui()
-            self.grab_focus()
-            return True
-        return False
-
-    def undo(self) -> bool:
-        """"""
-        if action := self.history.undo():
-            self.refresh_ui()
-            self.grab_focus()
-            return True
-        return False
-
-    def redo(self) -> bool:
-        """"""
-        if action := self.history.redo():
-            self.refresh_ui()
-            self.grab_focus()
-            return True
-        return False
 
     def cleanup(self) -> None:
         """"""
@@ -630,7 +600,7 @@ class SheetEditor(Gtk.Box):
                          **kwargs:  dict,
                          ) ->       bool:
             """"""
-            editor.history.grouping = True
+            window.history.grouping = True
 
             # Find the related node content
             contents = self.frame.contents[1:-1]
@@ -670,7 +640,7 @@ class SheetEditor(Gtk.Box):
 
             editor.select_by_click(transformer)
 
-            editor.history.grouping = False
+            window.history.grouping = False
 
             self.grab_focus()
 
@@ -747,7 +717,7 @@ class SheetEditor(Gtk.Box):
         window = self.get_root()
         editor = window.node_editor
 
-        editor.history.grouping = True
+        window.history.grouping = True
 
         # Find the current active viewer node
         viewer = None
@@ -770,7 +740,7 @@ class SheetEditor(Gtk.Box):
         out_socket = viewer.contents[-1].Socket
         editor.add_link(in_socket, out_socket)
 
-        editor.history.grouping = False
+        window.history.grouping = False
 
 from .canvas import SheetCanvas
 from .display import SheetDisplay

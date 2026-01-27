@@ -529,7 +529,7 @@ class SheetDisplay():
             if n == 1: # Columns always start from 'A'
                 return "INVALID_LEFT_CELL"
 
-            new_column_part = 'Z' * (n - 1) # Reconstruct with new column (shorter)
+            new_column_part = 'Z' * (n - 1) # Reconstruct with new column
             return f"{new_column_part}{row_part}"
 
         # Join the characters back to form the new column part
@@ -543,7 +543,7 @@ class SheetDisplay():
         """"""
         match = re.match(r"([A-Z]+)(\d+)", name, re.IGNORECASE)
 
-        column_part = match.group(1).upper() # Ensure column part is uppercase
+        column_part = match.group(1).upper()
         row_part_str = match.group(2)
 
         try:
@@ -584,12 +584,7 @@ class SheetDisplay():
                                     name: str,
                                     ) ->  tuple[int, int]:
         """
-        Parses a cell name (e.g. 'A10', 'ABC123', '5', 'H') into a (column, row) tuple.
-
-        Interpretation of inputs:
-        - For 'A10', 'AA5', 'ABC123': column is 1-based (A=1, AA=27), row is 1-based.
-        - For '5', '10': column is 0, row is 1-based.
-        - For 'h', 'H', 'HIJ': column is 1-based (H=8, HIJ=...), row is 0.
+        Parses a cell name into a (column, row) tuple.
 
         Returns None if the name cannot be parsed into a valid position.
         """
@@ -614,7 +609,7 @@ class SheetDisplay():
             row_str_match = re.search(r"(\d+)", cell_part)
 
             if not (col_letters_match and row_str_match):
-                return None # Should theoretically not happen if regex `m` matched, but for safety
+                return None
 
             col_letters = col_letters_match.group(1)
             row_str = row_str_match.group(1)
@@ -627,20 +622,20 @@ class SheetDisplay():
 
         elif has_digits:
             # Case 2: Contains only digits (e.g. '5', '10')
-            # As per requirement: this implies a specific row with column 0.
+            # This implies a specific row with column 0.
             col = 0 # Explicitly set column to 0
             row = int(cell_part) # Row is the number itself (1-based)
 
         elif has_letters:
             # Case 3: Contains only letters (e.g. 'h', 'H', 'HIJ')
-            # As per requirement: this implies a specific column with row 0.
+            # This implies a specific column with row 0.
             # Convert column letters to 1-based index
-            for c in cell_part.upper(): # cell_part is entirely letters here
+            for c in cell_part.upper():
                 col = col * 26 + (ord(c) - ord('A') + 1)
             row = 0 # Explicitly set row to 0
 
         else:
-            return None # Should not be reached if the initial regex is robust, but for completeness
+            return None
 
         # Basic validation for sensible results (col/row shouldn't be negative).
         # A (0, 0) result is valid but is not possible to achieve from the input bar.
@@ -653,8 +648,9 @@ class SheetDisplay():
                                  name: str,
                                  ) ->  tuple[int, int, int, int]:
         """
-        Parses a cell range (e.g. 'A10:a20', 'AA5:BB20', '5:10', 'h:H') or a single cell
-        (e.g. 'a10', '123', 'HIJ', 'ABC123') into a tuple of (start_col, start_row, end_col, end_row).
+        Parses a cell range (e.g. 'A10:A20', 'AA5:BB20', '5:10', 'H:H')
+        or a single cell (e.g. 'A10', '123', 'HIJ', 'ABC123') into a tuple
+        of (start_col, start_row, end_col, end_row).
 
         Returns (-1, -1, -1, -1) if the name cannot be parsed.
         """
@@ -690,17 +686,17 @@ class SheetDisplay():
         """"""
         cell_y = self.get_cell_y_from_row(row)
         cell_x = self.get_cell_x_from_column(column)
-        cell_width = self.get_cell_width_from_column(column)
+        cell_width  = self.get_cell_width_from_column(column)
         cell_height = self.get_cell_height_from_row(row)
 
         x_offset = self.left_locator_width - self.scroll_x_position
         y_offset = self.top_locator_height - self.scroll_y_position
 
-        top_offset = cell_y - y_offset
+        top_offset  = cell_y - y_offset
         left_offset = cell_x - x_offset
 
-        top_limit = top_offset - (viewport_height - (viewport_height % self.DEFAULT_CELL_HEIGHT)) + cell_height
-        left_limit = left_offset - (viewport_width - (viewport_width % self.DEFAULT_CELL_WIDTH)) + cell_width
+        top_limit  = top_offset  - (viewport_height - (viewport_height % self.DEFAULT_CELL_HEIGHT)) + cell_height
+        left_limit = left_offset - (viewport_width  - (viewport_width % self.DEFAULT_CELL_WIDTH))   + cell_width
 
         near_edges = []
 
@@ -732,16 +728,16 @@ class SheetDisplay():
         """"""
         cell_y = self.get_cell_y_from_row(row)
         cell_x = self.get_cell_x_from_column(column)
-        cell_width = self.get_cell_width_from_column(column)
+        cell_width  = self.get_cell_width_from_column(column)
         cell_height = self.get_cell_height_from_row(row)
 
         x_offset = self.left_locator_width - self.scroll_x_position
         y_offset = self.top_locator_height - self.scroll_y_position
 
         bottom_offset = cell_y + cell_height - y_offset
-        top_offset = cell_y - y_offset
-        right_offset = cell_x + cell_width - x_offset
-        left_offset = cell_x - x_offset
+        top_offset    = cell_y - y_offset
+        right_offset  = cell_x + cell_width - x_offset
+        left_offset   = cell_x - x_offset
 
         # Skip if the target cell is already visible
         if (
@@ -752,19 +748,23 @@ class SheetDisplay():
         ):
             return False
 
-        # Scroll down when the target cell is below the viewport so that the target cell is near the bottom of the viewport
+        # Scroll down when the target cell is below the viewport so that the target cell is near the bottom
+        # of the viewport
         if scroll_axis in {'both', 'vertical'} and bottom_offset > self.scroll_y_position + viewport_height:
             self.scroll_y_position = top_offset - viewport_height + cell_height
 
-        # Scroll up when the target cell is above the viewport so that the target cell is exactly at the top of the viewport
+        # Scroll up when the target cell is above the viewport so that the target cell is exactly at the top
+        # of the viewport
         if scroll_axis in {'both', 'vertical'} and top_offset < self.scroll_y_position:
             self.scroll_y_position = top_offset
 
-        # Scroll to the right when the target cell is to the right of the viewport so that the target cell is near the right of the viewport
+        # Scroll to the right when the target cell is to the right of the viewport so that the target cell
+        # is near the right of the viewport
         if scroll_axis in {'both', 'horizontal'} and right_offset > self.scroll_x_position + viewport_width:
             self.scroll_x_position = left_offset - viewport_width + cell_width
 
-        # Scroll to the left when the target cell is to the left of the viewport so that the target cell is exactly at the left of the viewport
+        # Scroll to the left when the target cell is to the left of the viewport so that the target cell
+        # is exactly at the left of the viewport
         if scroll_axis in {'both', 'horizontal'} and left_offset < self.scroll_x_position:
             self.scroll_x_position = left_offset
 

@@ -21,12 +21,13 @@ from copy import copy
 from gi.repository import GLib
 import gc
 
+from .. import environment as env
+from ..core.action import Action
+
 from .editor import NodeEditor
 from .frame import NodeFrame
 from .link import NodeLink
 from .socket import NodeSocket
-
-from ..core.action import Action
 
 class ActionAddNode(Action):
 
@@ -70,12 +71,13 @@ class ActionAddNode(Action):
 
     def undo(self) -> bool:
         """"""
-        freezing = self.editor.history.freezing
-        self.editor.history.freezing = True
+        window = env.app.get_active_main_window()
+        freezing = window.history.freezing
+        window.history.freezing = True
 
         ActionDeleteNode(self.editor, self.nodes).do()
 
-        self.editor.history.freezing = freezing
+        window.history.freezing = freezing
 
         return True
 
@@ -120,12 +122,13 @@ class ActionDeleteNode(Action):
 
     def undo(self) -> bool:
         """"""
-        freezing = self.editor.history.freezing
-        self.editor.history.freezing = True
+        window = env.app.get_active_main_window()
+        freezing = window.history.freezing
+        window.history.freezing = True
 
         ActionAddNode(self.editor, self.nodes).do()
 
-        self.editor.history.freezing = freezing
+        window.history.freezing = freezing
 
         return True
 
@@ -165,8 +168,9 @@ class ActionMoveNode(Action):
 
     def undo(self) -> bool:
         """"""
-        freezing = self.editor.history.freezing
-        self.editor.history.freezing = True
+        window = env.app.get_active_main_window()
+        freezing = window.history.freezing
+        window.history.freezing = True
 
         positions = []
         for position in self.positions:
@@ -174,7 +178,7 @@ class ActionMoveNode(Action):
 
         ActionMoveNode(self.editor, self.nodes, positions).do()
 
-        self.editor.history.freezing = freezing
+        window.history.freezing = freezing
 
         return True
 
@@ -206,13 +210,14 @@ class ActionEditNode(Action):
 
     def undo(self) -> bool:
         """"""
-        freezing = self.editor.history.freezing
-        self.editor.history.freezing = True
+        window = env.app.get_active_main_window()
+        freezing = window.history.freezing
+        window.history.freezing = True
 
         values = (self.values[1], self.values[0])
         ActionEditNode(self.editor, self.node, values).do()
 
-        self.editor.history.freezing = freezing
+        window.history.freezing = freezing
 
         return True
 
@@ -276,8 +281,9 @@ class ActionAddLink(Action):
 
     def undo(self) -> bool:
         """"""
-        freezing = self.editor.history.freezing
-        self.editor.history.freezing = True
+        window = env.app.get_active_main_window()
+        freezing = window.history.freezing
+        window.history.freezing = True
 
         if self.old_link:
             self.editor.links.remove(self.new_link.unlink())
@@ -286,7 +292,7 @@ class ActionAddLink(Action):
         else:
             ActionDeleteLink(self.editor, self.new_link).do()
 
-        self.editor.history.freezing = freezing
+        window.history.freezing = freezing
 
         return True
 
@@ -325,14 +331,15 @@ class ActionDeleteLink(Action):
 
     def undo(self) -> bool:
         """"""
-        freezing = self.editor.history.freezing
-        self.editor.history.freezing = True
+        window = env.app.get_active_main_window()
+        freezing = window.history.freezing
+        window.history.freezing = True
 
         socket1 = self.link.in_socket
         socket2 = self.link.out_socket
         ActionAddLink(self.editor, socket1, socket2).do()
 
-        self.editor.history.freezing = freezing
+        window.history.freezing = freezing
 
         return True
 

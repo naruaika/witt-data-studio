@@ -1,6 +1,6 @@
-# action.py
+# environment.py
 #
-# Copyright (c) 2025 Naufan Rusyda Faikar
+# Copyright 2025 Naufan Rusyda Faikar
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -17,31 +17,6 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-class Action():
+from .application import Application
 
-    def __init__(self,
-                 owner: object = None, # Editor
-                 ) ->   None:
-        """"""
-        self.owner = owner
-        self.group = None
-
-    def do(self,
-           undoable: bool = True,
-           ) ->      bool:
-        """"""
-        return False
-
-    def undo(self) -> bool:
-        """"""
-        return False
-
-    def clean(self) -> bool:
-        """"""
-        return False
-
-    def isduplicate(self,
-                    action: 'Action',
-                    ) ->    'bool':
-        """"""
-        return False
+app: Application = None
