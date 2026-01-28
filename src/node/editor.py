@@ -98,8 +98,8 @@ class NodeEditor(Gtk.Overlay):
         self.future_link: Scalar2D = None
         self.rubber_band: Scalar2D = None
 
-        self.selected_nodes: 'list'['NodeFrame'] = []
-        self.removed_socket: 'NodeSocket'        = None
+        self.selected_nodes: list['NodeFrame'] = []
+        self.removed_socket: 'NodeSocket'      = None
 
         self._prev_zoom = 1.0
         self._curr_zoom = 1.0
@@ -265,14 +265,6 @@ class NodeEditor(Gtk.Overlay):
 
         create_action('read-file',              lambda *_: create_node('read-file'))
 
-        create_action('new-sheet',              lambda *_: create_node('new-sheet'))
-        create_action('new-viewer',             lambda *_: create_node('new-viewer'))
-
-        create_action('new-boolean',            lambda *_: create_node('new-boolean'))
-        create_action('new-decimal',            lambda *_: create_node('new-decimal'))
-        create_action('new-integer',            lambda *_: create_node('new-integer'))
-        create_action('new-string',             lambda *_: create_node('new-string'))
-
         create_action('choose-columns',         lambda *_: create_node('choose-columns'))
         create_action('remove-columns',         lambda *_: create_node('remove-columns'))
 
@@ -288,6 +280,19 @@ class NodeEditor(Gtk.Overlay):
         create_action('remove-last-k-rows',     lambda *_: create_node('remove-last-k-rows'))
         create_action('remove-range-of-rows',   lambda *_: create_node('remove-range-of-rows'))
         create_action('remove-duplicate-rows',  lambda *_: create_node('remove-duplicate-rows'))
+
+        create_action('sort-rows',              lambda *_: create_node('sort-rows'))
+
+        create_action('new-sheet',              lambda *_: create_node('new-sheet'))
+        create_action('new-viewer',             lambda *_: create_node('new-viewer'))
+
+        create_action('new-boolean',            lambda *_: create_node('new-boolean'))
+        create_action('new-decimal',            lambda *_: create_node('new-decimal'))
+        create_action('new-integer',            lambda *_: create_node('new-integer'))
+        create_action('new-string',             lambda *_: create_node('new-string'))
+
+        create_action('transpose-table',        lambda *_: create_node('transpose-table'))
+        create_action('reverse-rows',           lambda *_: create_node('reverse-rows'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -329,16 +334,6 @@ class NodeEditor(Gtk.Overlay):
 
         create_command('read-file',             f"{_('Create')}: {_('Read File')}")
 
-        create_command('new-sheet',             f"{_('Create')}: {_('Sheet')}")
-        create_command('new-viewer',            f"{_('Create')}: {_('Viewer')}")
-
-        create_command('new-boolean',           f"{_('Create')}: {_('Constant')} {_('Boolean')}")
-        create_command('new-decimal',           f"{_('Create')}: {_('Constant')} {_('Decimal')}")
-        create_command('new-integer',           f"{_('Create')}: {_('Constant')} {_('Integer')}")
-        create_command('new-string',            f"{_('Create')}: {_('Constant')} {_('String')}")
-
-        create_command('new-constants',         '$placeholder') # TODO: find a better way?
-
         create_command('choose-columns',        f"{_('Table')}: {_('Choose Columns')}")
         create_command('remove-columns',        f"{_('Table')}: {_('Remove Columns')}")
 
@@ -356,6 +351,19 @@ class NodeEditor(Gtk.Overlay):
         create_command('remove-last-k-rows',    f"{_('Table')}: {_('Remove Last K Rows')}")
         create_command('remove-range-of-rows',  f"{_('Table')}: {_('Remove Range of Rows')}")
         create_command('remove-duplicate-rows', f"{_('Table')}: {_('Remove Duplicate Rows')}")
+
+        create_command('sort-rows',             f"{_('Table')}: {_('Sort Rows')}")
+
+        create_command('new-sheet',             f"{_('Create')}: {_('Sheet')}")
+        create_command('new-viewer',            f"{_('Create')}: {_('Viewer')}")
+        create_command('new-boolean',           f"{_('Create')}: {_('Constant')} {_('Boolean')}")
+        create_command('new-decimal',           f"{_('Create')}: {_('Constant')} {_('Decimal')}")
+        create_command('new-integer',           f"{_('Create')}: {_('Constant')} {_('Integer')}")
+        create_command('new-string',            f"{_('Create')}: {_('Constant')} {_('String')}")
+        create_command('new-constants',         '$placeholder') # TODO: find a better way?
+
+        create_command('transpose-table',       f"{_('Table')}: {_('Transpose')}")
+        create_command('reverse-rows',          f"{_('Table')}: {_('Reverse')}")
 
     def _setup_controllers(self) -> None:
         """"""

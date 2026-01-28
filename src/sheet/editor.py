@@ -260,7 +260,12 @@ class SheetEditor(Gtk.Box):
         create_action('remove-range-of-rows',   lambda *_: self._transform_table('remove-range-of-rows'))
         create_action('remove-duplicate-rows',  lambda *_: self._transform_table('remove-duplicate-rows'))
 
+        create_action('sort-rows',              lambda *_: self._transform_table('sort-rows'))
+
         create_action('new-sheet',              lambda *_: self._add_new_worksheet('new-sheet'))
+
+        create_action('transpose-table',        lambda *_: self._transform_table('transpose-table'))
+        create_action('reverse-rows',           lambda *_: self._transform_table('reverse-rows'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -314,8 +319,13 @@ class SheetEditor(Gtk.Box):
         create_command('remove-range-of-rows',  f"{_('Table')}: {get_title_from_layout('remove-range-of-rows')}...")
         create_command('remove-duplicate-rows', f"{_('Table')}: {get_title_from_layout('remove-duplicate-rows')}...")
 
+        create_command('sort-rows',             f"{_('Table')}: {get_title_from_layout('sort-rows')}...")
+
         create_command('new-sheet',             f"{_('Create')}: {_('Sheet')}",
                                                 context = None)
+
+        create_command('transpose-table',       f"{_('Table')}: {get_title_from_layout('transpose-table')}...")
+        create_command('reverse-rows',          f"{_('Table')}: {get_title_from_layout('reverse-rows')}")
 
     def set_data(self,
                  tables: Tables = [],

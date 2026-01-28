@@ -19,6 +19,7 @@
 
 from gi.repository import Adw
 from gi.repository import Gdk
+from gi.repository import GLib
 from gi.repository import Graphene
 from gi.repository import Gtk
 from typing import Any
@@ -58,6 +59,7 @@ class NodeFrame(Adw.Bin):
         self.out_sockets: list['NodeSocket']  = []
 
         self.is_selected = False
+        self.is_dragging = False
 
         self.is_processing = False
 
@@ -89,18 +91,25 @@ class NodeFrame(Adw.Bin):
         if not combo and self.is_selected:
             return
 
-        editor = self.get_editor()
-        editor.select_by_click(self, combo)
         self.grab_focus()
 
+        editor = self.get_editor()
+
+        picked = self.pick(x, y, Gtk.PickFlags.DEFAULT)
+        if (
+            not picked.get_ancestor(Gtk.CheckButton) and
+            not picked.get_ancestor(Gtk.Button)      and
+            not picked.get_ancestor(Gtk.Expander)
+        ):
+            editor.select_by_click(self, combo)
+
         # Raise the widget to the top
+        # FIXME: sometimes I experience a crash with this log: /frame.py:108: Warning: g_object_ref:
+        # assertion 'G_IS_OBJECT (object)' failed Bail out! Gtk:ERROR:../gtk/gtktreelistmodel.c:375:
+        # gtk_tree_list_model_items_changed_cb: assertion failed: (child->item)
         top_widget = editor.Canvas.get_last_child()
         if top_widget != self:
             self.insert_after(editor.Canvas, top_widget)
-
-        # Calculate maximum position to prevent the nodes
-        # from go beyond the canvas boundaries which will
-        # make them no longer accessible
 
         parent = self.get_parent()
 
@@ -109,6 +118,9 @@ class NodeFrame(Adw.Bin):
         parent_width  = parent.get_width()
         parent_height = parent.get_height()
 
+        # Calculate maximum position to prevent the nodes
+        # from go beyond the canvas boundaries which will
+        # make them no longer accessible
         self._max_x = parent_width  - frame_width
         self._max_y = parent_height - frame_height
         self._old_x = self.x
@@ -150,13 +162,28 @@ class NodeFrame(Adw.Bin):
                         offset_y: float,
                         ) ->      None:
         """"""
+        if not self.is_dragging and \
+                abs(offset_x) > 0.5 and \
+                abs(offset_y) > 0.5:
+            # Prevent from triggering the released event
+            self._click_handler.set_state(Gtk.EventSequenceState.DENIED)
+
+            # Block click gestures to reach children
+            self.Body.set_sensitive(False)
+            GLib.idle_add(self.Body.set_sensitive, True)
+
+            # Select itself if it isn't already
+            if not self.is_selected:
+                editor = self.get_editor()
+                state = gesture.get_current_event_state()
+                combo = state & Gdk.ModifierType.SHIFT_MASK != 0
+                editor.select_by_click(self, combo)
+                self.grab_focus()
+
+            self.is_dragging = True
+
         editor = self.get_editor()
         editor.update_move_selections(offset_x, offset_y)
-
-        # Prevent from triggering the released event.
-        # We add threshold to ignore slight movement.
-        if abs(offset_x) > 0.5 and abs(offset_y) > 0.5:
-            self._click_handler.set_state(Gtk.EventSequenceState.DENIED)
 
     def _on_drag_end(self,
                      gesture:  Gtk.GestureDrag,
@@ -164,6 +191,8 @@ class NodeFrame(Adw.Bin):
                      offset_y: float,
                      ) ->      None:
         """"""
+        self.is_dragging = False
+
         editor = self.get_editor()
         editor.end_move_selections()
 

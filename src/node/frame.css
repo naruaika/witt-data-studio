@@ -33,6 +33,10 @@
     padding: 2px 8px;
 }
 
+.node-body button {
+    min-width: 28px;
+}
+
 .node-body spinbutton {
     min-height: 24px;
 }
@@ -147,6 +151,11 @@
 
 .node-body .node-label {
     min-height: 28px;
+}
+
+.node-body .node-box {
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+    border-radius: 9px;
 }
 
 .node-body .success .node-socket {

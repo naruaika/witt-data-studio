@@ -113,6 +113,7 @@
     <file preprocess="xml-stripblanks">xxx-shuffle-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-sort-ascending-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-sort-descending-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-sorting-a-to-z-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-split-screen-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-text-font-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-time-symbolic.svg</file>

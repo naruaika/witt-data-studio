@@ -43,6 +43,7 @@ from .widget import NodeComboButton
 from .widget import NodeEntry
 from .widget import NodeFileChooser
 from .widget import NodeLabel
+from .widget import NodeListItem
 from .widget import NodeSpinButton
 
 def _iscompatible(pair_socket:  NodeSocket,
@@ -82,15 +83,17 @@ def _take_snapshot(node:     'NodeTemplate',
                    **kwargs: 'dict',
                    ) ->      'None':
     """"""
-
     old_data = node.do_save()
     callback(*args, **kwargs)
     new_data = node.do_save()
 
     editor = node.frame.get_editor()
+    window = editor.get_window()
+
     values = (old_data, new_data)
     action = ActionEditNode(editor, node.frame, values)
-    editor.do(action, add_only = True)
+
+    window.do(action, add_only = True)
 
 
 
@@ -1608,12 +1611,15 @@ class NodeChooseColumns(NodeTemplate):
         """"""
         table = self.frame.data['table']
 
-        # Filter unvalid columns from selection
         if isinstance(table, LazyFrame):
             table_columns = table.collect_schema().names()
         else:
             table_columns = table.columns
 
+        # FIXME: replacing input socket' link can remove some columns,
+        # but undoing won't restore the removed columns.
+
+        # Filter unvalid columns from selection
         if table_columns:
             if self.frame.data['columns']:
                 columns = []
@@ -1622,8 +1628,6 @@ class NodeChooseColumns(NodeTemplate):
                         columns.append(column)
                 columns = columns or table_columns
                 self.frame.data['columns'] = columns
-            else:
-                self.frame.data['columns'] = table_columns
 
         if self.frame.data['all-columns'] != table_columns:
             self.frame.data['refresh-columns'] = True
@@ -1807,12 +1811,15 @@ class NodeRemoveColumns(NodeTemplate):
         """"""
         table = self.frame.data['table']
 
-        # Filter unvalid columns from selection
         if isinstance(table, LazyFrame):
             table_columns = table.collect_schema().names()
         else:
             table_columns = table.columns
 
+        # FIXME: replacing input socket' link can remove some columns,
+        # but undoing won't restore the removed columns.
+
+        # Filter unvalid columns from selection
         if table_columns:
             if self.frame.data['columns']:
                 columns = []
@@ -2033,12 +2040,15 @@ class NodeKeepTopKRows(NodeTemplate):
         """"""
         table = self.frame.data['table']
 
-        # Filter unvalid columns from selection
         if isinstance(table, LazyFrame):
             table_columns = table.collect_schema().names()
         else:
             table_columns = table.columns
 
+        # FIXME: replacing input socket' link can remove some columns,
+        # but undoing won't restore the removed columns.
+
+        # Filter unvalid columns from selection
         if table_columns:
             if self.frame.data['columns']:
                 columns = []
@@ -2259,12 +2269,15 @@ class NodeKeepBottomKRows(NodeTemplate):
         """"""
         table = self.frame.data['table']
 
-        # Filter unvalid columns from selection
         if isinstance(table, LazyFrame):
             table_columns = table.collect_schema().names()
         else:
             table_columns = table.columns
 
+        # FIXME: replacing input socket' link can remove some columns,
+        # but undoing won't restore the removed columns.
+
+        # Filter unvalid columns from selection
         if table_columns:
             if self.frame.data['columns']:
                 columns = []
@@ -3088,12 +3101,15 @@ class NodeKeepDuplicateRows(NodeTemplate):
         """"""
         table = self.frame.data['table']
 
-        # Filter unvalid columns from selection
         if isinstance(table, LazyFrame):
             table_columns = table.collect_schema().names()
         else:
             table_columns = table.columns
 
+        # FIXME: replacing input socket' link can remove some columns,
+        # but undoing won't restore the removed columns.
+
+        # Filter unvalid columns from selection
         if table_columns:
             if self.frame.data['columns']:
                 columns = []
@@ -3849,12 +3865,15 @@ class NodeRemoveDuplicateRows(NodeTemplate):
         """"""
         table = self.frame.data['table']
 
-        # Filter unvalid columns from selection
         if isinstance(table, LazyFrame):
             table_columns = table.collect_schema().names()
         else:
             table_columns = table.columns
 
+        # FIXME: replacing input socket' link can remove some columns,
+        # but undoing won't restore the removed columns.
+
+        # Filter unvalid columns from selection
         if table_columns:
             if self.frame.data['columns']:
                 columns = []
@@ -3913,6 +3932,455 @@ class NodeRemoveDuplicateRows(NodeTemplate):
 
 
 
+class NodeSortRows(NodeTemplate):
+
+    ndname = _('Sort Rows')
+
+    action = 'sort-rows'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeSortRows(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['all-columns']     = []
+        self.frame.data['expressions']     = []
+        self.frame.data['refresh-columns'] = True
+        self.frame.data['expres-expanded'] = False
+
+        self._add_output()
+        self._add_input()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['expressions'] = args[0]
+        self.frame.data['refresh-columns'] = True
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_selector()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_selector()
+
+        if isinstance(table, LazyFrame):
+            table_columns = table.collect_schema().names()
+        else:
+            table_columns = table.columns
+
+        if table_columns:
+            if expressions := self.frame.data['expressions']:
+                bys = []
+                descending = []
+                for by, order in expressions:
+                    bys.append(by)
+                    descending.append(order == _('Descending'))
+                table = table.sort(by = bys, descending = descending)
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> list:
+        """"""
+        return self.frame.data['expressions']
+
+    def do_restore(self,
+                   value: list,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value)
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_selector(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        if isinstance(table, LazyFrame):
+            table_columns = table.collect_schema().names()
+        else:
+            table_columns = table.columns
+
+        # FIXME: replacing input socket' link can remove some expressions,
+        # but undoing won't restore the removed expressions.
+
+        # Filter unvalid expressions from selection
+        if table_columns:
+            if self.frame.data['expressions']:
+                expressions = []
+                for expression in self.frame.data['expressions']:
+                    column, order = expression
+                    if column in table_columns:
+                        expressions.append(expression)
+                self.frame.data['expressions'] = expressions
+
+        if self.frame.data['all-columns'] != table_columns:
+            self.frame.data['refresh-columns'] = True
+
+        self.frame.data['all-columns'] = table_columns
+
+        if self.frame.data['refresh-columns']:
+            if len(self.frame.contents) == 3:
+                content = self.frame.contents[-1]
+                self.frame.remove_content(content)
+            if table_columns:
+                self._add_selector()
+
+        if not self.frame.data['expressions']:
+            self.frame.data['expres-expanded'] = True
+
+        if self.frame.data['expres-expanded']:
+            if len(self.frame.contents) == 3:
+                widget = self.frame.contents[-1].Widget
+                widget.set_expanded(True)
+
+        self.frame.data['refresh-columns'] = False
+
+    def _add_selector(self) -> None:
+        """"""
+        def get_data() -> list:
+            """"""
+            return self.frame.data['expressions']
+
+        def set_data(value: list) -> None:
+            """"""
+            def callback(value: list) -> None:
+                """"""
+                self.frame.data['expressions'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        contents = [
+            (
+                'dropdown',
+                {
+                    column: column for column in self.frame.data['all-columns']
+                },
+            ),
+            (
+                'dropdown',
+                {
+                    order: order for order in [_('Ascending'), _('Descending')]
+                },
+            ),
+        ]
+        widget = NodeListItem(title    = _('Expression'),
+                              get_data = get_data,
+                              set_data = set_data,
+                              contents = contents)
+        expander = Gtk.Expander(label = _('Expressions'),
+                                child = widget)
+        self.frame.add_content(expander, None)
+
+        def on_expanded(widget:     Gtk.Widget,
+                        param_spec: GObject.ParamSpec,
+                        ) ->        None:
+            """"""
+            self.frame.data['expres-expanded'] = expander.get_expanded()
+
+        expander.connect('notify::expanded', on_expanded)
+
+
+
+class NodeTransposeTable(NodeTemplate):
+
+    ndname = _('Transpose Table')
+
+    action = 'transpose-table'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeTransposeTable(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['with-header'] = False
+
+        self._add_output()
+        self._add_input()
+        self._add_with_header()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['with-header'] = args[0]
+
+        widget = self.frame.contents[2].Widget
+        widget.set_data(args[0])
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        if isinstance(table, LazyFrame):
+            table = table.collect()
+
+        with_header = self.frame.data['with-header']
+        table = table.transpose(include_header = with_header)
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> bool:
+        """"""
+        return self.frame.data['with-header']
+
+    def do_restore(self,
+                   value: bool,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value)
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _add_with_header(self) -> None:
+        """"""
+        def get_data() -> bool:
+            """"""
+            return self.frame.data['with-header']
+
+        def set_data(value: bool) -> None:
+            """"""
+            def callback(value: bool) -> None:
+                """"""
+                self.frame.data['with-header'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        check = NodeCheckButton(title    = _('Include Header'),
+                                get_data = get_data,
+                                set_data = set_data)
+        socket_type = NodeSocketType.INPUT
+        self.frame.add_content(widget      = check,
+                               socket_type = socket_type,
+                               data_type   = bool,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+
+
+class NodeReverseRows(NodeTemplate):
+
+    ndname = _('Reverse Rows')
+
+    action = 'reverse-rows'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeReverseRows(x, y)
+
+        self.frame.do_process = self.do_process
+
+        self._add_output()
+        self._add_input()
+
+        return self.frame
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        table = table.reverse()
+
+        self.frame.data['table'] = table
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+
+
 _registered_nodes = [
     NodeBoolean(),
     NodeDecimal(),
@@ -3938,6 +4406,11 @@ _registered_nodes = [
     NodeRemoveLastKRows(),
     NodeRemoveRangeOfRows(),
     NodeRemoveDuplicateRows(),
+
+    NodeSortRows(),
+
+    NodeTransposeTable(),
+    NodeReverseRows(),
 ]
 
 

@@ -45,5 +45,8 @@
         </child>
       </object>
     </property>
+    <style>
+      <class name="transform-window"/>
+    </style>
   </template>
 </interface>

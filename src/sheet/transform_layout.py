@@ -183,4 +183,39 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
+        case 'sort-rows':
+            return (
+                _('Sort Rows'),
+                [
+                    (
+                        _('Expression'),
+                        'list-item',
+                        [
+                            ('dropdown', '$all-columns'),
+                            (
+                                'dropdown',
+                                [
+                                    _('Ascending'),
+                                    _('Descending'),
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
+            )
+
+        case 'transpose-table':
+            return (
+                _('Transpose Table'),
+                [
+                    (_('Include Header'), 'switch'),
+                ],
+            )
+
+        case 'reverse-rows':
+            return (
+                _('Reverse Rows'),
+                [],
+            )
+
     raise KeyError()

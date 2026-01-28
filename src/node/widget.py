@@ -18,6 +18,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from copy import copy
+from copy import deepcopy
+from gi.repository import Adw
 from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import Gtk
@@ -86,17 +88,17 @@ class NodeCheckGroup(Gtk.Box):
                 selection.remove(value)
             set_data(selection)
 
-        for column in options:
+        for option in options:
             label = Gtk.Label(halign       = Gtk.Align.START,
                               valign       = Gtk.Align.CENTER,
                               hexpand      = True,
                               ellipsize    = Pango.EllipsizeMode.END,
-                              label        = column,
-                              tooltip_text = column)
-            active = column in get_data()
+                              label        = option,
+                              tooltip_text = option)
+            active = option in get_data()
             check = Gtk.CheckButton(child  = label,
                                     active = active)
-            check.connect('toggled', on_toggled, column)
+            check.connect('toggled', on_toggled, option)
             self.append(check)
 
 
@@ -248,6 +250,103 @@ class NodeComboButton(Gtk.Button):
 
 
 
+class NodeDropdown(Gtk.DropDown):
+
+    __gtype_name__ = 'NodeDropdown'
+
+    def __init__(self,
+                 get_data: callable,
+                 set_data: callable,
+                 options:  dict,
+                 ) ->      None:
+        """"""
+        super().__init__()
+
+        def setup_factory(list_item_factory: Gtk.SignalListItemFactory,
+                          list_item:         Gtk.ListItem,
+                          ) ->               None:
+            """"""
+            box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
+                          hexpand     = True)
+            list_item.set_child(box)
+
+            label = Gtk.Label()
+            box.append(label)
+
+            image = Gtk.Image(opacity = 0)
+            image.set_from_icon_name('object-select-symbolic')
+            box.append(image)
+
+            list_item.label = label
+            list_item.image = image
+            list_item.bind_item = None
+
+        def bind_factory(list_item_factory: Gtk.SignalListItemFactory,
+                         list_item:         Gtk.ListItem,
+                         ) ->               None:
+            """"""
+            item_data = list_item.get_item()
+            label = item_data.get_string()
+
+            def do_select() -> bool:
+                """"""
+                is_selected = list_item.get_selected()
+                list_item.image.set_opacity(is_selected)
+                if is_selected:
+                    self.set_tooltip_text(label)
+                return is_selected
+
+            def on_selected(*args) -> None:
+                """"""
+                if do_select():
+                    set_data(label)
+
+            list_item.label.set_label(label)
+
+            if list_item.bind_item:
+                list_item.disconnect(list_item.bind_item)
+
+            list_item.bind_item = self.connect('notify::selected', on_selected)
+
+            do_select()
+
+        model = Gtk.StringList()
+        for option in options:
+            model.append(option)
+        self.set_model(model)
+
+        list_factory = Gtk.SignalListItemFactory()
+        list_factory.connect('setup', setup_factory)
+        list_factory.connect('bind', bind_factory)
+        self.set_list_factory(list_factory)
+
+        factory = Gtk.BuilderListItemFactory.new_from_bytes(None, GLib.Bytes.new(bytes(
+"""
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="halign">start</property>
+        <property name="hexpand">true</property>
+        <property name="ellipsize">end</property>
+        <binding name="label">
+          <lookup name="string" type="GtkStringObject">
+            <lookup name="item">GtkListItem</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>
+""", 'utf-8')))
+        self.set_factory(factory)
+
+        selected = list(options.values()).index(get_data())
+        self.set_selected(selected)
+
+
+
 class NodeEntry(Gtk.Entry):
 
     __gtype_name__ = 'NodeEntry'
@@ -333,6 +432,106 @@ class NodeLabel(Gtk.Label):
             label.set_xalign(0.0)
             label.add_css_class('after-socket')
             label.add_css_class('node-widget')
+
+
+
+class NodeListItem(Gtk.Box):
+
+    __gtype_name__ = 'NodeListItem'
+
+    def __init__(self,
+                 title:    str,
+                 get_data: callable,
+                 set_data: callable,
+                 contents: list,
+                 ) ->      None:
+        """"""
+        super().__init__(orientation = Gtk.Orientation.VERTICAL,
+                         spacing     = 6)
+
+        self._data = deepcopy(get_data())
+
+        class ItemData():
+
+            def __init__(self,
+                         mdata: list,
+                         idata: list,
+                         index: int,
+                         ) ->   None:
+                """"""
+                self.mdata = mdata
+                self.idata = idata
+                self.index = index
+
+            def get_data(self) -> str:
+                """"""
+                return self.idata[self.index]
+
+            def set_data(self,
+                         value: str,
+                         ) ->   None:
+                """"""
+                self.idata[self.index] = value
+                set_data(deepcopy(self.mdata))
+
+        def add_list_item(idata: list) -> None:
+            """"""
+            box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL)
+            box.add_css_class('linked')
+            self.append(box)
+
+            subbox = Gtk.Box(orientation = Gtk.Orientation.VERTICAL,
+                             homogeneous = True,
+                             hexpand     = True)
+            subbox.add_css_class('linked')
+            box.append(subbox)
+
+            if not idata:
+                for dtype, options in contents:
+                    match dtype:
+                        case 'dropdown':
+                            value = list(options.values())[0]
+                            idata.append(value)
+                        case _:
+                            idata.append(None)
+                self._data.append(idata)
+
+            for index, (dtype, options) in enumerate(contents):
+                match dtype:
+                    case 'dropdown':
+                        item_data = ItemData(self._data, idata, index)
+                        widget = NodeDropdown(item_data.get_data,
+                                              item_data.set_data,
+                                              options)
+                        subbox.append(widget)
+
+            def on_delete_button_clicked(button: Gtk.Button) -> None:
+                """"""
+                self.remove(box)
+                dat_index = self._data.index(idata)
+                del self._data[dat_index]
+                set_data(deepcopy(self._data))
+
+            delete_button = Gtk.Button(icon_name = 'user-trash-symbolic')
+            delete_button.connect('clicked', on_delete_button_clicked)
+            box.append(delete_button)
+
+        for __data in self._data:
+            add_list_item(__data)
+
+        content = Adw.ButtonContent(label     = f'{_('Add')} {title}',
+                                    icon_name = 'list-add-symbolic')
+        add_button = Gtk.Button(child = content)
+        self.append(add_button)
+
+        def on_add_button_clicked(button: Gtk.Button) -> None:
+            """"""
+            add_list_item([])
+            set_data(deepcopy(self._data))
+            self.remove(add_button)
+            self.append(add_button)
+
+        add_button.connect('clicked', on_add_button_clicked)
 
 
 
@@ -434,11 +633,7 @@ class NodeSpinButton(Gtk.Button):
             controller.connect('key-pressed', on_key_pressed, args)
             text.add_controller(controller)
 
-            def do_focus() -> bool:
-                """"""
-                spin.grab_focus()
-                return Gdk.EVENT_PROPAGATE
-            GLib.timeout_add(50, do_focus)
+            GLib.timeout_add(50, lambda *_: spin.grab_focus())
 
         args = (label, lower, upper)
         self.connect('clicked', on_clicked, *args)

@@ -22,12 +22,26 @@ from gi.repository import GLib
 import gc
 
 from .. import environment as env
-from ..core.action import Action
+from ..core.action import Action as _Action
 
 from .editor import NodeEditor
 from .frame import NodeFrame
 from .link import NodeLink
 from .socket import NodeSocket
+
+class Action(_Action):
+
+    def __init__(self,
+                 owner: object = None, # Editor
+                 coown: object = None, # Editor
+                 ) ->   None:
+        """"""
+        super().__init__(owner, coown)
+
+        window = env.app.get_active_main_window()
+        self.owner = window.node_editor
+
+
 
 class ActionAddNode(Action):
 
@@ -233,10 +247,13 @@ class ActionAddLink(Action):
         """"""
         super().__init__()
 
+        # Make sure the first socket is from a node output
+        if socket1.is_input():
+            socket1, socket2 = socket2, socket1
+
         self.editor   = editor
         self.socket1  = socket1
         self.socket2  = socket2
-
         self.frame2   = socket2.Frame
 
         self.new_link = None
@@ -246,10 +263,6 @@ class ActionAddLink(Action):
            undoable: bool = True,
            ) ->      bool:
         """"""
-        # Make sure the first socket is from a node output
-        if self.socket1.is_input():
-            self.socket1, self.socket2 = self.socket2, self.socket1
-
         # Skip if there's already a link between the two sockets
         for link in self.editor.links:
             if link.in_socket == self.socket1 and link.out_socket == self.socket2:

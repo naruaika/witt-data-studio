@@ -264,6 +264,7 @@ class Window(Adw.ApplicationWindow):
                            links: list['NodeLink']  = [],
                            ) ->   None:
         """"""
+        self.node_editor = None
         self.node_editor = NodeEditor(nodes, links)
         self.add_new_editor(self.node_editor, pinned = True)
 
@@ -313,7 +314,7 @@ class Window(Adw.ApplicationWindow):
            ) ->      bool:
         """"""
         editor = self.get_selected_editor()
-        action.owner = editor
+        action.coown = editor
 
         success = self.history.do(action,
                                   undoable,
@@ -332,9 +333,11 @@ class Window(Adw.ApplicationWindow):
         """"""
         (success, actions) = self.history.undo()
 
-        first_action = actions[0]
-        action_owner = first_action.owner
-        self.go_to_editor(action_owner)
+        if actions:
+            first_action = actions[0]
+            owner = first_action.owner
+            coown = first_action.coown
+            self.go_to_editor([owner, coown])
 
         if editor := self.get_selected_editor():
             editor.refresh_ui()
@@ -346,9 +349,11 @@ class Window(Adw.ApplicationWindow):
         """"""
         (success, actions) = self.history.redo()
 
-        first_action = actions[0]
-        action_owner = first_action.owner
-        self.go_to_editor(action_owner)
+        if actions:
+            first_action = actions[0]
+            owner = first_action.owner
+            coown = first_action.coown
+            self.go_to_editor([owner, coown])
 
         if editor := self.get_selected_editor():
             editor.refresh_ui()
@@ -393,11 +398,21 @@ class Window(Adw.ApplicationWindow):
                      editor: Editor,
                      ) ->    None:
         """"""
-        if editor == self.get_selected_editor():
+        from .core.utils import isiterable
+        if not isiterable(editor):
+            editor = [editor]
+
+        # This is an edge case that only occurs
+        # when loading a workbook file, TODO?
+        if None in editor:
+            editor.remove(None)
+            editor.append(self.node_editor)
+
+        if self.get_selected_editor() in editor:
             return
 
         for page in self.TabView.get_pages():
-            if editor == page.get_child():
+            if page.get_child() in editor:
                 self.TabView.set_selected_page(page)
                 break
 

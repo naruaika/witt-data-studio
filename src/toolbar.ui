@@ -694,6 +694,7 @@
                             <child>
                               <object class="GtkGrid">
                                 <property name="vexpand">true</property>
+                                <!--
                                 <child>
                                   <object class="GtkButton" id="AscendingButton">
                                     <property name="name">ascending</property>
@@ -754,6 +755,46 @@
                                     <layout>
                                       <property name="column">0</property>
                                       <property name="row">1</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                -->
+                                <child>
+                                  <object class="GtkButton" id="SortRowsButton">
+                                    <property name="name">sort-rows</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Sort Rows</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'sort-rows'</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">vertical</property>
+                                        <property name="homogeneous">true</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-sorting-a-to-z-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Sort Rows</property>
+                                            <property name="vexpand">true</property>
+                                            <property name="valign">start</property>
+                                            <property name="lines">2</property>
+                                            <property name="wrap">true</property>
+                                            <property name="justify">center</property>
+                                            <property name="max-width-chars">0</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">1</property>
+                                      <property name="row">0</property>
+                                      <property name="row-span">2</property>
                                     </layout>
                                     <style>
                                       <class name="flat"/>

@@ -86,6 +86,8 @@ class SheetTransformWindow(Adw.Window):
         n_content = 0
         n_options = 0
 
+        is_dynamic = False
+
         for item in layout:
             operation_arg = SheetOperationArg()
             self.op_args.append(operation_arg)
@@ -107,21 +109,26 @@ class SheetTransformWindow(Adw.Window):
                 case 'combo':
                     self._create_combo_row(title, description, contents, operation_arg)
                     n_content += 1
+
                 case 'entry':
                     self._create_entry_row(title, operation_arg)
                     n_content += 1
+
                 case 'spin':
                     self._create_spin_row(title, description, operation_arg)
                     n_content += 1
+
                 case 'switch':
                     self._create_switch_row(title, description, operation_arg)
                     n_content += 1
+
                 case 'list-check':
                     self._create_list_check(title, description, contents, defaults, operation_arg)
-                case 'list-entry':
-                    self._create_list_entry(title, contents, operation_arg)
+
                 case 'list-item':
                     self._create_list_item(title, contents, operation_arg)
+                    is_dynamic = True
+
                 case 'list-switch':
                     self._create_list_switch(contents, operation_arg)
 
@@ -139,10 +146,14 @@ class SheetTransformWindow(Adw.Window):
         if n_options > 0:
             self.PreferencesPage.add(self.OptionsContainer)
 
+        if is_dynamic:
+            scrolled_window.set_min_content_height(362)
+
         # We set the maximum content height previously to prevent
         # the window from filling the entire user screen's height.
         # But we don't want to prevent from manually resizing the
         # window to any size, so we reset the property here.
+        GLib.idle_add(scrolled_window.set_min_content_height, -1)
         GLib.idle_add(scrolled_window.set_max_content_height, -1)
 
     def _create_combo_row(self,
@@ -294,190 +305,111 @@ class SheetTransformWindow(Adw.Window):
 
         ops_arg.stype = 'strv'
 
-    def _create_list_entry(self,
-                           title:      str,
-                           contents:   list,
-                           ops_arg:    SheetOperationArg,
-                           group:      Adw.PreferencesGroup = None,
-                           add_button: Adw.ButtonRow        = None,
-                           ) ->        None:
-        """"""
-        # Initialize the operation arguments with an empty string
-        # where each argument correspond to a child input widget.
-        ops_arg.value = json.dumps([''] * (1 + len(contents)))
-
-        if create_new_group := group is None:
-            group = Adw.PreferencesGroup()
-            box = group.get_first_child()
-            box = box.get_last_child()
-            list_box = box.get_first_child()
-            list_box.remove_css_class('boxed-list')
-            list_box.add_css_class('boxed-list-separate')
-            self.PreferencesPage.add(group)
-
-        def on_entry_changed(widget: Gtk.Widget,
-                             pspec:  GObject.ParamSpec,
-                             ) ->    None:
-            """"""
-            arg = ops_arg.value
-            args = json.loads(arg) if arg else []
-            args[0] = widget.get_text()
-            ops_arg.value = json.dumps(args)
-
-        entry = Adw.EntryRow(title = title)
-        entry.add_css_class('list-item-entry')
-        entry.connect('notify::text', on_entry_changed)
-        group.add(entry)
-
-        box = entry.get_first_child()
-        box.set_orientation(Gtk.Orientation.VERTICAL)
-        box.set_margin_top(6)
-        box.set_margin_bottom(6)
-        box.set_spacing(10)
-
-        prefixes = box.get_first_child()
-        editable = prefixes.get_next_sibling()
-        separator = Gtk.Separator(orientation = Gtk.Orientation.VERTICAL)
-        box.insert_child_after(separator, editable)
-
-        suffix = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
-                         spacing     = 6,
-                         homogeneous = True,
-                         visible     = len(contents) > 0)
-        entry.add_suffix(suffix)
-
-        chindex = 1 # the first index (or zero) is already taken
-                    # by the entry widget, so we start from one.
-        for dtype, options in contents:
-            match dtype:
-                case 'dropdown':
-                    self._create_child_dropdown(options, suffix, chindex, ops_arg)
-            chindex += 1
-
-        def on_delete_button_clicked(button: Gtk.Button) -> None:
-            """"""
-            group.remove(entry)
-            ops_index = self.op_args.index(ops_arg)
-            del self.op_args[ops_index]
-
-        delete_button = Gtk.Button(valign    = Gtk.Align.CENTER,
-                                   icon_name = 'user-trash-symbolic')
-        delete_button.add_css_class('flat')
-        delete_button.add_css_class('circular')
-        delete_button.connect('clicked', on_delete_button_clicked)
-        entry.add_suffix(delete_button)
-
-        if not create_new_group:
-            entry.grab_focus()
-
-        def on_add_button_clicked(button: Gtk.Button) -> None:
-            """"""
-            new_ops_arg = SheetOperationArg()
-            self.op_args.append(new_ops_arg)
-            self._create_list_entry(title, contents, new_ops_arg, group, button)
-
-            def do_scroll() -> None:
-                """"""
-                scrolled_window = self.PreferencesPage.get_first_child()
-                viewport = scrolled_window.get_first_child()
-                vadjustment = viewport.get_vadjustment()
-                vadjustment.set_value(vadjustment.get_upper())
-            GLib.idle_add(do_scroll)
-
-        if create_new_group:
-            add_button = Adw.ButtonRow(title           = f'{_('Add')} {title}',
-                                       start_icon_name = 'list-add-symbolic')
-            add_button.connect('activated', on_add_button_clicked)
-            group.add(add_button)
-        else:
-            group.remove(add_button)
-            group.add(add_button)
-            # Re-position to the end
-
-        ops_arg.stype = 'strv'
-
     def _create_list_item(self,
                           title:      str,
                           contents:   list,
                           ops_arg:    SheetOperationArg,
-                          group:      Adw.PreferencesGroup = None,
-                          add_button: Adw.ButtonRow        = None,
                           ) ->        None:
         """"""
-        # Initialize the operation arguments with an empty string
-        # where each argument correspond to a child input widget.
-        ops_arg.value = json.dumps([''] * len(contents))
+        group = Adw.PreferencesGroup()
+        box = group.get_first_child()
+        box = box.get_last_child()
+        list_box = box.get_first_child()
+        list_box.remove_css_class('boxed-list')
+        list_box.add_css_class('boxed-list-separate')
+        self.PreferencesPage.add(group)
 
-        if create_new_group := group is None:
-            group = Adw.PreferencesGroup()
-            box = group.get_first_child()
-            box = box.get_last_child()
-            list_box = box.get_first_child()
-            list_box.remove_css_class('boxed-list')
-            list_box.add_css_class('boxed-list-separate')
-            self.PreferencesPage.add(group)
+        ops_arg.value = json.dumps([])
+        ops_arg.stype = 'strv'
 
-        action = Adw.ActionRow()
-        group.add(action)
+        mdata = []
 
-        box = action.get_first_child()
-        suffixes = box.get_last_child()
-        title_box = suffixes.get_prev_sibling()
-        title_box.set_visible(False)
+        class ItemData():
 
-        suffix = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
-                         spacing     = 6,
-                         homogeneous = True)
-        action.add_suffix(suffix)
+            def __init__(self,
+                         ops_arg: SheetOperationArg,
+                         mdata:   list,
+                         idata:   list,
+                         index:   int,
+                         ) ->     None:
+                """"""
+                self.ops_arg = ops_arg
+                self.mdata   = mdata
+                self.idata   = idata
+                self.index   = index
 
-        chindex = 0
-        for dtype, options in contents:
-            match dtype:
-                case 'dropdown':
-                    self._create_child_dropdown(options, suffix, chindex, ops_arg)
-            chindex += 1
+            def get_data(self) -> str:
+                """"""
+                return self.idata[self.index]
 
-        def on_delete_button_clicked(button: Gtk.Button) -> None:
+            def set_data(self,
+                         value: str,
+                         ) ->   None:
+                """"""
+                self.idata[self.index] = value
+                self.ops_arg.value = json.dumps(self.mdata)
+
+        def add_list_item() -> None:
             """"""
-            group.remove(action)
-            ops_index = self.op_args.index(ops_arg)
-            del self.op_args[ops_index]
+            action = Adw.ActionRow()
+            action.add_css_class('custom-row')
+            group.add(action)
 
-        delete_button = Gtk.Button(valign    = Gtk.Align.CENTER,
-                                   icon_name = 'user-trash-symbolic')
-        delete_button.add_css_class('flat')
-        delete_button.add_css_class('circular')
-        delete_button.connect('clicked', on_delete_button_clicked)
-        action.add_suffix(delete_button)
+            box = action.get_first_child()
+            suffixes = box.get_last_child()
+            title_box = suffixes.get_prev_sibling()
+            title_box.set_visible(False)
 
-        if not create_new_group:
-            suffix.get_first_child().grab_focus()
+            suffix = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
+                             spacing     = 6,
+                             homogeneous = True)
+            action.add_suffix(suffix)
+
+            idata = []
+            for dtype, options in contents:
+                match dtype:
+                    case 'dropdown':
+                        value = options[0]
+                        idata.append(value)
+                    case _:
+                        idata.append(None)
+            mdata.append(idata)
+
+            for index, (dtype, options) in enumerate(contents):
+                match dtype:
+                    case 'dropdown':
+                        item_data = ItemData(ops_arg, mdata, idata, index)
+                        dropdown = self._create_child_dropdown(item_data.get_data,
+                                                               item_data.set_data,
+                                                               options)
+                        suffix.append(dropdown)
+
+            def on_delete_button_clicked(button: Gtk.Button) -> None:
+                """"""
+                group.remove(action)
+                dat_index = mdata.index(idata)
+                del mdata[dat_index]
+                ops_arg.value = json.dumps(mdata)
+
+            delete_button = Gtk.Button(valign    = Gtk.Align.CENTER,
+                                       icon_name = 'user-trash-symbolic')
+            delete_button.add_css_class('flat')
+            delete_button.add_css_class('circular')
+            delete_button.connect('clicked', on_delete_button_clicked)
+            action.add_suffix(delete_button)
+
+        add_button = Adw.ButtonRow(title           = f'{_('Add')} {title}',
+                                   start_icon_name = 'list-add-symbolic')
+        group.add(add_button)
 
         def on_add_button_clicked(button: Gtk.Button) -> None:
             """"""
-            new_ops_arg = SheetOperationArg()
-            self.op_args.append(new_ops_arg)
-            self._create_list_item(title, contents, new_ops_arg, group, button)
-
-            def do_scroll() -> None:
-                """"""
-                scrolled_window = self.PreferencesPage.get_first_child()
-                viewport = scrolled_window.get_first_child()
-                vadjustment = viewport.get_vadjustment()
-                vadjustment.set_value(vadjustment.get_upper())
-            GLib.idle_add(do_scroll)
-
-        if create_new_group:
-            add_button = Adw.ButtonRow(title           = f'{_('Add')} {title}',
-                                       start_icon_name = 'list-add-symbolic')
-            add_button.connect('activated', on_add_button_clicked)
-            group.add(add_button)
-        else:
+            add_list_item()
+            ops_arg.value = json.dumps(mdata)
             group.remove(add_button)
             group.add(add_button)
-            # Re-position to the end
 
-        ops_arg.stype = 'strv'
+        add_button.connect('activated', on_add_button_clicked)
 
     def _create_list_switch(self,
                             options: list[str],
@@ -511,11 +443,10 @@ class SheetTransformWindow(Adw.Window):
         ops_arg.stype = 'strv'
 
     def _create_child_dropdown(self,
-                               options: list,
-                               parent:  Gtk.Widget,
-                               chindex: int,
-                               ops_arg: SheetOperationArg,
-                               ) ->     None:
+                               get_data: callable,
+                               set_data: callable,
+                               options:  list,
+                               ) ->      Gtk.DropDown:
         """"""
         dropdown = Gtk.DropDown(hexpand = True,
                                 valign  = Gtk.Align.CENTER)
@@ -523,9 +454,9 @@ class SheetTransformWindow(Adw.Window):
         button = dropdown.get_first_child()
         button.add_css_class('flat')
 
-        def setup_factory_dropdown(list_item_factory: Gtk.SignalListItemFactory,
-                                   list_item:         Gtk.ListItem,
-                                   ) ->               None:
+        def setup_factory(list_item_factory: Gtk.SignalListItemFactory,
+                          list_item:         Gtk.ListItem,
+                          ) ->               None:
             """"""
             box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
                           hexpand     = True)
@@ -542,53 +473,46 @@ class SheetTransformWindow(Adw.Window):
             list_item.image = image
             list_item.bind_item = None
 
-        def bind_factory_dropdown(list_item_factory: Gtk.SignalListItemFactory,
-                                  list_item:         Gtk.ListItem,
-                                  ) ->               None:
+        def bind_factory(list_item_factory: Gtk.SignalListItemFactory,
+                         list_item:         Gtk.ListItem,
+                         ) ->               None:
             """"""
             item_data = list_item.get_item()
             label = item_data.get_string()
 
-            def on_list_item_selected(*args) -> None:
+            def do_select() -> bool:
                 """"""
                 is_selected = list_item.get_selected()
                 list_item.image.set_opacity(is_selected)
-                if not is_selected:
-                    return
-                arg = ops_arg.value
-                args = json.loads(arg) if arg else []
-                args[chindex] = label
-                ops_arg.value = json.dumps(args)
+                if is_selected:
+                    dropdown.set_tooltip_text(label)
+                return is_selected
+
+            def on_selected(*args) -> None:
+                """"""
+                if do_select():
+                    set_data(label)
 
             list_item.label.set_label(label)
 
-            if list_item.bind_item is not None:
+            if list_item.bind_item:
                 list_item.disconnect(list_item.bind_item)
-                # TODO: do this in unbind function callback
 
-            list_item.bind_item = dropdown.connect('notify::selected-item', on_list_item_selected)
-            on_list_item_selected() # setup default selected list item
+            list_item.bind_item = dropdown.connect('notify::selected', on_selected)
 
-        def teardown_factory_dropdown(list_item_factory: Gtk.SignalListItemFactory,
-                                      list_item:         Gtk.ListItem,
-                                      ) ->               None:
-            """"""
-            list_item.label = None
-            list_item.image = None
-            list_item.bind_item = None
+            do_select()
 
-        dropdown_model = Gtk.StringList()
+        model = Gtk.StringList()
         for option in options:
-            dropdown_model.append(option)
-        dropdown.set_model(dropdown_model)
+            model.append(option)
+        dropdown.set_model(model)
 
-        dropdown_list_factory = Gtk.SignalListItemFactory()
-        dropdown_list_factory.connect('setup', setup_factory_dropdown)
-        dropdown_list_factory.connect('bind', bind_factory_dropdown)
-        dropdown_list_factory.connect('teardown', teardown_factory_dropdown)
-        dropdown.set_list_factory(dropdown_list_factory)
+        list_factory = Gtk.SignalListItemFactory()
+        list_factory.connect('setup', setup_factory)
+        list_factory.connect('bind', bind_factory)
+        dropdown.set_list_factory(list_factory)
 
-        dropdown_factory = Gtk.BuilderListItemFactory.new_from_bytes(None, GLib.Bytes.new(bytes(
+        factory = Gtk.BuilderListItemFactory.new_from_bytes(None, GLib.Bytes.new(bytes(
 """
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
@@ -608,9 +532,12 @@ class SheetTransformWindow(Adw.Window):
   </template>
 </interface>
 """, 'utf-8')))
-        dropdown.set_factory(dropdown_factory)
+        dropdown.set_factory(factory)
 
-        parent.append(dropdown)
+        selected = options.index(get_data())
+        dropdown.set_selected(selected)
+
+        return dropdown
 
     def _create_new_column_row(self):
         """"""

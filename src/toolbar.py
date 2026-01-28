@@ -49,8 +49,9 @@ class Toolbar(Gtk.Box):
     RemoveRowsButton         = Gtk.Template.Child()
 
     SortSection              = Gtk.Template.Child()
-    AscendingButton          = Gtk.Template.Child()
-    DescendingButton         = Gtk.Template.Child()
+#   AscendingButton          = Gtk.Template.Child()
+#   DescendingButton         = Gtk.Template.Child()
+    SortRowsButton           = Gtk.Template.Child()
 
     WorkflowSection          = Gtk.Template.Child()
     NewSheetButton           = Gtk.Template.Child()
@@ -239,15 +240,20 @@ class Toolbar(Gtk.Box):
                             SheetEditor,
                         ),
                         [
+#                           (
+#                               self.AscendingButton,
+#                               (
+#                                   SheetEditor,
+#                               ),
+#                           ),
+#                           (
+#                               self.DescendingButton,
+#                               (
+#                                   SheetEditor,
+#                               ),
+#                           ),
                             (
-                                self.AscendingButton,
-                                (
-                                    NodeEditor,
-                                    SheetEditor,
-                                ),
-                            ),
-                            (
-                                self.DescendingButton,
+                                self.SortRowsButton,
                                 (
                                     NodeEditor,
                                     SheetEditor,

@@ -64,3 +64,13 @@ tabbar.inline tabbox {
 .floating-sheet {
     background-color: RGB(from var(--shade-color) r g b / calc(alpha * 2));
 }
+
+.horizontal.linked > .vertical.linked button {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.vertical.linked > *:last-child > button {
+    border-bottom-left-radius: 9px;
+    border-bottom-right-radius: 9px;
+}

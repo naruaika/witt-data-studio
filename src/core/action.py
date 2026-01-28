@@ -21,9 +21,11 @@ class Action():
 
     def __init__(self,
                  owner: object = None, # Editor
+                 coown: object = None, # Editor
                  ) ->   None:
         """"""
         self.owner = owner
+        self.coown = coown
         self.group = None
 
     def do(self,
