@@ -1,0 +1,7 @@
+.mstatusbar button {
+    padding: 0 6px;
+    font-size: 10pt;
+    -gtk-icon-size: 14px;
+    font-weight: normal;
+    border-radius: 0;
+}

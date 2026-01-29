@@ -126,12 +126,15 @@ class SheetEditor(Gtk.Box):
 
         from ..window import Window
         window = self.get_root()
+
         is_main_window = isinstance(window, Window)
         is_cursor_move = self.selection.current_cell_name != \
                          self.selection.previous_cell_name
-        if is_main_window and is_cursor_move:
-            if self == window.get_selected_editor():
-                window.Toolbar.populate()
+
+        if is_main_window:
+            if is_cursor_move:
+                GLib.idle_add(window.Toolbar.populate)
+            GLib.idle_add(window.StatusBar.populate)
 
         self.queue_draw(refresh)
 

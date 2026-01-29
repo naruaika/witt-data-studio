@@ -139,10 +139,8 @@ class NodeEditor(Gtk.Overlay):
         """"""
         window = self.get_root()
 
-        from ..window import Window
-        if isinstance(window, Window):
-            if self == window.get_selected_editor():
-                window.Toolbar.populate()
+        GLib.idle_add(window.Toolbar.populate)
+        GLib.idle_add(window.StatusBar.populate)
 
         self.queue_draw()
 
@@ -796,9 +794,9 @@ class NodeEditor(Gtk.Overlay):
 
         if self._target_socket:
             if is_linked := len(self._target_socket.links) > 0:
+                from .action import ActionEditNode
                 frame = self._target_socket.Frame
                 old_value = frame.do_save()
-                from .action import ActionEditNode
                 values = (old_value, old_value)
                 action = ActionEditNode(self, frame, values)
                 window.do(action, add_only = True)

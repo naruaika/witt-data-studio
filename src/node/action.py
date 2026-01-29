@@ -524,6 +524,9 @@ class ActionSelectByClick(Action):
             if isinstance(self.node.parent, NodeViewer):
                 ActionSelectViewer(self.editor, self.node).do()
 
+        window = self.editor.get_root()
+        window.StatusBar.populate()
+
         return True
 
     def undo(self) -> bool:
@@ -534,6 +537,9 @@ class ActionSelectByClick(Action):
 
         for node in self.old_selected_nodes:
             node.select()
+
+        window = self.editor.get_root()
+        window.StatusBar.populate()
 
         return True
 

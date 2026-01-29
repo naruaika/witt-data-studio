@@ -51,6 +51,7 @@ class Window(Adw.ApplicationWindow):
     TabOverview = Gtk.Template.Child()
     Toolbar     = Gtk.Template.Child()
     Container   = Gtk.Template.Child()
+    StatusBar   = Gtk.Template.Child()
 
     def __init__(self, **kwargs) -> None:
         """"""
@@ -283,6 +284,7 @@ class Window(Adw.ApplicationWindow):
                          ) ->        None:
         """"""
         self.Toolbar.populate()
+        self.StatusBar.populate()
 
         # TODO: update undo/redo menu item
 

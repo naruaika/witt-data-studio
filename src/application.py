@@ -138,11 +138,15 @@ class Application(Adw.Application):
 
     def _setup_libraries(self) -> None:
         """"""
+        import locale
+        locale.setlocale(locale.LC_ALL, '')
+
         from gi.repository import GtkSource
         from gi.repository import WebKit
         from polars import Config
         from threading import Thread
 
+        from .status_bar import StatusBar
         from .toolbar import Toolbar
         from .node.canvas import NodeCanvas
         from .node.minimap import NodeMinimap
@@ -151,6 +155,7 @@ class Application(Adw.Application):
         GObject.type_register(GtkSource.View)
         GObject.type_register(WebKit.WebView)
 
+        GObject.type_register(StatusBar)
         GObject.type_register(Toolbar)
         GObject.type_register(NodeCanvas)
         GObject.type_register(NodeMinimap)

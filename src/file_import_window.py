@@ -378,6 +378,7 @@ class FileImportWindow(Adw.Window):
         editor.select_by_click(reader)
 
         window.activate_action('win.focus-editor')
+        # TODO: go to the tab if reusing a sheet
 
         window.history.grouping = False
 

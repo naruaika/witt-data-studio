@@ -123,10 +123,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkBox">
-                        <property name="orientation">horizontal</property>
-                        <property name="height-request">28</property>
-                      </object>
+                      <object class="StatusBar" id="StatusBar"/>
                     </child>
                   </object>
                 </property>

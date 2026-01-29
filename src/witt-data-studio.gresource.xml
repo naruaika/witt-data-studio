@@ -3,6 +3,7 @@
   <gresource prefix="/com/macipra/witt">
     <file preprocess="xml-stripblanks">command_palette.ui</file>
     <file preprocess="xml-stripblanks">file_import_window.ui</file>
+    <file preprocess="xml-stripblanks">status_bar.ui</file>
     <file preprocess="xml-stripblanks">toolbar.ui</file>
     <file preprocess="xml-stripblanks">window.ui</file>
 
@@ -10,6 +11,8 @@
     <file>style-dark.css</file>
     <file>command-palette.css</file>
     <file>command-palette-dark.css</file>
+    <file>status-bar.css</file>
+    <file>status-bar-dark.css</file>
     <file>toolbar.css</file>
     <file>toolbar-dark.css</file>
     <file>window.css</file>
@@ -59,6 +62,7 @@
     <file preprocess="xml-stripblanks">go-previous-symbolic.svg</file>
     <file preprocess="xml-stripblanks">object-select-symbolic.svg</file>
     <file preprocess="xml-stripblanks">open-menu-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">panel-modified-symbolic.svg</file>
     <file preprocess="xml-stripblanks">profit-symbolic.svg</file>
     <file preprocess="xml-stripblanks">sidebar-show-symbolic.svg</file>
     <file preprocess="xml-stripblanks">table-symbolic.svg</file>

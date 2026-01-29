@@ -29,6 +29,7 @@ root_sources = [
   'file_import_window.py',
   'file_manager.py',
   'main.py',
+  'status_bar.py',
   'toolbar.py',
   'utils.py',
   'window.py',
