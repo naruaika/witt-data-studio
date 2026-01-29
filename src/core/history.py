@@ -27,8 +27,8 @@ class History():
 
     def __init__(self) -> None:
         """"""
-        self._undo_stack: deque[Action] = deque()
-        self._redo_stack: deque[Action] = deque()
+        self.undo_stack: deque[Action] = deque()
+        self.redo_stack: deque[Action] = deque()
 
         self._freezing: bool = False
         self._grouping: bool = False
@@ -70,17 +70,17 @@ class History():
         """"""
         action.group = self._group_id
 
-        if self._undo_stack:
-            last_action = self._undo_stack[-1]
+        if self.undo_stack:
+            last_action = self.undo_stack[-1]
             if action.isduplicate(last_action):
                 return False
 
         def do_stack(action: Action) -> None:
             """"""
-            self._undo_stack.append(action)
-            for action in self._redo_stack:
+            self.undo_stack.append(action)
+            for action in self.redo_stack:
                 action.clean()
-            self._redo_stack.clear()
+            self.redo_stack.clear()
 
         if add_only:
             do_stack(action)
@@ -101,73 +101,73 @@ class History():
         """"""
         actions = []
 
-        if len(self._undo_stack) == 0:
+        if len(self.undo_stack) == 0:
             return (True, actions)
 
-        action = self._undo_stack.pop()
+        action = self.undo_stack.pop()
 
         if not action.undo():
             return (False, actions)
 
         action.clean()
         actions.append(action)
-        self._redo_stack.append(action)
+        self.redo_stack.append(action)
 
         if not (group := action.group):
             return (True, actions)
 
         while True:
-            if len(self._undo_stack) == 0:
+            if len(self.undo_stack) == 0:
                 return (True, actions)
 
-            action = self._undo_stack[-1]
+            action = self.undo_stack[-1]
 
             if action.group != group:
                 return (True, actions)
 
-            action = self._undo_stack.pop()
+            action = self.undo_stack.pop()
 
             if not action.undo():
                 return (False, actions)
 
             action.clean()
             actions.append(action)
-            self._redo_stack.append(action)
+            self.redo_stack.append(action)
 
     def redo(self) -> tuple[bool, list[Action]]:
         """"""
         actions = []
 
-        if len(self._redo_stack) == 0:
+        if len(self.redo_stack) == 0:
             return (True, actions)
 
-        action = self._redo_stack.pop()
+        action = self.redo_stack.pop()
 
         if not action.do():
             return (False, actions)
 
         actions.append(action)
-        self._undo_stack.append(action)
+        self.undo_stack.append(action)
 
         if not (group := action.group):
             return (True, actions)
 
         while True:
-            if len(self._redo_stack) == 0:
+            if len(self.redo_stack) == 0:
                 return (True, actions)
 
-            action = self._redo_stack[-1]
+            action = self.redo_stack[-1]
 
             if action.group != group:
                 return (True, actions)
 
-            action = self._redo_stack.pop()
+            action = self.redo_stack.pop()
 
             if not action.do():
                 return (False, actions)
 
             actions.append(action)
-            self._undo_stack.append(action)
+            self.undo_stack.append(action)
 
-            if len(self._redo_stack) == 0:
+            if len(self.redo_stack) == 0:
                 return (True, actions)

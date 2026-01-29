@@ -24,6 +24,7 @@ import gc
 from .. import environment as env
 from ..core.action import Action as _Action
 
+from .content import NodeContent
 from .editor import NodeEditor
 from .frame import NodeFrame
 from .link import NodeLink
@@ -53,7 +54,7 @@ class ActionAddNode(Action):
         super().__init__()
 
         self.editor = editor
-        self.nodes  = nodes
+        self.nodes  = copy(nodes)
 
     def do(self,
            undoable: bool = True,
@@ -79,7 +80,7 @@ class ActionAddNode(Action):
         # by a proper timing in which can't be
         # sure to always works.
 
-        GLib.idle_add(self.editor.do_collect_points, self.nodes)
+        GLib.timeout_add(50, self.editor.do_collect_points, self.nodes)
 
         return True
 
@@ -107,7 +108,11 @@ class ActionDeleteNode(Action):
         super().__init__()
 
         self.editor = editor
-        self.nodes  = nodes
+        self.nodes  = copy(nodes)
+
+        self.node_values     = []
+        self.removed_links   = []
+        self.removed_structs = []
 
     def do(self,
            undoable: bool = True,
@@ -119,18 +124,41 @@ class ActionDeleteNode(Action):
             if node in self.editor.selected_nodes:
                 self.editor.selected_nodes.remove(node)
 
+            value = node.do_save()
+            self.node_values.append(value)
+
             for content in node.contents:
                 if not content.Socket:
                     continue
 
-                for link in content.Socket.links:
+                for link in copy(content.Socket.links):
+                    if link.in_socket.auto_remove:
+                        frame = link.in_socket.Frame
+                        content = link.in_socket.Content
+                        cindex = frame.contents.index(content)
+                        struct = (frame, content, cindex)
+                        self.removed_structs.append(struct)
+
+                    if link.out_socket.auto_remove:
+                        frame = link.out_socket.Frame
+                        content = link.out_socket.Content
+                        cindex = frame.contents.index(content)
+                        struct = (frame, content, cindex)
+                        self.removed_structs.append(struct)
+
+            for content in copy(node.contents):
+                if not content.Socket:
+                    continue
+
+                for link in copy(content.Socket.links):
                     ActionDeleteLink(self.editor, link).do()
+                    self.removed_links.append(link)
 
             node.unparent()
 
         gc.collect()
 
-        GLib.idle_add(self.editor.do_collect_points)
+        GLib.timeout_add(50, self.editor.do_collect_points)
 
         return True
 
@@ -141,6 +169,21 @@ class ActionDeleteNode(Action):
         window.history.freezing = True
 
         ActionAddNode(self.editor, self.nodes).do()
+
+        for index, value in enumerate(self.node_values):
+            self.nodes[index].do_restore(value)
+
+        for struct in self.removed_structs:
+            frame, content, cindex = struct
+            ActionDeleteNodeContent(self.editor, content, frame, cindex).undo()
+            content.is_freezing = True
+
+        for link in self.removed_links:
+            ActionAddLink(self.editor, link.in_socket, link.out_socket).do()
+
+        for struct in self.removed_structs:
+            frame, content, cindex = struct
+            content.is_freezing = False
 
         window.history.freezing = freezing
 
@@ -159,7 +202,7 @@ class ActionMoveNode(Action):
         super().__init__()
 
         self.editor    = editor
-        self.nodes     = nodes
+        self.nodes     = copy(nodes)
         self.positions = positions
 
     def do(self,
@@ -167,7 +210,6 @@ class ActionMoveNode(Action):
            ) ->      bool:
         """"""
         canvas = self.editor.Canvas
-
         for index, node in enumerate(self.nodes):
             node.x = self.positions[index][1][0]
             node.y = self.positions[index][1][1]
@@ -218,7 +260,7 @@ class ActionEditNode(Action):
         """"""
         self.node.do_restore(self.values[1])
 
-        GLib.idle_add(self.editor.do_collect_points, [self.node])
+        GLib.timeout_add(50, self.editor.do_collect_points, [self.node])
 
         return True
 
@@ -232,6 +274,56 @@ class ActionEditNode(Action):
         ActionEditNode(self.editor, self.node, values).do()
 
         window.history.freezing = freezing
+
+        return True
+
+
+
+class ActionDeleteNodeContent(Action):
+
+    def __init__(self,
+                 editor:  NodeEditor,
+                 content: NodeContent,
+                 node:    NodeFrame = None,
+                 cindex:  int       = None,
+                 ) ->     None:
+        """"""
+        super().__init__()
+
+        node = node or content.Frame
+
+        if cindex is None:
+            cindex = node.contents.index(content)
+
+        self.editor  = editor
+        self.content = content
+        self.node    = node
+        self.cindex  = cindex
+
+    def do(self,
+           undoable: bool = True,
+           ) ->      bool:
+        """"""
+        self.content.do_remove(self.content)
+        return True
+
+    def undo(self) -> bool:
+        """"""
+        self.node.contents.insert(self.cindex, self.content)
+
+        sibling = self.node.Body.get_first_child()
+        child = self.content.Container
+
+        if not sibling or self.cindex == 0:
+            self.node.Body.prepend(child)
+        else:
+            index = 1
+            while sibling:
+                if index == self.cindex:
+                    self.node.Body.insert_child_after(child, sibling)
+                    break
+                sibling = sibling.get_next_sibling()
+                index += 1
 
         return True
 
@@ -251,10 +343,10 @@ class ActionAddLink(Action):
         if socket1.is_input():
             socket1, socket2 = socket2, socket1
 
-        self.editor   = editor
-        self.socket1  = socket1
-        self.socket2  = socket2
-        self.frame2   = socket2.Frame
+        self.editor  = editor
+        self.socket1 = socket1
+        self.socket2 = socket2
+        self.frame2  = socket2.Frame
 
         self.new_link = None
         self.old_link = None
@@ -273,7 +365,8 @@ class ActionAddLink(Action):
         # Meanwhile, it makes sense to have multiple outputs from
         # a single socket from any node.
         if self.socket2.links:
-            self.old_link = self.socket2.links[0].unlink()
+            link = self.socket2.links[0]
+            self.old_link = link.unlink()
             self.editor.links.remove(self.old_link)
 
         # After undoing, a content that feature auto removal
@@ -288,7 +381,7 @@ class ActionAddLink(Action):
         self.editor.links.append(self.new_link)
 
         nodes = [self.socket1.Frame, self.socket2.Frame]
-        GLib.idle_add(self.editor.do_collect_points, nodes)
+        GLib.timeout_add(50, self.editor.do_collect_points, nodes)
 
         return True
 
@@ -301,7 +394,6 @@ class ActionAddLink(Action):
         if self.old_link:
             self.editor.links.remove(self.new_link.unlink())
             self.editor.links.append(self.old_link.link())
-
         else:
             ActionDeleteLink(self.editor, self.new_link).do()
 
@@ -344,15 +436,7 @@ class ActionDeleteLink(Action):
 
     def undo(self) -> bool:
         """"""
-        window = env.app.get_active_main_window()
-        freezing = window.history.freezing
-        window.history.freezing = True
-
-        socket1 = self.link.in_socket
-        socket2 = self.link.out_socket
-        ActionAddLink(self.editor, socket1, socket2).do()
-
-        window.history.freezing = freezing
+        self.editor.links.append(self.link.link())
 
         return True
 
@@ -479,7 +563,8 @@ class ActionSelectByRubberband(Action):
         self.editor = editor
         self.combo  = combo
 
-        self.old_rubber_band = None
+        self.old_rubber_band    = None
+        self.old_selected_nodes = []
 
     def do(self,
            undoable: bool = True,

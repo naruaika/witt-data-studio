@@ -116,6 +116,7 @@ class NodeSocket(Gtk.Widget):
         # Do not forget to also unlink the actual linkage
         if is_outsocket and is_connected:
             editor.links.remove(link)
+            editor.removed_link = link
             if self.auto_remove:
                 editor.removed_socket = self
             link.unlink()

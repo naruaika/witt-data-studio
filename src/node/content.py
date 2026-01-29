@@ -52,6 +52,8 @@ class NodeContent(Gtk.Widget):
         self.placeholder = placeholder
         self.auto_remove = auto_remove
 
+        self.is_freezing = False
+
         # For external usage
         self.get_data = get_data or (lambda *args: None)
         self.set_data = set_data or (lambda *args: None)
@@ -93,7 +95,6 @@ class NodeContent(Gtk.Widget):
                   ) ->     'None':
         """"""
         self.node_uid = None
-
         self.Frame.remove_content(content)
         gc.collect()
 

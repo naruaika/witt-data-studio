@@ -213,9 +213,6 @@ def get_layout(action_name: str) -> tuple[str, list]:
             )
 
         case 'reverse-rows':
-            return (
-                _('Reverse Rows'),
-                [],
-            )
+            return (_('Reverse Rows'), [])
 
     raise KeyError()

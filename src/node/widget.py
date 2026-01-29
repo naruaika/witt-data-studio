@@ -429,9 +429,9 @@ class NodeLabel(Gtk.Label):
         self.add_css_class('node-label')
 
         if linked:
-            label.set_xalign(0.0)
-            label.add_css_class('after-socket')
-            label.add_css_class('node-widget')
+            self.set_xalign(0.0)
+            self.add_css_class('after-socket')
+            self.add_css_class('node-widget')
 
 
 

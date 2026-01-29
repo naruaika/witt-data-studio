@@ -99,7 +99,9 @@ class NodeEditor(Gtk.Overlay):
         self.rubber_band: Scalar2D = None
 
         self.selected_nodes: list['NodeFrame'] = []
-        self.removed_socket: 'NodeSocket'      = None
+
+        self.removed_link:   'NodeLink'   = None
+        self.removed_socket: 'NodeSocket' = None
 
         self._prev_zoom = 1.0
         self._curr_zoom = 1.0
@@ -455,13 +457,13 @@ class NodeEditor(Gtk.Overlay):
         in_socket = sheet.contents[0].Socket
         out_socket = viewer.contents[-1].Socket
 
-        window.history.grouping = True
+        window.history.freezing = True
 
         self.add_node(viewer)
         self.add_node(sheet)
         self.add_link(in_socket, out_socket)
 
-        window.history.grouping = False
+        window.history.freezing = False
 
         vadjustment = self.ScrolledWindow.get_vadjustment()
         hadjustment = self.ScrolledWindow.get_hadjustment()
@@ -516,7 +518,7 @@ class NodeEditor(Gtk.Overlay):
                     self._fit_nodes_to_viewport()
                 self._editor_init_setup = True
 
-            GLib.idle_add(self.do_collect_points)
+            GLib.timeout_add(50, self.do_collect_points)
 
             return Gdk.EVENT_PROPAGATE
 
@@ -683,7 +685,7 @@ class NodeEditor(Gtk.Overlay):
 
         window.history.grouping = False
 
-        GLib.idle_add(self.do_collect_points, self.selected_nodes)
+        GLib.timeout_add(50, self.do_collect_points, self.selected_nodes)
 
     def _on_delete_action(self,
                           action:    Gio.SimpleAction,
@@ -741,7 +743,6 @@ class NodeEditor(Gtk.Overlay):
         """"""
         from .action import ActionAddNode
         action = ActionAddNode(self, [node])
-
         window = self.get_window()
         return window.do(action)
 
@@ -752,7 +753,6 @@ class NodeEditor(Gtk.Overlay):
         """"""
         from .action import ActionAddLink
         action = ActionAddLink(self, socket1, socket2)
-
         window = self.get_window()
         return window.do(action)
 
@@ -790,19 +790,48 @@ class NodeEditor(Gtk.Overlay):
 
     def end_future_link(self) -> None:
         """"""
-        # Link the source socket to a target socket if there's any
+        window = self.get_window()
+
+        window.history.grouping = True
+
         if self._target_socket:
+            if is_linked := len(self._target_socket.links) > 0:
+                frame = self._target_socket.Frame
+                old_value = frame.do_save()
+                from .action import ActionEditNode
+                values = (old_value, old_value)
+                action = ActionEditNode(self, frame, values)
+                window.do(action, add_only = True)
+
             self.add_link(self._source_socket, self._target_socket)
 
-        if self._target_socket == self.removed_socket:
-            self.removed_socket = None
+            if is_linked:
+                new_value = frame.do_save()
+                if old_value == new_value:
+                    window.history.undo_stack.remove(action)
+                else:
+                    action.values = (old_value, new_value)
+
+            if self._target_socket == self.removed_socket:
+                self.removed_link   = None
+                self.removed_socket = None
+
+        if self.removed_link:
+            from .action import ActionDeleteLink
+            action = ActionDeleteLink(self, self.removed_link)
+            window.do(action, add_only = True)
 
         if self.removed_socket:
+            from .action import ActionDeleteNodeContent
             content = self.removed_socket.Content
-            content.do_remove(content)
+            action = ActionDeleteNodeContent(self, content)
+            window.do(action)
+
+        window.history.grouping = False
 
         self._source_socket = None
         self._target_socket = None
+        self.removed_link   = None
         self.removed_socket = None
 
         self._clean_snap_points()
@@ -810,7 +839,7 @@ class NodeEditor(Gtk.Overlay):
 
         gc.collect()
 
-        GLib.idle_add(self.do_collect_points)
+        GLib.timeout_add(50, self.do_collect_points)
 
     def _build_snap_points(self,
                            socket_type: 'NodeSocketType',
@@ -925,7 +954,6 @@ class NodeEditor(Gtk.Overlay):
         """"""
         from .action import ActionMoveNode
         action = ActionMoveNode(self, [node], [positions])
-
         window = self.get_root()
         window.do(action)
 
@@ -935,7 +963,6 @@ class NodeEditor(Gtk.Overlay):
         """"""
         from .action import ActionSelectViewer
         action = ActionSelectViewer(self, viewer)
-
         window = self.get_window()
         return window.do(action)
 
@@ -946,7 +973,6 @@ class NodeEditor(Gtk.Overlay):
         """"""
         from .action import ActionSelectByClick
         action = ActionSelectByClick(self, node, combo)
-
         window = self.get_window()
         return window.do(action)
 
@@ -963,7 +989,6 @@ class NodeEditor(Gtk.Overlay):
 
         from .action import ActionSelectByRubberband
         action = ActionSelectByRubberband(self, combo)
-
         window = self.get_window()
         return window.do(action)
 

@@ -1126,7 +1126,8 @@ class NodeSheet(NodeTemplate):
                                          auto_remove = True)
 
         def restore_data(title:   str,
-                         content: NodeContent) -> str:
+                         content: NodeContent,
+                         ) ->     str:
             """"""
             cindex = self.frame.contents.index(content)
             tables = self.frame.data['replace-tables']
@@ -1171,15 +1172,26 @@ class NodeSheet(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            old_title = label.get_label()
+            widget = self_content.Widget
+            label = widget.get_first_child()
 
-            # Generate the socket label based on the connected node
-            titles = [content.Widget.get_first_child().get_label()
-                      for content in self.frame.contents[1:-1]
-                      if content != self_content]
-            new_title = unique_name(_('Table'), titles)
-            label.set_label(new_title)
-            label.set_opacity(1.0)
+            old_title = label.get_label()
+            new_title = old_title
+
+            if self_content.is_freezing:
+                position = self_content.get_data()
+                self.frame.data[new_title] = position
+
+            # Auto-generate the socket label if needed
+            else:
+                titles = [
+                    content.Widget.get_first_child().get_label()
+                    for content in self.frame.contents[1:-1]
+                    if content != self_content
+                ]
+                new_title = unique_name(_('Table'), titles)
+                label.set_label(new_title)
+                label.set_opacity(1.0)
 
             if not _iscompatible(pair_socket, self_content):
                 if self_content.placeholder:
@@ -1214,6 +1226,8 @@ class NodeSheet(NodeTemplate):
             """"""
             title = label.get_label()
             if title in self.frame.data:
+                value = self.frame.data[title]
+                content.get_data = lambda *_: value
                 del self.frame.data[title]
 
             content.node_uid = None
@@ -1393,14 +1407,20 @@ class NodeViewer(NodeTemplate):
                     return # skip if the pending socket to be removed
                            # get connected again to the previous node
 
+            label = self_content.Widget
+            title = label.get_label()
+
             if pair_socket.data_type in self.SUPPORTED_VIEWS:
-                # Automatically generate the socket label
-                titles = [content.Widget.get_label()
-                          for content in self.frame.contents[:-1]
-                          if content != self_content]
-                title = pair_socket.data_type.__name__
-                title = unique_name(title, titles)
-                label.set_label(title)
+                if not self_content.is_freezing:
+                    # Auto-generate the socket label if needed
+                    titles = [
+                        content.Widget.get_label()
+                        for content in self.frame.contents[:-1]
+                        if content != self_content
+                    ]
+                    title = pair_socket.data_type.__name__
+                    title = unique_name(title, titles)
+                    label.set_label(title)
 
             elif pair_socket.data_type in self.PRIMITIVE_TYPES:
                 label.set_ellipsize(Pango.EllipsizeMode.NONE)
@@ -1616,9 +1636,6 @@ class NodeChooseColumns(NodeTemplate):
         else:
             table_columns = table.columns
 
-        # FIXME: replacing input socket' link can remove some columns,
-        # but undoing won't restore the removed columns.
-
         # Filter unvalid columns from selection
         if table_columns:
             if self.frame.data['columns']:
@@ -1815,9 +1832,6 @@ class NodeRemoveColumns(NodeTemplate):
             table_columns = table.collect_schema().names()
         else:
             table_columns = table.columns
-
-        # FIXME: replacing input socket' link can remove some columns,
-        # but undoing won't restore the removed columns.
 
         # Filter unvalid columns from selection
         if table_columns:
@@ -2045,9 +2059,6 @@ class NodeKeepTopKRows(NodeTemplate):
         else:
             table_columns = table.columns
 
-        # FIXME: replacing input socket' link can remove some columns,
-        # but undoing won't restore the removed columns.
-
         # Filter unvalid columns from selection
         if table_columns:
             if self.frame.data['columns']:
@@ -2273,9 +2284,6 @@ class NodeKeepBottomKRows(NodeTemplate):
             table_columns = table.collect_schema().names()
         else:
             table_columns = table.columns
-
-        # FIXME: replacing input socket' link can remove some columns,
-        # but undoing won't restore the removed columns.
 
         # Filter unvalid columns from selection
         if table_columns:
@@ -3106,9 +3114,6 @@ class NodeKeepDuplicateRows(NodeTemplate):
         else:
             table_columns = table.columns
 
-        # FIXME: replacing input socket' link can remove some columns,
-        # but undoing won't restore the removed columns.
-
         # Filter unvalid columns from selection
         if table_columns:
             if self.frame.data['columns']:
@@ -3870,9 +3875,6 @@ class NodeRemoveDuplicateRows(NodeTemplate):
         else:
             table_columns = table.columns
 
-        # FIXME: replacing input socket' link can remove some columns,
-        # but undoing won't restore the removed columns.
-
         # Filter unvalid columns from selection
         if table_columns:
             if self.frame.data['columns']:
@@ -3952,7 +3954,7 @@ class NodeSortRows(NodeTemplate):
 
         self.frame.data['all-columns']     = []
         self.frame.data['expressions']     = []
-        self.frame.data['refresh-columns'] = True
+        self.frame.data['refresh-express'] = True
         self.frame.data['expres-expanded'] = False
 
         self._add_output()
@@ -3963,7 +3965,7 @@ class NodeSortRows(NodeTemplate):
     def set_data(self, *args, **kwargs) -> None:
         """"""
         self.frame.data['expressions'] = args[0]
-        self.frame.data['refresh-columns'] = True
+        self.frame.data['refresh-express'] = True
         self.frame.do_execute(backward = False)
 
     def do_process(self,
@@ -4002,7 +4004,7 @@ class NodeSortRows(NodeTemplate):
 
     def do_save(self) -> list:
         """"""
-        return self.frame.data['expressions']
+        return deepcopy(self.frame.data['expressions'])
 
     def do_restore(self,
                    value: list,
@@ -4070,9 +4072,6 @@ class NodeSortRows(NodeTemplate):
         else:
             table_columns = table.columns
 
-        # FIXME: replacing input socket' link can remove some expressions,
-        # but undoing won't restore the removed expressions.
-
         # Filter unvalid expressions from selection
         if table_columns:
             if self.frame.data['expressions']:
@@ -4084,11 +4083,11 @@ class NodeSortRows(NodeTemplate):
                 self.frame.data['expressions'] = expressions
 
         if self.frame.data['all-columns'] != table_columns:
-            self.frame.data['refresh-columns'] = True
+            self.frame.data['refresh-express'] = True
 
         self.frame.data['all-columns'] = table_columns
 
-        if self.frame.data['refresh-columns']:
+        if self.frame.data['refresh-express']:
             if len(self.frame.contents) == 3:
                 content = self.frame.contents[-1]
                 self.frame.remove_content(content)
@@ -4103,7 +4102,7 @@ class NodeSortRows(NodeTemplate):
                 widget = self.frame.contents[-1].Widget
                 widget.set_expanded(True)
 
-        self.frame.data['refresh-columns'] = False
+        self.frame.data['refresh-express'] = False
 
     def _add_selector(self) -> None:
         """"""

@@ -320,6 +320,9 @@ class Window(Adw.ApplicationWindow):
                                   undoable,
                                   add_only)
 
+        if add_only:
+            return True
+
         if not success:
             return False
 
