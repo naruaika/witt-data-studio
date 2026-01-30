@@ -71,51 +71,82 @@ class StatusBar(Gtk.Box):
                 continue
             widget.set_visible(True)
 
+        self._refresh_boundary_context()
+        self._refresh_scene_selections()
+        self._refresh_scene_statistics()
+
+    def _refresh_boundary_context(self) -> None:
+        """"""
+        window = self.get_root()
+        editor = window.get_selected_editor()
+
+        if isinstance(editor, SheetEditor):
+            cell = editor.selection.current_active_cell
+            lcol = editor.display.get_lcolumn_from_column(cell.column)
+            lrow = editor.display.get_lrow_from_row(cell.row)
+
+            table = editor.document.get_table_by_position(lcol, lrow)
+
+            if not isinstance(table, DataTable):
+                self.BoundaryContext.set_visible(False)
+                return
+
+            n_rows = table.bounding_box.row_span
+            n_cols = table.bounding_box.column_span
+            row_unit = _('rows') if n_rows else _('row')
+            col_unit = _('columns') if n_cols else _('row')
+
+            n_row = f'{format_string('%d', n_rows, grouping = True)} {row_unit}'
+            n_col = f'{format_string('%d', n_cols, grouping = True)} {col_unit}'
+            label = f'{table.tname} ({n_row} x {n_col})'
+            self.BoundaryContext.set_label(label)
+
+    def _refresh_scene_selections(self) -> None:
+        """"""
+        window = self.get_root()
+        editor = window.get_selected_editor()
+
         if isinstance(editor, NodeEditor):
             n_selected = len(editor.selected_nodes)
 
-            if n_selected > 0:
-                label = f'{format_string('%d', n_selected, grouping = True)} {_('selected')}'
-                self.SceneSelections.set_label(label)
-            else:
+            if n_selected == 0:
                 self.SceneSelections.set_visible(False)
+                return
 
+            label = f'{format_string('%d', n_selected, grouping = True)} {_('selected')}'
+            self.SceneSelections.set_label(label)
+
+        if isinstance(editor, SheetEditor):
+            arange = editor.selection.current_active_range
+            n_rows = arange.column_span * arange.row_span
+
+            if n_rows == 1:
+                label = f'{editor.selection.current_cell_name}'
+                self.SceneSelections.set_label(label)
+                return
+
+            cell = editor.selection.current_cursor_cell
+            lcol = editor.display.get_lcolumn_from_column(cell.column)
+            lrow = editor.display.get_lrow_from_row(cell.row)
+
+            cell_name = editor.display.get_cell_name_from_position(lcol, lrow)
+            cell_name = f'{editor.selection.current_cell_name}:{cell_name}'
+
+            n_selected = f'{format_string('%d', n_rows, grouping = True)} {_('cells')}'
+
+            label = f'{cell_name} ({n_selected})'
+            self.SceneSelections.set_label(label)
+
+    def _refresh_scene_statistics(self) -> None:
+        """"""
+        window = self.get_root()
+        editor = window.get_selected_editor()
+
+        if isinstance(editor, NodeEditor):
             label = f'{_('Nodes')}: {format_string('%d', len(editor.nodes), grouping = True)}, ' \
                     f'{_('Links')}: {format_string('%d', len(editor.links), grouping = True)}'
             self.SceneStatistics.set_label(label)
 
         if isinstance(editor, SheetEditor):
-            acell = editor.selection.current_active_cell
-            lcol = editor.display.get_lcolumn_from_column(acell.column)
-            lrow = editor.display.get_lrow_from_row(acell.row)
-
-            table = editor.document.get_table_by_position(lcol, lrow)
-
-            if isinstance(table, DataTable):
-                n_rows = table.bounding_box.row_span
-                n_cols = table.bounding_box.column_span
-                row_unit = _('rows') if n_rows else _('row')
-                col_unit = _('columns') if n_cols else _('row')
-                label = f'{table.tname} ' \
-                        f'({format_string('%d', n_rows, grouping = True)} {row_unit} x' \
-                        f' {format_string('%d', n_cols, grouping = True)} {col_unit})'
-                self.BoundaryContext.set_label(label)
-            else:
-                self.BoundaryContext.set_visible(False)
-
-            arange = editor.selection.current_active_range
-            n_selected = arange.column_span * arange.row_span
-
-            if n_selected == 1:
-                label = f'{editor.selection.current_cell_name}'
-            else:
-                ccell = editor.selection.current_cursor_cell
-                ccell_name = editor.display.get_cell_name_from_position(ccell.column, ccell.row)
-                label = f'{editor.selection.current_cell_name}:{ccell_name}'
-
-            if n_selected > 1:
-                label += f' ({format_string('%d', n_selected, grouping = True)} {_('cells')})'
-            self.SceneSelections.set_label(label)
-
             label = f'{_('Tables')}: {format_string('%d', len(editor.document.tables), grouping = True)}'
             self.SceneStatistics.set_label(label)
