@@ -34,6 +34,7 @@ class StatusBar(Gtk.Box):
     BoundaryContext = Gtk.Template.Child()
     SceneSelections = Gtk.Template.Child()
     SceneStatistics = Gtk.Template.Child()
+    FileStatus      = Gtk.Template.Child()
 
     def __init__(self) -> None:
         """"""
@@ -74,6 +75,32 @@ class StatusBar(Gtk.Box):
         self._refresh_boundary_context()
         self._refresh_scene_selections()
         self._refresh_scene_statistics()
+
+    def set_file_saved(self,
+                       saved: bool,
+                       ) ->  None:
+        """"""
+        window = self.get_root()
+
+        button = self.FileStatus
+        button_content = button.get_child()
+
+        if saved:
+            from pathlib import Path
+            file_path = Path(window.file_path)
+            file_name = file_path.name
+            base_name = file_name.rstrip(file_path.suffix)
+
+            button.set_tooltip_text(str(file_path))
+            button.remove_css_class('warning')
+            button_content.set_label(f'{_('Saved as')} {base_name}')
+            button_content.set_icon_name('check-round-outline-symbolic')
+
+        else:
+            button.set_tooltip_text(None)
+            button.add_css_class('warning')
+            button_content.set_label(_('Unsaved'))
+            button_content.set_icon_name('exclamation-mark-symbolic')
 
     def _refresh_boundary_context(self) -> None:
         """"""

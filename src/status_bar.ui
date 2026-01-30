@@ -40,6 +40,20 @@
                 </style>
               </object>
             </child>
+            <child>
+              <object class="GtkButton" id="FileStatus">
+                <child>
+                  <object class="AdwButtonContent">
+                    <property name="icon-name">exclamation-mark-symbolic</property>
+                    <property name="label" translatable="yes">Unsaved work</property>
+                  </object>
+                </child>
+                <style>
+                  <class name="flat"/>
+                  <class name="warning"/>
+                </style>
+              </object>
+            </child>
           </object>
         </child>
       </object>

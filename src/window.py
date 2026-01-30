@@ -332,6 +332,15 @@ class Window(Adw.ApplicationWindow):
             editor.refresh_ui()
             editor.grab_focus()
 
+        if self.history.undo_stack:
+            from .node.action import ActionSelectByClick
+            from .node.action import ActionSelectByRubberband
+            classes = (ActionSelectByClick, ActionSelectByRubberband)
+            last_action = self.history.undo_stack[-1]
+            is_selection = isinstance(last_action, classes)
+            if not (is_selection and not last_action.group):
+                self.StatusBar.set_file_saved(False)
+
         return True
 
     def undo(self) -> bool:
@@ -348,6 +357,15 @@ class Window(Adw.ApplicationWindow):
             editor.refresh_ui()
             editor.grab_focus()
 
+        if self.history.redo_stack:
+            from .node.action import ActionSelectByClick
+            from .node.action import ActionSelectByRubberband
+            classes = (ActionSelectByClick, ActionSelectByRubberband)
+            last_action = self.history.redo_stack[-1]
+            is_selection = isinstance(last_action, classes)
+            if not (is_selection and not last_action.group):
+                self.StatusBar.set_file_saved(False)
+
         return success
 
     def redo(self) -> bool:
@@ -363,6 +381,15 @@ class Window(Adw.ApplicationWindow):
         if editor := self.get_selected_editor():
             editor.refresh_ui()
             editor.grab_focus()
+
+        if self.history.undo_stack:
+            from .node.action import ActionSelectByClick
+            from .node.action import ActionSelectByRubberband
+            classes = (ActionSelectByClick, ActionSelectByRubberband)
+            last_action = self.history.undo_stack[-1]
+            is_selection = isinstance(last_action, classes)
+            if not (is_selection and not last_action.group):
+                self.StatusBar.set_file_saved(False)
 
         return success
 

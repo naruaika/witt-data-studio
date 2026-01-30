@@ -29,4 +29,4 @@ from .utils_type import *
 def generate_uuid():
     """"""
     import uuid
-    return str(uuid.uuid4())[:8]
+    return str(uuid.uuid7())

@@ -5,3 +5,7 @@
     font-weight: normal;
     border-radius: 0;
 }
+
+.mstatusbar label {
+    font-weight: normal;
+}

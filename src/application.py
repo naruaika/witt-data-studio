@@ -230,6 +230,7 @@ class Application(Adw.Application):
         window.present()
 
         window.file_path = file_path
+        window.StatusBar.set_file_saved(True)
 
     def save(self,
              window: Window,
@@ -279,6 +280,7 @@ class Application(Adw.Application):
             """"""
             if success:
                 window.file_path = file_path
+                window.StatusBar.set_file_saved(True)
 
         from .file_manager import FileManager
 
