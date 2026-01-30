@@ -153,6 +153,9 @@ class Window(Adw.ApplicationWindow):
         create_command('app.exit',          _('Exit Application'),
                                             shortcuts = ['<Primary>q'])
 
+        create_command('app.new-window',    _('New Window'),
+                                            shortcuts = ['<Shift><Primary>N'])
+
         create_command('win.close-editor',  _('Close Editor'),
                                             shortcuts = ['<Primary>w'])
         create_command('win.close-window',  _('Close Window'),
