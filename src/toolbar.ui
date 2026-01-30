@@ -1482,12 +1482,12 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="RenameColumnButton">
-                                    <property name="name">rename-column</property>
+                                  <object class="GtkButton" id="RenameColumnsButton">
+                                    <property name="name">rename-columns</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Rename</property>
                                     <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'rename-column'</property>
+                                    <property name="action-target">'rename-columns'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>

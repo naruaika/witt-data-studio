@@ -170,7 +170,7 @@ class NodeFrame(Adw.Bin):
 
             # Block click gestures to reach children
             self.Body.set_sensitive(False)
-            GLib.idle_add(self.Body.set_sensitive, True)
+            self.Body.set_sensitive(True)
 
             # Select itself if it isn't already
             if not self.is_selected:

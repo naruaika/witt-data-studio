@@ -70,6 +70,7 @@ class NodeEditor(Gtk.Overlay):
     ScrolledWindow = Gtk.Template.Child()
     Canvas         = Gtk.Template.Child()
     Minimap        = Gtk.Template.Child()
+    MinimapToggle  = Gtk.Template.Child()
 
     ICON_NAME     = 'user-home-symbolic'
     ACTION_PREFIX = 'node'
@@ -151,7 +152,8 @@ class NodeEditor(Gtk.Overlay):
     def queue_draw(self) -> None:
         """"""
         self.Canvas.queue_draw()
-        self.Minimap.queue_draw()
+        if self.Minimap.get_visible():
+            self.Minimap.queue_draw()
 
     def queue_resize(self) -> None:
         """"""
@@ -294,6 +296,8 @@ class NodeEditor(Gtk.Overlay):
         create_action('transpose-table',        lambda *_: create_node('transpose-table'))
         create_action('reverse-rows',           lambda *_: create_node('reverse-rows'))
 
+        create_action('rename-columns',         lambda *_: create_node('rename-columns'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -337,7 +341,7 @@ class NodeEditor(Gtk.Overlay):
         create_command('choose-columns',        f"{_('Table')}: {_('Choose Columns')}")
         create_command('remove-columns',        f"{_('Table')}: {_('Remove Columns')}")
 
-        create_command('keep-rows',             '$placeholder')
+        create_command('keep-rows',             '$placeholder') # TODO: find a better way?
         create_command('keep-top-k-rows',       f"{_('Table')}: {_('Keep Top K Rows')}")
         create_command('keep-bottom-k-rows',    f"{_('Table')}: {_('Keep Bottom K Rows')}")
         create_command('keep-first-k-rows',     f"{_('Table')}: {_('Keep First K Rows')}")
@@ -360,10 +364,12 @@ class NodeEditor(Gtk.Overlay):
         create_command('new-decimal',           f"{_('Create')}: {_('Constant')} {_('Decimal')}")
         create_command('new-integer',           f"{_('Create')}: {_('Constant')} {_('Integer')}")
         create_command('new-string',            f"{_('Create')}: {_('Constant')} {_('String')}")
-        create_command('new-constants',         '$placeholder') # TODO: find a better way?
+        create_command('new-constants',         '$placeholder')
 
         create_command('transpose-table',       f"{_('Table')}: {_('Transpose')}")
         create_command('reverse-rows',          f"{_('Table')}: {_('Reverse')}")
+
+        create_command('rename-columns',        f"{_('Table')}: {_('Rename Columns')}")
 
     def _setup_controllers(self) -> None:
         """"""
@@ -382,6 +388,8 @@ class NodeEditor(Gtk.Overlay):
         controller.connect('drag-update', self._on_pan_update)
         controller.connect('drag-end', self._on_pan_end)
         self.Canvas.add_controller(controller)
+
+        self.MinimapToggle.bind_property('active', self.Minimap, 'visible', GObject.BindingFlags.SYNC_CREATE)
 
     def _on_motion(self,
                    motion: Gtk.EventControllerMotion,

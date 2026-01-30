@@ -164,8 +164,8 @@ class SheetDocument(Document):
             try:
                 content = content.collect()
             except:
-                content = DataFrame()
-                # TODO: show errors to user
+                data = {_('#COLLECT!'): None}
+                content = DataFrame(data).head(0)
 
         if not isinstance(content, DataFrame):
             from io import BytesIO
@@ -197,8 +197,8 @@ class SheetDocument(Document):
         table_names = [table.tname for table in self.tables]
         new_name = unique_name(_('Table'), table_names)
 
-        new_table = DataTable(new_name,
-                              content,
+        new_table = DataTable(tname        = new_name,
+                              content      = content,
                               with_header  = with_header,
                               bounding_box = bounding_box)
 
@@ -465,6 +465,8 @@ class SheetDocument(Document):
             del widgets[0]
 
         for table in self.tables:
+            if table.width <= 1 and table.height == 0:
+                continue
             bbox = table.bounding_box
             y = self.display.get_cell_y_from_row(bbox.row)
             for column_index in range(table.width):

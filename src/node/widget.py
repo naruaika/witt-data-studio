@@ -27,6 +27,8 @@ from gi.repository import Pango
 from sys import float_info
 from typing import Any
 
+from ..core.utils import isiterable
+
 class NodeCheckButton(Gtk.CheckButton):
 
     __gtype_name__ = 'NodeCheckButton'
@@ -487,22 +489,41 @@ class NodeListItem(Gtk.Box):
             box.append(subbox)
 
             if not idata:
-                for dtype, options in contents:
+                for content in contents:
+                    if isiterable(content):
+                        dtype, options = content
+                    else:
+                        dtype = content
+
                     match dtype:
                         case 'dropdown':
                             value = list(options.values())[0]
                             idata.append(value)
+                        case 'entry':
+                            idata.append('')
                         case _:
                             idata.append(None)
+
                 self._data.append(idata)
 
-            for index, (dtype, options) in enumerate(contents):
+            for index, content in enumerate(contents):
+                if isiterable(content):
+                    dtype, options = content
+                else:
+                    dtype = content
+
+                item_data = ItemData(self._data, idata, index)
+
                 match dtype:
                     case 'dropdown':
-                        item_data = ItemData(self._data, idata, index)
                         widget = NodeDropdown(item_data.get_data,
                                               item_data.set_data,
                                               options)
+                        subbox.append(widget)
+
+                    case 'entry':
+                        widget = NodeEntry(item_data.get_data,
+                                           item_data.set_data)
                         subbox.append(widget)
 
             def on_delete_button_clicked(button: Gtk.Button) -> None:
@@ -633,7 +654,12 @@ class NodeSpinButton(Gtk.Button):
             controller.connect('key-pressed', on_key_pressed, args)
             text.add_controller(controller)
 
-            GLib.timeout_add(50, lambda *_: spin.grab_focus())
+            def do_focus() -> bool:
+                """"""
+                spin.grab_focus()
+                return Gdk.EVENT_PROPAGATE
+
+            GLib.timeout_add(50, do_focus)
 
         args = (label, lower, upper)
         self.connect('clicked', on_clicked, *args)

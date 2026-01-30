@@ -56,6 +56,7 @@
 
   <gresource prefix="/com/macipra/witt/icons/scalable/actions/">
     <file preprocess="xml-stripblanks">box-dotted-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">compass2-symbolic.svg</file>
     <file preprocess="xml-stripblanks">edit-find-symbolic.svg</file>
     <file preprocess="xml-stripblanks">folder-open-symbolic.svg</file>
     <file preprocess="xml-stripblanks">go-next-symbolic.svg</file>

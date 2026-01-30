@@ -18,7 +18,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from gi.repository import Gtk
-from gi.repository import Pango
 from locale import format_string
 
 from .node.editor import NodeEditor
@@ -97,9 +96,9 @@ class StatusBar(Gtk.Box):
                 n_cols = table.bounding_box.column_span
                 row_unit = _('rows') if n_rows else _('row')
                 col_unit = _('columns') if n_cols else _('row')
-                label = f'{table.tname}: ' \
-                        f'{format_string('%d', n_rows, grouping = True)} {row_unit} x ' \
-                        f'{format_string('%d', n_cols, grouping = True)} {col_unit}'
+                label = f'{table.tname} ' \
+                        f'({format_string('%d', n_rows, grouping = True)} {row_unit} x' \
+                        f' {format_string('%d', n_cols, grouping = True)} {col_unit})'
                 self.BoundaryContext.set_label(label)
             else:
                 self.BoundaryContext.set_visible(False)

@@ -184,7 +184,6 @@ class SheetTransformWindow(Adw.Window):
         """"""
         entry = Adw.EntryRow(title = title)
         entry.bind_property('text', ops_arg, 'value', GObject.BindingFlags.SYNC_CREATE)
-        entry.connect('entry-activated', self._on_input_activated)
         self.ContentContainer.add(entry)
 
     def _create_spin_row(self,
@@ -366,22 +365,42 @@ class SheetTransformWindow(Adw.Window):
             action.add_suffix(suffix)
 
             idata = []
-            for dtype, options in contents:
+
+            for content in contents:
+                if isiterable(content):
+                    dtype, options = content
+                else:
+                    dtype = content
+
                 match dtype:
                     case 'dropdown':
                         value = options[0]
                         idata.append(value)
+                    case 'entry':
+                        idata.append('')
                     case _:
                         idata.append(None)
+
             mdata.append(idata)
 
-            for index, (dtype, options) in enumerate(contents):
+            for index, content in enumerate(contents):
+                if isiterable(content):
+                    dtype, options = content
+                else:
+                    dtype = content
+
+                item_data = ItemData(ops_arg, mdata, idata, index)
+
                 match dtype:
                     case 'dropdown':
-                        item_data = ItemData(ops_arg, mdata, idata, index)
                         dropdown = self._create_child_dropdown(item_data.get_data,
                                                                item_data.set_data,
                                                                options)
+                        suffix.append(dropdown)
+
+                    case 'entry':
+                        dropdown = self._create_child_entry(item_data.get_data,
+                                                            item_data.set_data)
                         suffix.append(dropdown)
 
             def on_delete_button_clicked(button: Gtk.Button) -> None:
@@ -411,6 +430,8 @@ class SheetTransformWindow(Adw.Window):
 
         add_button.connect('activated', on_add_button_clicked)
 
+        add_button.activate()
+
     def _create_list_switch(self,
                             options: list[str],
                             ops_arg: SheetOperationArg,
@@ -424,10 +445,10 @@ class SheetTransformWindow(Adw.Window):
         list_box.add_css_class('boxed-list-separate')
         self.PreferencesPage.add(group)
 
-        def on_switch_activated(switch: Adw.SwitchRow,
+        def on_switch_activated(switch:     Adw.SwitchRow,
                                 param_spec: GObject.ParamSpec,
-                                value:  str,
-                                ) ->    None:
+                                value:      str,
+                                ) ->        None:
             """"""
             args = json.loads(ops_arg.value) \
                    if ops_arg.value else []
@@ -538,6 +559,26 @@ class SheetTransformWindow(Adw.Window):
         dropdown.set_selected(selected)
 
         return dropdown
+
+    def _create_child_entry(self,
+                            get_data: callable,
+                            set_data: callable,
+                            ) ->      Gtk.Entry:
+        """"""
+        entry = Gtk.Entry(hexpand = True,
+                          valign  = Gtk.Align.CENTER)
+
+        def on_text_changed(entry:      Gtk.Entry,
+                            param_spec: GObject.ParamSpec,
+                            ) ->        None:
+            """"""
+            set_data(entry.get_text())
+
+        entry.connect('notify::text', on_text_changed)
+
+        entry.set_text(get_data())
+
+        return entry
 
     def _create_new_column_row(self):
         """"""

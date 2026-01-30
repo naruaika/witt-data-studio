@@ -270,6 +270,8 @@ class SheetEditor(Gtk.Box):
         create_action('transpose-table',        lambda *_: self._transform_table('transpose-table'))
         create_action('reverse-rows',           lambda *_: self._transform_table('reverse-rows'))
 
+        create_action('rename-columns',         lambda *_: self._transform_table('rename-columns'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -330,6 +332,8 @@ class SheetEditor(Gtk.Box):
         create_command('transpose-table',       f"{_('Table')}: {get_title_from_layout('transpose-table')}...")
         create_command('reverse-rows',          f"{_('Table')}: {get_title_from_layout('reverse-rows')}")
 
+        create_command('rename-columns',        f"{_('Table')}: {get_title_from_layout('rename-columns')}...")
+
     def set_data(self,
                  tables: Tables = [],
                  sparse: Sparse = {},
@@ -356,16 +360,14 @@ class SheetEditor(Gtk.Box):
         # row heights, hidden columns, hidden rows, etc.
         self.display.reset()
 
-        gc.collect()
-
         # Setup tables
         for coordinate, table in tables:
             index = self.document.create_table(table,
                                                with_header = True,
                                                column      = coordinate[0],
                                                row         = coordinate[1])
+            table = self.document.tables[index]
             if self.configs['adjust-columns']:
-                table = self.document.tables[index]
                 self._readjust_column_widths_by_table(table)
 
         # Setup sparse
@@ -508,6 +510,11 @@ class SheetEditor(Gtk.Box):
             self.display.column_widths = concat([self.display.column_widths,
                                                  default_column_widths])
 
+        safe_margin = 0
+        if table.width and table.height:
+            from .widget import SheetTableFilter
+            safe_margin += SheetTableFilter.WIDTH - 4
+
         for col_index, col_name in enumerate(table.columns):
             # Add table position offset into account
             col_index += table.bounding_box.column - 1
@@ -516,7 +523,7 @@ class SheetEditor(Gtk.Box):
             layout.set_text(col_name, -1)
             text_width = layout.get_pixel_size()[0]
             column_width = text_width + 2 * self.display.DEFAULT_CELL_PADDING
-            column_width = column_width + 20 - 4 # filter dropdown button width
+            column_width = column_width + safe_margin
             column_width = min(max_width, int(column_width))
             column_width = max(self.display.DEFAULT_CELL_WIDTH, column_width)
             self.display.column_widths[col_index] = column_width

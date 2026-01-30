@@ -132,7 +132,8 @@ class NodeMinimap(Adw.Bin):
 
     def get_editor(self) -> 'NodeEditor':
         """"""
-        editor = self.get_parent()
+        box = self.get_parent()
+        editor = box.get_parent()
         return editor
 
 from .editor import NodeEditor

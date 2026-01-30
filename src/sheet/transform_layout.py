@@ -188,7 +188,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 _('Sort Rows'),
                 [
                     (
-                        _('Expression'),
+                        _('Level'),
                         'list-item',
                         [
                             ('dropdown', '$all-columns'),
@@ -214,5 +214,20 @@ def get_layout(action_name: str) -> tuple[str, list]:
 
         case 'reverse-rows':
             return (_('Reverse Rows'), [])
+
+        case 'rename-columns':
+            return (
+                _('Rename Columns'),
+                [
+                    (
+                        _('Mapping'),
+                        'list-item',
+                        [
+                            ('dropdown', '$all-columns'),
+                            ('entry'),
+                        ],
+                    ),
+                ],
+            )
 
     raise KeyError()

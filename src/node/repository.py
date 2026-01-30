@@ -3952,10 +3952,10 @@ class NodeSortRows(NodeTemplate):
         self.frame.do_save    = self.do_save
         self.frame.do_restore = self.do_restore
 
-        self.frame.data['all-columns']     = []
-        self.frame.data['expressions']     = []
-        self.frame.data['refresh-express'] = True
-        self.frame.data['expres-expanded'] = False
+        self.frame.data['all-columns']    = []
+        self.frame.data['levels']         = []
+        self.frame.data['refresh-levels'] = True
+        self.frame.data['level-expanded'] = False
 
         self._add_output()
         self._add_input()
@@ -3964,8 +3964,8 @@ class NodeSortRows(NodeTemplate):
 
     def set_data(self, *args, **kwargs) -> None:
         """"""
-        self.frame.data['expressions'] = args[0]
-        self.frame.data['refresh-express'] = True
+        self.frame.data['levels'] = args[0]
+        self.frame.data['refresh-levels'] = True
         self.frame.do_execute(backward = False)
 
     def do_process(self,
@@ -3992,10 +3992,10 @@ class NodeSortRows(NodeTemplate):
             table_columns = table.columns
 
         if table_columns:
-            if expressions := self.frame.data['expressions']:
+            if levels := self.frame.data['levels']:
                 bys = []
                 descending = []
-                for by, order in expressions:
+                for by, order in levels:
                     bys.append(by)
                     descending.append(order == _('Descending'))
                 table = table.sort(by = bys, descending = descending)
@@ -4004,7 +4004,7 @@ class NodeSortRows(NodeTemplate):
 
     def do_save(self) -> list:
         """"""
-        return deepcopy(self.frame.data['expressions'])
+        return deepcopy(self.frame.data['levels'])
 
     def do_restore(self,
                    value: list,
@@ -4072,49 +4072,49 @@ class NodeSortRows(NodeTemplate):
         else:
             table_columns = table.columns
 
-        # Filter unvalid expressions from selection
+        # Filter unvalid levels from selection
         if table_columns:
-            if self.frame.data['expressions']:
-                expressions = []
-                for expression in self.frame.data['expressions']:
-                    column, order = expression
+            if self.frame.data['levels']:
+                levels = []
+                for level in self.frame.data['levels']:
+                    column, order = level
                     if column in table_columns:
-                        expressions.append(expression)
-                self.frame.data['expressions'] = expressions
+                        levels.append(level)
+                self.frame.data['levels'] = levels
 
         if self.frame.data['all-columns'] != table_columns:
-            self.frame.data['refresh-express'] = True
+            self.frame.data['refresh-levels'] = True
 
         self.frame.data['all-columns'] = table_columns
 
-        if self.frame.data['refresh-express']:
+        if self.frame.data['refresh-levels']:
             if len(self.frame.contents) == 3:
                 content = self.frame.contents[-1]
                 self.frame.remove_content(content)
             if table_columns:
                 self._add_selector()
 
-        if not self.frame.data['expressions']:
-            self.frame.data['expres-expanded'] = True
+        if not self.frame.data['levels']:
+            self.frame.data['level-expanded'] = True
 
-        if self.frame.data['expres-expanded']:
+        if self.frame.data['level-expanded']:
             if len(self.frame.contents) == 3:
                 widget = self.frame.contents[-1].Widget
                 widget.set_expanded(True)
 
-        self.frame.data['refresh-express'] = False
+        self.frame.data['refresh-levels'] = False
 
     def _add_selector(self) -> None:
         """"""
         def get_data() -> list:
             """"""
-            return self.frame.data['expressions']
+            return self.frame.data['levels']
 
         def set_data(value: list) -> None:
             """"""
             def callback(value: list) -> None:
                 """"""
-                self.frame.data['expressions'] = value
+                self.frame.data['levels'] = value
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
@@ -4132,11 +4132,11 @@ class NodeSortRows(NodeTemplate):
                 },
             ),
         ]
-        widget = NodeListItem(title    = _('Expression'),
+        widget = NodeListItem(title    = _('Level'),
                               get_data = get_data,
                               set_data = set_data,
                               contents = contents)
-        expander = Gtk.Expander(label = _('Expressions'),
+        expander = Gtk.Expander(label = _('Levels'),
                                 child = widget)
         self.frame.add_content(expander, None)
 
@@ -4144,7 +4144,7 @@ class NodeSortRows(NodeTemplate):
                         param_spec: GObject.ParamSpec,
                         ) ->        None:
             """"""
-            self.frame.data['expres-expanded'] = expander.get_expanded()
+            self.frame.data['level-expanded'] = expander.get_expanded()
 
         expander.connect('notify::expanded', on_expanded)
 
@@ -4380,6 +4380,212 @@ class NodeReverseRows(NodeTemplate):
 
 
 
+class NodeRenameColumns(NodeTemplate):
+
+    ndname = _('Rename Columns')
+
+    action = 'rename-columns'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeRenameColumns(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['all-columns']  = []
+        self.frame.data['maps']         = []
+        self.frame.data['refresh-maps'] = True
+        self.frame.data['map-expanded'] = False
+
+        self._add_output()
+        self._add_input()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['maps'] = args[0]
+        self.frame.data['refresh-maps'] = True
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_selector()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_selector()
+
+        if isinstance(table, LazyFrame):
+            table_columns = table.collect_schema().names()
+        else:
+            table_columns = table.columns
+
+        if table_columns:
+            if maps := self.frame.data['maps']:
+                table = table.rename({m[0]: m[1] for m in maps if m[1].strip()})
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> list:
+        """"""
+        return deepcopy(self.frame.data['maps'])
+
+    def do_restore(self,
+                   value: list,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value)
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_selector(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        if isinstance(table, LazyFrame):
+            table_columns = table.collect_schema().names()
+        else:
+            table_columns = table.columns
+
+        # Filter unvalid maps from selection
+        if table_columns:
+            if self.frame.data['maps']:
+                maps = []
+                for map in self.frame.data['maps']:
+                    before, after = map
+                    if before in table_columns:
+                        maps.append(map)
+                self.frame.data['maps'] = maps
+
+        if self.frame.data['all-columns'] != table_columns:
+            self.frame.data['refresh-maps'] = True
+
+        self.frame.data['all-columns'] = table_columns
+
+        if self.frame.data['refresh-maps']:
+            if len(self.frame.contents) == 3:
+                content = self.frame.contents[-1]
+                self.frame.remove_content(content)
+            if table_columns:
+                self._add_selector()
+
+        if not self.frame.data['maps']:
+            self.frame.data['map-expanded'] = True
+
+        if self.frame.data['map-expanded']:
+            if len(self.frame.contents) == 3:
+                widget = self.frame.contents[-1].Widget
+                widget.set_expanded(True)
+
+        self.frame.data['refresh-maps'] = False
+
+    def _add_selector(self) -> None:
+        """"""
+        def get_data() -> list:
+            """"""
+            return self.frame.data['maps']
+
+        def set_data(value: list) -> None:
+            """"""
+            def callback(value: list) -> None:
+                """"""
+                self.frame.data['maps'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        contents = [
+            (
+                'dropdown',
+                {
+                    column: column for column in self.frame.data['all-columns']
+                },
+            ),
+            ('entry'),
+        ]
+        widget = NodeListItem(title    = _('Mapping'),
+                              get_data = get_data,
+                              set_data = set_data,
+                              contents = contents)
+        expander = Gtk.Expander(label = _('Mappings'),
+                                child = widget)
+        self.frame.add_content(expander, None)
+
+        def on_expanded(widget:     Gtk.Widget,
+                        param_spec: GObject.ParamSpec,
+                        ) ->        None:
+            """"""
+            self.frame.data['map-expanded'] = expander.get_expanded()
+
+        expander.connect('notify::expanded', on_expanded)
+
+
+
 _registered_nodes = [
     NodeBoolean(),
     NodeDecimal(),
@@ -4410,6 +4616,8 @@ _registered_nodes = [
 
     NodeTransposeTable(),
     NodeReverseRows(),
+
+    NodeRenameColumns(),
 ]
 
 

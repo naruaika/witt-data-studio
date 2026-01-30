@@ -9,30 +9,47 @@
         <property name="vexpand">true</property>
         <child>
           <object class="NodeCanvas" id="Canvas">
-          <property name="height-request">16384</property>
-          <property name="width-request">16384</property>
-          <style>
-            <class name="node-canvas"/>
-          </style>
-        </object>
+            <property name="height-request">16384</property>
+            <property name="width-request">16384</property>
+            <style>
+              <class name="node-canvas"/>
+            </style>
+          </object>
         </child>
       </object>
     </child>
     <child type="overlay">
-      <object class="NodeMinimap" id="Minimap">
-        <property name="overflow">hidden</property>
-        <property name="height-request">150</property>
-        <property name="width-request">150</property>
-        <property name="margin-top">20</property>
-        <property name="margin-bottom">20</property>
-        <property name="margin-start">20</property>
-        <property name="margin-end">20</property>
+      <object class="GtkBox">
+        <property name="orientation">horizontal</property>
+        <property name="margin-top">25</property>
+        <property name="margin-bottom">25</property>
+        <property name="margin-start">25</property>
+        <property name="margin-end">25</property>
         <property name="halign">end</property>
-        <property name="valign">end</property>
-        <style>
-          <class name="view"/>
-          <class name="frame"/>
-        </style>
+        <property name="valign">start</property>
+        <property name="spacing">10</property>
+        <child>
+          <object class="GtkToggleButton" id="MinimapToggle">
+            <property name="valign">start</property>
+            <property name="icon-name">compass2-symbolic</property>
+            <style>
+              <class name="view"/>
+              <class name="frame"/>
+              <class name="circular"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="NodeMinimap" id="Minimap">
+            <property name="height-request">125</property>
+            <property name="width-request">125</property>
+            <property name="visible">False</property>
+            <style>
+              <class name="view"/>
+              <class name="frame"/>
+            </style>
+          </object>
+        </child>
       </object>
     </child>
     <style>
