@@ -30,6 +30,7 @@
         "*.a"
     ],
     "modules" : [
+        "python3-asyncio.json",
         "python3-debugpy.json",
         "python3-pytest.json",
         "python3-python-dateutil.json",

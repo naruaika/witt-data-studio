@@ -141,6 +141,11 @@ class Application(Adw.Application):
         import locale
         locale.setlocale(locale.LC_ALL, '')
 
+        from gi.events import GLibEventLoopPolicy
+        import asyncio
+        policy = GLibEventLoopPolicy()
+        asyncio.set_event_loop_policy(policy)
+
         from gi.repository import GtkSource
         from gi.repository import WebKit
         from polars import Config

@@ -23,6 +23,7 @@ from polars import LazyFrame
 from polars import Series
 from typing import Any
 from typing import TypeAlias
+import asyncio
 
 from ..core.document import Document
 from ..core.datatable import BoundingBox
@@ -156,16 +157,20 @@ class SheetDocument(Document):
     def create_table(self,
                      content:     Any,
                      with_header: bool,
-                     column:      int = 1,
-                     row:         int = 1,
+                     column:      int      = 1,
+                     row:         int      = 1,
+                     prefer_sync: bool     = False,
+                     on_finish:   callable = None,
                      ) ->         int:
         """"""
-        if isinstance(content, LazyFrame):
-            try:
+        is_lazyframe = isinstance(content, LazyFrame)
+
+        if is_lazyframe:
+            if prefer_sync:
                 content = content.collect()
-            except:
-                data = {_('#COLLECT!'): None}
-                content = DataFrame(data).head(0)
+            else:
+                to_load = content
+                content = DataFrame({_('#LOADING!'): None}).head(0)
 
         if not isinstance(content, DataFrame):
             from io import BytesIO
@@ -197,10 +202,11 @@ class SheetDocument(Document):
         table_names = [table.tname for table in self.tables]
         new_name = unique_name(_('Table'), table_names)
 
-        new_table = DataTable(tname        = new_name,
-                              content      = content,
-                              with_header  = with_header,
-                              bounding_box = bounding_box)
+        new_table = DataTable(tname          = new_name,
+                              content        = content,
+                              with_header    = with_header,
+                              bounding_box   = bounding_box,
+                              placeholder = is_lazyframe)
 
         self.tables.append(new_table)
 
@@ -208,7 +214,27 @@ class SheetDocument(Document):
 
         self.repopulate_table_widgets()
 
-        return len(self.tables) - 1
+        table_index = self.tables.index(new_table)
+
+        async def do_load(old_table: DataTable,
+                          lazyframe: LazyFrame,
+                          ) ->       None:
+            """"""
+            dataframe = await lazyframe.collect_async()
+            try:
+                table_index = self.tables.index(old_table)
+            except:
+                pass
+            else:
+                self.replace_table(dataframe, table_index)
+                table = self.tables[table_index]
+                on_finish(table)
+
+        if is_lazyframe and not prefer_sync:
+            coroutine = do_load(new_table, to_load)
+            asyncio.create_task(coroutine)
+
+        return table_index
 
     def replace_table(self,
                       dataframe:   DataFrame,
@@ -493,6 +519,8 @@ class SheetDocument(Document):
 
         widget_index = 0
         for table in self.tables:
+            if table.width <= 1 and table.height == 0:
+                continue
             bbox = table.bounding_box
             y = self.display.get_cell_y_from_row(bbox.row)
             for column_index in range(table.width):

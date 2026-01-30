@@ -1,0 +1,14 @@
+{
+    "name": "python3-asyncio",
+    "buildsystem": "simple",
+    "build-commands": [
+        "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"asyncio\" --no-build-isolation"
+    ],
+    "sources": [
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/57/64/eff2564783bd650ca25e15938d1c5b459cda997574a510f7de69688cb0b4/asyncio-4.0.0-py3-none-any.whl",
+            "sha256": "c1eddb0659231837046809e68103969b2bef8b0400d59cfa6363f6b5ed8cc88b"
+        }
+    ]
+}

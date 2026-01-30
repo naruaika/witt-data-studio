@@ -35,8 +35,6 @@ class ChartEditor(Gtk.Overlay):
 
     title = GObject.Property(type = str, default = _('Chart'))
 
-    configs = {}
-
     def __init__(self,
                  title:   str  = _('Chart'),
                  configs: dict = {},
@@ -46,6 +44,7 @@ class ChartEditor(Gtk.Overlay):
 
         self.title = title
 
+        self.configs = {}
         self.configs.update(configs)
 
         self.Canvas = ChartCanvas()

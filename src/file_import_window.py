@@ -241,7 +241,8 @@ class FileImportWindow(Adw.Window):
 
         from .sheet.editor import SheetEditor
         tables = [((1, 1), dataframe)]
-        configs = {'read-only': True}
+        configs = {'prefer-synchro': True,
+                   'view-read-only': True}
         self.Editor = SheetEditor(tables  = tables,
                                   configs = configs)
         self.MainContainer.append(self.Editor)
@@ -373,12 +374,12 @@ class FileImportWindow(Adw.Window):
         out_socket = sheet.contents[-1].Socket
         editor.add_link(in_socket, out_socket)
 
-        reader.set_data(self.file_path, all_columns, **kwargs)
+        window.activate_action('win.focus-editor')
+        # TODO: go to the tab if reusing a sheet
 
         editor.select_by_click(reader)
 
-        window.activate_action('win.focus-editor')
-        # TODO: go to the tab if reusing a sheet
+        reader.set_data(self.file_path, all_columns, **kwargs)
 
         window.history.grouping = False
 
@@ -388,7 +389,7 @@ class FileImportWindow(Adw.Window):
 
     def _setup_default_page(self) -> None:
         """"""
-        dataframe = FileManager.read_file(self.file_path,
+        dataframe = FileManager.read_file(file_path   = self.file_path,
                                           sample_size = self.DATA_SAMPLE_SIZE,
                                           u_kwargs    = self.u_kwargs,
                                           eager_load  = True)
@@ -603,7 +604,7 @@ class FileImportWindow(Adw.Window):
         self.NavigationFlowBox.remove_all()
 
         df_names = list(self.dataframes.keys())
-        df_names = ['Select All'] + df_names
+        df_names = [_('Select All')] + df_names
 
         for df_idx, df_name in enumerate(df_names):
             is_meta = df_idx == 0

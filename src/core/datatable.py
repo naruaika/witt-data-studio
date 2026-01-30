@@ -72,6 +72,7 @@ class DataTable(DataFrame):
                  content:      DataFrame,
                  with_header:  bool,
                  bounding_box: BoundingBox,
+                 placeholder:  bool = False,
                  ) ->          None:
         """"""
         super().__init__(content)
@@ -79,3 +80,4 @@ class DataTable(DataFrame):
         self.tname        = tname
         self.with_header  = with_header
         self.bounding_box = bounding_box
+        self.placeholder  = placeholder

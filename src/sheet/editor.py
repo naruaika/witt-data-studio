@@ -66,23 +66,23 @@ class SheetEditor(Gtk.Box):
 
     title = GObject.Property(type = str, default = _('Sheet'))
 
-    configs = {
-        'adjust-columns': True,
-        'view-read-only': False,
-    }
-
     def __init__(self,
                  title:   str       = _('Sheet'),
                  tables:  Tables    = [],
                  sparse:  Sparse    = {},
                  configs: dict      = {},
-                 frame:   NodeFrame = None,
+                 node:    NodeFrame = None,
                  ) ->     None:
         """"""
         super().__init__()
 
         self.title = title
 
+        self.configs = {
+            'adjust-columns': True,
+            'prefer-synchro': False,
+            'view-read-only': False,
+        }
         self.configs.update(configs)
 
         self.display   = SheetDisplay()
@@ -99,7 +99,7 @@ class SheetEditor(Gtk.Box):
 
         self.selection.view = self.view
 
-        self.frame = frame
+        self.node = node
 
         self._setup_actions()
         self._setup_commands()
@@ -172,7 +172,7 @@ class SheetEditor(Gtk.Box):
         lrow = self.display.get_lrow_from_row(active_cell.row)
 
         table, column_name = self.document.get_table_column_by_position(lcolumn, lrow)
-        table_focus = isinstance(table, DataTable)
+        table_focus = isinstance(table, DataTable) and not table.placeholder
 
         n_all_tables = len(self.document.tables) # TODO
         n_table_columns = table.width if table_focus else 0
@@ -200,8 +200,7 @@ class SheetEditor(Gtk.Box):
             variables['column_numeric_focus']  = column_numeric_focus
             variables['column_temporal_focus'] = column_temporal_focus
 
-        def isrelevant(context: str
-                       ) ->     bool:
+        def isrelevant(context: str) -> bool:
             """"""
             if context is None:
                 return True
@@ -360,14 +359,35 @@ class SheetEditor(Gtk.Box):
         # row heights, hidden columns, hidden rows, etc.
         self.display.reset()
 
+        def do_finish(table: DataTable) -> None:
+            """"""
+            if self.configs['adjust-columns']:
+                self._readjust_column_widths_by_table(table)
+
+            c_cell = self.selection.current_cursor_cell
+            c_lcol = self.display.get_lcolumn_from_column(c_cell.column)
+            c_lrow = self.display.get_lrow_from_row(c_cell.row)
+
+            c_cell_name = self.display.get_cell_name_from_position(c_lcol, c_lrow)
+            a_cell_name = self.selection.current_cell_name
+
+            self.selection.update_from_name(f'{c_cell_name}:{a_cell_name}')
+
+            self.selection.previous_cell_name = ''
+
+            self.refresh_ui()
+
         # Setup tables
         for coordinate, table in tables:
-            index = self.document.create_table(table,
-                                               with_header = True,
-                                               column      = coordinate[0],
-                                               row         = coordinate[1])
-            table = self.document.tables[index]
+            table_index = self.document.create_table(table,
+                                                     with_header = True,
+                                                     column      = coordinate[0],
+                                                     row         = coordinate[1],
+                                                     prefer_sync = self.configs['prefer-synchro'],
+                                                     on_finish   = do_finish)
+
             if self.configs['adjust-columns']:
+                table = self.document.tables[table_index]
                 self._readjust_column_widths_by_table(table)
 
         # Setup sparse
@@ -375,6 +395,7 @@ class SheetEditor(Gtk.Box):
             self.document.create_or_update_sparse(value,
                                                   column = coordinate[0],
                                                   row    = coordinate[1])
+
             if self.configs['adjust-columns']:
                 self._readjust_column_widths_by_value(value)
 
@@ -457,7 +478,7 @@ class SheetEditor(Gtk.Box):
         text_width = layout.get_size()[0] / Pango.SCALE
         cell_padding = self.display.DEFAULT_CELL_PADDING
         locator_width = int(text_width + cell_padding * 2 + 0.5)
-        locator_width = max(self.display.left_locator_width, locator_width)
+        locator_width = max(40, locator_width)
 
         if locator_width != self.display.left_locator_width:
             self.display.left_locator_width = locator_width
@@ -623,7 +644,7 @@ class SheetEditor(Gtk.Box):
             window.history.grouping = True
 
             # Find the related node content
-            contents = self.frame.contents[1:-1]
+            contents = self.node.contents[1:-1]
             for content in contents:
                 box = content.Widget
                 label = box.get_first_child()
@@ -639,7 +660,7 @@ class SheetEditor(Gtk.Box):
             pair_node = pair_socket.Frame
 
             # Create a new appropriate node
-            x = self.frame.x - 175 - 50
+            x = self.node.x - 175 - 50
             y = pair_node.y
             transformer = editor.create_node(func_name, x, y)
             transformer.set_data(*func_args)

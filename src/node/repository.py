@@ -1461,7 +1461,7 @@ class NodeViewer(NodeTemplate):
                     editor = SheetEditor(title,
                                          sheet.tables,
                                          sheet.sparse,
-                                         frame = frame)
+                                         node = frame)
                     self_content.Page = window.add_new_editor(editor)
                     return Gdk.EVENT_PROPAGATE
 
