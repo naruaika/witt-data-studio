@@ -115,7 +115,8 @@ class Application(Adw.Application):
                         parameter: GLib.Variant,
                         ) ->       None:
         """"""
-        self.quit()
+        for window in self.get_windows():
+            window.close()
 
     def _on_new_window_action(self,
                               action:    Gio.SimpleAction,
@@ -291,6 +292,7 @@ class Application(Adw.Application):
             """"""
             if success:
                 window.file_path = file_path
+                window.file_saved = True
                 window.StatusBar.set_file_saved(True)
 
         from .file_manager import FileManager

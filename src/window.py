@@ -66,6 +66,7 @@ class Window(Adw.ApplicationWindow):
         super().__init__(**kwargs)
 
         self.file_path:    str  = None
+        self.file_saved:   bool = True
         self.command_list: list = []
 
         self.history = History()
@@ -77,6 +78,39 @@ class Window(Adw.ApplicationWindow):
         self._setup_commands()
 
         self._setup_node_editor(nodes, links)
+
+    def do_close_request(self) -> bool:
+        """"""
+        if self.file_saved:
+            return Gdk.EVENT_PROPAGATE
+
+        dialog = Adw.AlertDialog()
+
+        dialog.set_heading(_('Close Window?'))
+        dialog.set_body(_('Any unsaved work will be lost permanently. '
+                          'This action cannot be undone.'))
+
+        dialog.add_response('cancel', _('Ca_ncel'))
+        dialog.add_response('close', _('_Close'))
+
+        dialog.set_response_appearance('close', Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.set_default_response('close')
+        dialog.set_close_response('cancel')
+
+        def on_dismissed(dialog: Adw.AlertDialog,
+                         result: Gio.Task,
+                         ) ->    None:
+            """"""
+            if result.had_error():
+                return
+            if dialog.choose_finish(result) != 'close':
+                return
+            self.file_saved = True #
+            self.close()
+
+        dialog.choose(self, None, on_dismissed)
+
+        return Gdk.EVENT_STOP
 
     def _setup_uinterfaces(self) -> None:
         """"""
@@ -343,6 +377,7 @@ class Window(Adw.ApplicationWindow):
             is_selection = isinstance(last_action, classes)
             if not (is_selection and not last_action.group):
                 self.StatusBar.set_file_saved(False)
+                self.file_saved = False
 
         return True
 
@@ -368,6 +403,7 @@ class Window(Adw.ApplicationWindow):
             is_selection = isinstance(last_action, classes)
             if not (is_selection and not last_action.group):
                 self.StatusBar.set_file_saved(False)
+                self.file_saved = False
 
         return success
 
@@ -393,6 +429,7 @@ class Window(Adw.ApplicationWindow):
             is_selection = isinstance(last_action, classes)
             if not (is_selection and not last_action.group):
                 self.StatusBar.set_file_saved(False)
+                self.file_saved = False
 
         return success
 

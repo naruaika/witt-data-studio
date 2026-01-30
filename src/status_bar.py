@@ -99,7 +99,7 @@ class StatusBar(Gtk.Box):
         else:
             button.set_tooltip_text(None)
             button.add_css_class('warning')
-            button_content.set_label(_('Unsaved'))
+            button_content.set_label(_('Unsaved work'))
             button_content.set_icon_name('exclamation-mark-symbolic')
 
     def _refresh_boundary_context(self) -> None:
