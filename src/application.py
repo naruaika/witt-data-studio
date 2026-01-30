@@ -236,6 +236,14 @@ class Application(Adw.Application):
                 except:
                     pass # TODO: show errors to user
 
+        # Close the default blank window from startup
+        if len(windows := self.get_windows()) == 1:
+            window = windows[0]
+            if not window.file_path and \
+                    not window.history.undo_stack and \
+                    not window.history.redo_stack:
+                window.close()
+
         window = Window(application = self,
                         nodes       = nodes,
                         links       = links)
