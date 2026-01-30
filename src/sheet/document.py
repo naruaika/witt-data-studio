@@ -206,7 +206,7 @@ class SheetDocument(Document):
                               content        = content,
                               with_header    = with_header,
                               bounding_box   = bounding_box,
-                              placeholder = is_lazyframe)
+                              placeholder    = is_lazyframe)
 
         self.tables.append(new_table)
 

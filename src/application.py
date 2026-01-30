@@ -79,13 +79,16 @@ class Application(Adw.Application):
 
     def _setup_actions(self) -> None:
         """"""
-        self.create_action('about',     self._on_about_action,
-                                        ['F12'])
-        self.create_action('exit',      self._on_exit_action,
-                                        ['<Primary>q'])
+        self.create_action('about',         self._on_about_action,
+                                            ['F12'])
+        self.create_action('exit',          self._on_exit_action,
+                                            ['<Primary>q'])
 
-        self.create_action('open-file', self._on_open_file_action,
-                                        ['<Primary>o'])
+        self.create_action('new-window',    self._on_new_window_action,
+                                            ['<Shift><Primary>N'])
+
+        self.create_action('open-file',     self._on_open_file_action,
+                                            ['<Primary>o'])
 
     def _on_about_action(self,
                          action:    Gio.SimpleAction,
@@ -113,6 +116,14 @@ class Application(Adw.Application):
                         ) ->       None:
         """"""
         self.quit()
+
+    def _on_new_window_action(self,
+                              action:    Gio.SimpleAction,
+                              parameter: GLib.Variant,
+                              ) ->       None:
+        """"""
+        window = Window(application = self)
+        window.present()
 
     def _on_open_file_action(self,
                              action:    Gio.SimpleAction,
