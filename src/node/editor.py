@@ -320,15 +320,15 @@ class NodeEditor(Gtk.Overlay):
                 'context':     context,
             })
 
-        create_command('duplicate',             f"{_('Clipboard')}: {_('Duplicate Node(s)')}",
+        create_command('duplicate',             f"{_('Selection')}: {_('Duplicate Node(s)')}",
                                                 shortcuts = ['<Primary>d'],
                                                 context   = 'node_focus')
-        create_command('delete',                f"{_('Clipboard')}: {_('Delete Node(s)')}",
+        create_command('delete',                f"{_('Selection')}: {_('Delete Node(s)')}",
                                                 shortcuts = ['Delete'],
                                                 context   = 'node_focus')
-        create_command('select-all',            f"{_('Clipboard')}: {_('Select All')}",
+        create_command('select-all',            f"{_('Selection')}: {_('Select All')}",
                                                 shortcuts = ['<Primary>a'])
-        create_command('select-none',           f"{_('Clipboard')}: {_('Select None')}",
+        create_command('select-none',           f"{_('Selection')}: {_('Select None')}",
                                                 shortcuts = ['<Shift><Primary>a'],
                                                 context   = 'node_focus')
 
