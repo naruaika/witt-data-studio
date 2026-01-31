@@ -130,8 +130,7 @@ class NodeComboButton(Gtk.Button):
                          spacing     = 2)
         box.append(subbox)
 
-        label = next((key for key, value in options.items()
-                      if value == get_data()), None)
+        label = next((key for key, value in options.items() if value == get_data()), None)
         label = Gtk.Label(label  = label,
                           xalign = 1.0)
         subbox.append(label)
@@ -301,7 +300,8 @@ class NodeDropdown(Gtk.DropDown):
             def on_selected(*args) -> None:
                 """"""
                 if do_select():
-                    set_data(label)
+                    value = next((key for key, val in options.items() if val == label), None)
+                    set_data(value)
 
             list_item.label.set_label(label)
 
@@ -313,7 +313,7 @@ class NodeDropdown(Gtk.DropDown):
             do_select()
 
         model = Gtk.StringList()
-        for option in options:
+        for option in options.values():
             model.append(option)
         self.set_model(model)
 
@@ -344,7 +344,7 @@ class NodeDropdown(Gtk.DropDown):
 """, 'utf-8')))
         self.set_factory(factory)
 
-        selected = list(options.values()).index(get_data())
+        selected = next((i for i, key in enumerate(options) if key == get_data()), 0)
         self.set_selected(selected)
 
 
@@ -489,15 +489,18 @@ class NodeListItem(Gtk.Box):
             box.append(subbox)
 
             if not idata:
-                for content in contents:
+                for index, content in enumerate(contents):
                     if isiterable(content):
                         dtype, options = content
+                    if isinstance(options, list):
+                        options = {o: o for o in options}
+                        contents[index] = (dtype, options)
                     else:
                         dtype = content
 
                     match dtype:
                         case 'dropdown':
-                            value = list(options.values())[0]
+                            value = next(iter(options.values()))
                             idata.append(value)
                         case 'entry':
                             idata.append('')

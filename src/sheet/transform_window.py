@@ -366,15 +366,18 @@ class SheetTransformWindow(Adw.Window):
 
             idata = []
 
-            for content in contents:
+            for index, content in enumerate(contents):
                 if isiterable(content):
                     dtype, options = content
+                    if isinstance(options, list):
+                        options = {o: o for o in options}
+                        contents[index] = (dtype, options)
                 else:
                     dtype = content
 
                 match dtype:
                     case 'dropdown':
-                        value = options[0]
+                        value = next(iter(options.values()))
                         idata.append(value)
                     case 'entry':
                         idata.append('')
@@ -466,7 +469,7 @@ class SheetTransformWindow(Adw.Window):
     def _create_child_dropdown(self,
                                get_data: callable,
                                set_data: callable,
-                               options:  list[str],
+                               options:  dict,
                                ) ->      Gtk.DropDown:
         """"""
         dropdown = Gtk.DropDown(hexpand = True,
@@ -509,7 +512,8 @@ class SheetTransformWindow(Adw.Window):
             def on_selected(*args) -> None:
                 """"""
                 if do_select():
-                    set_data(label)
+                    value = next((key for key, val in options.items() if val == label), None)
+                    set_data(value)
 
             list_item.label.set_label(label)
 
@@ -521,7 +525,7 @@ class SheetTransformWindow(Adw.Window):
             do_select()
 
         model = Gtk.StringList()
-        for option in options:
+        for option in options.values():
             model.append(option)
         dropdown.set_model(model)
 
@@ -552,7 +556,7 @@ class SheetTransformWindow(Adw.Window):
 """, 'utf-8')))
         dropdown.set_factory(factory)
 
-        selected = options.index(get_data())
+        selected = next((i for i, key in enumerate(options) if key == get_data()), 0)
         dropdown.set_selected(selected)
 
         return dropdown

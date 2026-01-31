@@ -3657,7 +3657,7 @@ class NodeRemoveDuplicateRows(NodeTemplate):
         self.frame.do_save    = self.do_save
         self.frame.do_restore = self.do_restore
 
-        self.frame.data['keep-rows']       = _('Any')
+        self.frame.data['keep-rows']       = 'any'
         self.frame.data['keep-order']      = False
         self.frame.data['all-columns']     = []
         self.frame.data['columns']         = []
@@ -3705,10 +3705,18 @@ class NodeRemoveDuplicateRows(NodeTemplate):
         self.frame.data['table'] = table
         self._refresh_columns()
 
+        options = {
+            'any':   _('Any'),
+            'none':  _('None'),
+            'first': _('First'),
+            'last':  _('Last'),
+        }
+
         if table.collect_schema().names():
             if columns := self.frame.data['columns']:
-                keep = self.frame.data['keep-rows'].lower()
+                keep = self.frame.data['keep-rows']
                 order = self.frame.data['keep-order']
+                order = options[order] if order in options else 'any'
                 table = table.unique(columns,
                                      keep           = keep,
                                      maintain_order = order)
@@ -3797,10 +3805,10 @@ class NodeRemoveDuplicateRows(NodeTemplate):
             _take_snapshot(self, callback, value)
 
         options = {
-            _('Any'):   _('Any'),
-            _('None'):  _('None'),
-            _('First'): _('First'),
-            _('Last'):  _('Last'),
+            'any':   _('Any'),
+            'none':  _('None'),
+            'first': _('First'),
+            'last':  _('Last'),
         }
         combo = NodeComboButton(title    = _('Rows to Keep'),
                                 get_data = get_data,
@@ -3997,7 +4005,7 @@ class NodeSortRows(NodeTemplate):
                 descending = []
                 for by, order in levels:
                     bys.append(by)
-                    descending.append(order == _('Descending'))
+                    descending.append(order == 'descending')
                 table = table.sort(by = bys, descending = descending)
 
         self.frame.data['table'] = table
@@ -4122,13 +4130,14 @@ class NodeSortRows(NodeTemplate):
             (
                 'dropdown',
                 {
-                    column: column for column in self.frame.data['all-columns']
+                    c: c for c in self.frame.data['all-columns']
                 },
             ),
             (
                 'dropdown',
                 {
-                    order: order for order in [_('Ascending'), _('Descending')]
+                    'ascending':  _('Ascending'),
+                    'descending': _('Descending'),
                 },
             ),
         ]
@@ -4444,7 +4453,6 @@ class NodeConvertDataType(NodeTemplate):
         from polars import String
         from polars import Boolean
         from polars import Categorical
-        from polars import Decimal
         from polars import Float32
         from polars import Float64
         from polars import Int8
@@ -4456,30 +4464,29 @@ class NodeConvertDataType(NodeTemplate):
         from polars import UInt32
         from polars import UInt64
 
-        to_dtypes = {
-            _('Date'):               Date,
-            _('Time'):               Time,
-            _('Datetime'):           Datetime,
-            _('Duration'):           Duration,
-            _('Text'):               String,
-            _('Boolean'):            Boolean,
-            _('Categorical'):        Categorical,
-            _('Decimal'):            Decimal,
-            _('Float (32-Bit)'):     Float32,
-            _('Float (64-Bit)'):     Float64,
-            _('Integer (8-Bit)'):    Int8,
-            _('Integer (16-Bit)'):   Int16,
-            _('Integer (32-Bit)'):   Int32,
-            _('Integer (64-Bit)'):   Int64,
-            _('Unsigned (8-Bit)'):   UInt8,
-            _('Unsigned (16-Bit)'):  UInt16,
-            _('Unsigned (32-Bit)'):  UInt32,
-            _('Unsigned (64-Bit)'):  UInt64,
+        options = {
+            'date':        Date,
+            'time':        Time,
+            'datetime':    Datetime,
+            'duration':    Duration,
+            'text':        String,
+            'boolean':     Boolean,
+            'categorical': Categorical,
+            'float32':     Float32,
+            'float64':     Float64,
+            'int8':        Int8,
+            'int16':       Int16,
+            'int32':       Int32,
+            'int64':       Int64,
+            'uint8':       UInt8,
+            'uint16':      UInt16,
+            'uint32':      UInt32,
+            'uint64':      UInt64,
         }
 
         if table_columns:
             if maps := self.frame.data['maps']:
-                table = table.cast({m[0]: to_dtypes[m[1]] for m in maps})
+                table = table.cast({m[0]: options[m[1]] for m in maps if m[1] in options})
 
         self.frame.data['table'] = table
 
@@ -4603,32 +4610,29 @@ class NodeConvertDataType(NodeTemplate):
             (
                 'dropdown',
                 {
-                    column: column for column in self.frame.data['all-columns']
+                    c: c for c in self.frame.data['all-columns']
                 },
             ),
             (
                 'dropdown',
                 {
-                    dtype: dtype for dtype in [
-                        _('Date'),
-                        _('Time'),
-                        _('Datetime'),
-                        _('Duration'),
-                        _('Text'),
-                        _('Boolean'),
-                        _('Categorical'),
-                        _('Decimal'),
-                        _('Float (32-Bit)'),
-                        _('Float (64-Bit)'),
-                        _('Integer (8-Bit)'),
-                        _('Integer (16-Bit)'),
-                        _('Integer (32-Bit)'),
-                        _('Integer (64-Bit)'),
-                        _('Unsigned (8-Bit)'),
-                        _('Unsigned (16-Bit)'),
-                        _('Unsigned (32-Bit)'),
-                        _('Unsigned (64-Bit)'),
-                    ]
+                    'date':        _('Date'),
+                    'time':        _('Time'),
+                    'datetime':    _('Datetime'),
+                    'duration':    _('Duration'),
+                    'text':        _('Text'),
+                    'boolean':     _('Boolean'),
+                    'categorical': _('Categorical'),
+                    'float32':     _('Float (32-Bit)'),
+                    'float64':     _('Float (64-Bit)'),
+                    'int8':        _('Integer (8-Bit)'),
+                    'int16':       _('Integer (16-Bit)'),
+                    'int32':       _('Integer (32-Bit)'),
+                    'int64':       _('Integer (64-Bit)'),
+                    'uint8':       _('Unsigned (8-Bit)'),
+                    'uint16':      _('Unsigned (16-Bit)'),
+                    'uint32':      _('Unsigned (32-Bit)'),
+                    'uint64':      _('Unsigned (64-Bit)'),
                 },
             ),
         ]
@@ -4833,7 +4837,7 @@ class NodeRenameColumns(NodeTemplate):
             (
                 'dropdown',
                 {
-                    column: column for column in self.frame.data['all-columns']
+                    c: c for c in self.frame.data['all-columns']
                 },
             ),
             ('entry'),
