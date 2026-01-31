@@ -202,39 +202,43 @@ class SheetDocument(Document):
         table_names = [table.tname for table in self.tables]
         new_name = unique_name(_('Table'), table_names)
 
-        new_table = DataTable(tname          = new_name,
-                              content        = content,
-                              with_header    = with_header,
-                              bounding_box   = bounding_box,
-                              placeholder    = is_lazyframe)
+        new_table = DataTable(tname        = new_name,
+                              content      = content,
+                              with_header  = with_header,
+                              bounding_box = bounding_box,
+                              placeholder  = is_lazyframe)
 
         self.tables.append(new_table)
+
+        for tindex, table in enumerate(self.tables):
+            if table is new_table:
+                break
 
         self._update_bounding_box(bounding_box)
 
         self.repopulate_table_widgets()
 
-        table_index = self.tables.index(new_table)
-
         async def do_load(old_table: DataTable,
                           lazyframe: LazyFrame,
                           ) ->       None:
             """"""
-            dataframe = await lazyframe.collect_async()
             try:
-                table_index = self.tables.index(old_table)
+                dataframe = await lazyframe.collect_async()
             except:
-                pass
-            else:
-                self.replace_table(dataframe, table_index)
-                table = self.tables[table_index]
-                on_finish(table)
+                dataframe = DataFrame({_('#ERROR!'): None}).head(0)
+
+            for tindex, table in enumerate(self.tables):
+                if table is old_table:
+                    self.replace_table(dataframe, tindex)
+                    table = self.tables[tindex]
+                    on_finish(table)
+                    break
 
         if is_lazyframe and not prefer_sync:
             coroutine = do_load(new_table, to_load)
             asyncio.create_task(coroutine)
 
-        return table_index
+        return tindex
 
     def replace_table(self,
                       dataframe:   DataFrame,
