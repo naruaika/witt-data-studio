@@ -269,6 +269,7 @@ class SheetEditor(Gtk.Box):
         create_action('transpose-table',        lambda *_: self._transform_table('transpose-table'))
         create_action('reverse-rows',           lambda *_: self._transform_table('reverse-rows'))
 
+        create_action('convert-data-type',      lambda *_: self._transform_table('convert-data-type'))
         create_action('rename-columns',         lambda *_: self._transform_table('rename-columns'))
 
     def _setup_commands(self) -> None:
@@ -331,6 +332,7 @@ class SheetEditor(Gtk.Box):
         create_command('transpose-table',       f"{_('Table')}: {get_title_from_layout('transpose-table')}...")
         create_command('reverse-rows',          f"{_('Table')}: {get_title_from_layout('reverse-rows')}")
 
+        create_command('convert-data-type',     f"{_('Table')}: {get_title_from_layout('convert-data-type')}...")
         create_command('rename-columns',        f"{_('Table')}: {get_title_from_layout('rename-columns')}...")
 
     def set_data(self,

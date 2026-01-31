@@ -31,6 +31,8 @@ root_sources = [
   'main.py',
   'status_bar.py',
   'toolbar.py',
+  'utils_color.py',
+  'utils_uinterface.py',
   'utils.py',
   'window.py',
 ]

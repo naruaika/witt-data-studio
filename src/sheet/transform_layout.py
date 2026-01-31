@@ -215,6 +215,43 @@ def get_layout(action_name: str) -> tuple[str, list]:
         case 'reverse-rows':
             return (_('Reverse Rows'), [])
 
+        case 'convert-data-type':
+            return (
+                _('Convert Data Type'),
+                [
+                    (
+                        _('Mapping'),
+                        'list-item',
+                        [
+                            ('dropdown', '$all-columns'),
+                            (
+                                'dropdown',
+                                [
+                                    _('Date'),
+                                    _('Time'),
+                                    _('Datetime'),
+                                    _('Duration'),
+                                    _('Text'),
+                                    _('Boolean'),
+                                    _('Categorical'),
+                                    _('Decimal'),
+                                    _('Float (32-Bit)'),
+                                    _('Float (64-Bit)'),
+                                    _('Integer (8-Bit)'),
+                                    _('Integer (16-Bit)'),
+                                    _('Integer (32-Bit)'),
+                                    _('Integer (64-Bit)'),
+                                    _('Unsigned (8-Bit)'),
+                                    _('Unsigned (16-Bit)'),
+                                    _('Unsigned (32-Bit)'),
+                                    _('Unsigned (64-Bit)'),
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
+            )
+
         case 'rename-columns':
             return (
                 _('Rename Columns'),

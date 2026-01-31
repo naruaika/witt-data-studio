@@ -4380,6 +4380,276 @@ class NodeReverseRows(NodeTemplate):
 
 
 
+class NodeConvertDataType(NodeTemplate):
+
+    ndname = _('Convert Data Type')
+
+    action = 'convert-data-type'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeConvertDataType(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['all-columns']  = []
+        self.frame.data['maps']         = []
+        self.frame.data['refresh-maps'] = True
+        self.frame.data['map-expanded'] = False
+
+        self._add_output()
+        self._add_input()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['maps'] = args[0]
+        self.frame.data['refresh-maps'] = True
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_selector()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_selector()
+
+        if isinstance(table, LazyFrame):
+            table_columns = table.collect_schema().names()
+        else:
+            table_columns = table.columns
+
+        from polars import Date
+        from polars import Time
+        from polars import Datetime
+        from polars import Duration
+        from polars import String
+        from polars import Boolean
+        from polars import Categorical
+        from polars import Decimal
+        from polars import Float32
+        from polars import Float64
+        from polars import Int8
+        from polars import Int16
+        from polars import Int32
+        from polars import Int64
+        from polars import UInt8
+        from polars import UInt16
+        from polars import UInt32
+        from polars import UInt64
+
+        to_dtypes = {
+            _('Date'):               Date,
+            _('Time'):               Time,
+            _('Datetime'):           Datetime,
+            _('Duration'):           Duration,
+            _('Text'):               String,
+            _('Boolean'):            Boolean,
+            _('Categorical'):        Categorical,
+            _('Decimal'):            Decimal,
+            _('Float (32-Bit)'):     Float32,
+            _('Float (64-Bit)'):     Float64,
+            _('Integer (8-Bit)'):    Int8,
+            _('Integer (16-Bit)'):   Int16,
+            _('Integer (32-Bit)'):   Int32,
+            _('Integer (64-Bit)'):   Int64,
+            _('Unsigned (8-Bit)'):   UInt8,
+            _('Unsigned (16-Bit)'):  UInt16,
+            _('Unsigned (32-Bit)'):  UInt32,
+            _('Unsigned (64-Bit)'):  UInt64,
+        }
+
+        if table_columns:
+            if maps := self.frame.data['maps']:
+                table = table.cast({m[0]: to_dtypes[m[1]] for m in maps})
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> list:
+        """"""
+        return deepcopy(self.frame.data['maps'])
+
+    def do_restore(self,
+                   value: list,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value)
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_selector(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        if isinstance(table, LazyFrame):
+            table_columns = table.collect_schema().names()
+        else:
+            table_columns = table.columns
+
+        # Filter unvalid maps from selection
+        if table_columns:
+            if self.frame.data['maps']:
+                maps = []
+                for map in self.frame.data['maps']:
+                    before, after = map
+                    if before in table_columns:
+                        maps.append(map)
+                self.frame.data['maps'] = maps
+
+        if self.frame.data['all-columns'] != table_columns:
+            self.frame.data['refresh-maps'] = True
+
+        self.frame.data['all-columns'] = table_columns
+
+        if self.frame.data['refresh-maps']:
+            if len(self.frame.contents) == 3:
+                content = self.frame.contents[-1]
+                self.frame.remove_content(content)
+            if table_columns:
+                self._add_selector()
+
+        if not self.frame.data['maps']:
+            self.frame.data['map-expanded'] = True
+
+        if self.frame.data['map-expanded']:
+            if len(self.frame.contents) == 3:
+                widget = self.frame.contents[-1].Widget
+                widget.set_expanded(True)
+
+        self.frame.data['refresh-maps'] = False
+
+    def _add_selector(self) -> None:
+        """"""
+        def get_data() -> list:
+            """"""
+            return self.frame.data['maps']
+
+        def set_data(value: list) -> None:
+            """"""
+            def callback(value: list) -> None:
+                """"""
+                self.frame.data['maps'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        contents = [
+            (
+                'dropdown',
+                {
+                    column: column for column in self.frame.data['all-columns']
+                },
+            ),
+            (
+                'dropdown',
+                {
+                    dtype: dtype for dtype in [
+                        _('Date'),
+                        _('Time'),
+                        _('Datetime'),
+                        _('Duration'),
+                        _('Text'),
+                        _('Boolean'),
+                        _('Categorical'),
+                        _('Decimal'),
+                        _('Float (32-Bit)'),
+                        _('Float (64-Bit)'),
+                        _('Integer (8-Bit)'),
+                        _('Integer (16-Bit)'),
+                        _('Integer (32-Bit)'),
+                        _('Integer (64-Bit)'),
+                        _('Unsigned (8-Bit)'),
+                        _('Unsigned (16-Bit)'),
+                        _('Unsigned (32-Bit)'),
+                        _('Unsigned (64-Bit)'),
+                    ]
+                },
+            ),
+        ]
+        widget = NodeListItem(title    = _('Mapping'),
+                              get_data = get_data,
+                              set_data = set_data,
+                              contents = contents)
+        expander = Gtk.Expander(label = _('Mappings'),
+                                child = widget)
+        self.frame.add_content(expander, None)
+
+        def on_expanded(widget:     Gtk.Widget,
+                        param_spec: GObject.ParamSpec,
+                        ) ->        None:
+            """"""
+            self.frame.data['map-expanded'] = expander.get_expanded()
+
+        expander.connect('notify::expanded', on_expanded)
+
+
+
 class NodeRenameColumns(NodeTemplate):
 
     ndname = _('Rename Columns')
@@ -4617,6 +4887,7 @@ _registered_nodes = [
     NodeTransposeTable(),
     NodeReverseRows(),
 
+    NodeConvertDataType(),
     NodeRenameColumns(),
 ]
 

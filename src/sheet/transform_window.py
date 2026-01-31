@@ -466,14 +466,11 @@ class SheetTransformWindow(Adw.Window):
     def _create_child_dropdown(self,
                                get_data: callable,
                                set_data: callable,
-                               options:  list,
+                               options:  list[str],
                                ) ->      Gtk.DropDown:
         """"""
         dropdown = Gtk.DropDown(hexpand = True,
                                 valign  = Gtk.Align.CENTER)
-
-        button = dropdown.get_first_child()
-        button.add_css_class('flat')
 
         def setup_factory(list_item_factory: Gtk.SignalListItemFactory,
                           list_item:         Gtk.ListItem,

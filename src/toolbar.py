@@ -83,7 +83,7 @@ class Toolbar(Gtk.Box):
     ReverseRowsButton        = Gtk.Template.Child()
 
     AnyColumnSection         = Gtk.Template.Child()
-    ColumnDataTypeButton     = Gtk.Template.Child()
+    ConvertDataTypeButton    = Gtk.Template.Child()
     RenameColumnsButton      = Gtk.Template.Child()
     ReplaceValuesButton      = Gtk.Template.Child()
     FillValuesButton         = Gtk.Template.Child()
@@ -449,7 +449,7 @@ class Toolbar(Gtk.Box):
                         ),
                         [
                             (
-                                self.ColumnDataTypeButton,
+                                self.ConvertDataTypeButton,
                                 (
                                     NodeEditor,
                                     SheetEditor,

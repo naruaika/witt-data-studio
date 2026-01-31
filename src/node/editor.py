@@ -296,6 +296,7 @@ class NodeEditor(Gtk.Overlay):
         create_action('transpose-table',        lambda *_: create_node('transpose-table'))
         create_action('reverse-rows',           lambda *_: create_node('reverse-rows'))
 
+        create_action('convert-data-type',      lambda *_: create_node('convert-data-type'))
         create_action('rename-columns',         lambda *_: create_node('rename-columns'))
 
     def _setup_commands(self) -> None:
@@ -369,6 +370,7 @@ class NodeEditor(Gtk.Overlay):
         create_command('transpose-table',       f"{_('Table')}: {_('Transpose')}")
         create_command('reverse-rows',          f"{_('Table')}: {_('Reverse')}")
 
+        create_command('convert-data-type',     f"{_('Table')}: {_('Convert Data Type')}")
         create_command('rename-columns',        f"{_('Table')}: {_('Rename Columns')}")
 
     def _setup_controllers(self) -> None:

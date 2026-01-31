@@ -17,40 +17,5 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-from gi.repository import Adw
-
-def get_accent_color() -> str:
-    """"""
-    style_manager = Adw.StyleManager.get_default()
-    accent_color = style_manager.get_accent_color_rgba()
-
-    r = int(accent_color.red * 255)
-    g = int(accent_color.green * 255)
-    b = int(accent_color.blue * 255)
-
-    hex_color = f'#{r:02x}{g:02x}{b:02x}'
-
-    return hex_color
-
-
-def get_standalone_accent_color() -> str:
-    """"""
-    style_manager = Adw.StyleManager.get_default()
-    prefers_dark = style_manager.get_dark()
-    accent_color = style_manager.get_accent_color()
-    accent_color = accent_color.to_standalone_rgba(prefers_dark)
-
-    r = int(accent_color.red * 255)
-    g = int(accent_color.green * 255)
-    b = int(accent_color.blue * 255)
-
-    hex_color = f'#{r:02x}{g:02x}{b:02x}'
-
-    return hex_color
-
-
-def get_prefers_dark() -> bool:
-    """"""
-    style_manager = Adw.StyleManager.get_default()
-    prefers_dark = style_manager.get_dark()
-    return prefers_dark
+from .utils_color import *
+from .utils_uinterface import *
