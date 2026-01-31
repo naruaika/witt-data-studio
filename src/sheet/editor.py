@@ -271,6 +271,7 @@ class SheetEditor(Gtk.Box):
 
         create_action('convert-data-type',      lambda *_: self._transform_table('convert-data-type'))
         create_action('rename-columns',         lambda *_: self._transform_table('rename-columns'))
+        create_action('fill-blanks',            lambda *_: self._transform_table('fill-blanks'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -334,6 +335,7 @@ class SheetEditor(Gtk.Box):
 
         create_command('convert-data-type',     f"{_('Table')}: {get_title_from_layout('convert-data-type')}...")
         create_command('rename-columns',        f"{_('Table')}: {get_title_from_layout('rename-columns')}...")
+        create_command('fill-blanks',           f"{_('Table')}: {get_title_from_layout('fill-blanks')}...")
 
     def set_data(self,
                  tables: Tables = [],

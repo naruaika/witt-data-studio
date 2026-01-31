@@ -269,11 +269,11 @@ class FileImportWindow(Adw.Window):
                 kwargs['skip_rows']     = int(self.conf_widgets['from_row'].get_value() - 1)
                 kwargs['n_rows']        = int(self.conf_widgets['n_rows'].get_value()) or None
                 kwargs['separator']     = self.conf_widgets['separator'].get_selected()
-                kwargs['separator']     = list(SEPARATOR_OPTS.values())[kwargs['separator']]
+                kwargs['separator']     = list(SEPARATOR_OPTS.keys())[kwargs['separator']]
                 kwargs['quote_char']    = self.conf_widgets['quote_char'].get_selected()
-                kwargs['quote_char']    = list(QUOTE_CHAR_OPTS.values())[kwargs['quote_char']]
+                kwargs['quote_char']    = list(QUOTE_CHAR_OPTS.keys())[kwargs['quote_char']]
                 kwargs['decimal_comma'] = self.conf_widgets['decimal_comma'].get_selected()
-                kwargs['decimal_comma'] = list(DECIMAL_COMMA_OPTS.values())[kwargs['decimal_comma']]
+                kwargs['decimal_comma'] = list(DECIMAL_COMMA_OPTS.keys())[kwargs['decimal_comma']]
 
                 if not read_only:
                     kwargs['columns'] = self.conf_widgets['columns'].get_selected() or None

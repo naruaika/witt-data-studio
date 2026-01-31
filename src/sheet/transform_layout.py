@@ -266,4 +266,30 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
+        case 'replace-values':
+            return (
+                _('Replace Values'),
+                [],
+            )
+
+        case 'fill-blanks':
+            return (
+                _('Fill Blanks'),
+                [
+                    (
+                        _('Strategy'),
+                        'combo',
+                        {
+                            'forward':  _('Forward'),
+                            'backward': _('Backward'),
+                            'min':      _('Minimum'),
+                            'max':      _('Maximum'),
+                            'mean':     _('Mean'),
+                            'zero':     _('Zero'),
+                            'one':      _('One'),
+                        },
+                    ),
+                ],
+            )
+
     raise KeyError()

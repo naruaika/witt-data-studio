@@ -3657,6 +3657,10 @@ class NodeRemoveDuplicateRows(NodeTemplate):
         self.frame.do_save    = self.do_save
         self.frame.do_restore = self.do_restore
 
+        self.frame.data['all-keeps']       = {'any':   _('Any'),
+                                              'none':  _('None'),
+                                              'first': _('First'),
+                                              'last':  _('Last')}
         self.frame.data['keep-rows']       = 'any'
         self.frame.data['keep-order']      = False
         self.frame.data['all-columns']     = []
@@ -3678,7 +3682,7 @@ class NodeRemoveDuplicateRows(NodeTemplate):
         self.frame.data['columns']    = args[2]
 
         widget = self.frame.contents[2].Widget
-        widget.set_data(args[0])
+        widget.set_data(self.frame.data['all-keeps'][args[0]])
 
         widget = self.frame.contents[3].Widget
         widget.set_data(args[1])
@@ -3705,18 +3709,10 @@ class NodeRemoveDuplicateRows(NodeTemplate):
         self.frame.data['table'] = table
         self._refresh_columns()
 
-        options = {
-            'any':   _('Any'),
-            'none':  _('None'),
-            'first': _('First'),
-            'last':  _('Last'),
-        }
-
         if table.collect_schema().names():
             if columns := self.frame.data['columns']:
                 keep = self.frame.data['keep-rows']
                 order = self.frame.data['keep-order']
-                order = options[order] if order in options else 'any'
                 table = table.unique(columns,
                                      keep           = keep,
                                      maintain_order = order)
@@ -3804,16 +3800,10 @@ class NodeRemoveDuplicateRows(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        options = {
-            'any':   _('Any'),
-            'none':  _('None'),
-            'first': _('First'),
-            'last':  _('Last'),
-        }
         combo = NodeComboButton(title    = _('Rows to Keep'),
                                 get_data = get_data,
                                 set_data = set_data,
-                                options  = options)
+                                options  = self.frame.data['all-keeps'])
         self.frame.add_content(widget    = combo,
                                get_data  = get_data,
                                set_data  = set_data)
@@ -4860,6 +4850,153 @@ class NodeRenameColumns(NodeTemplate):
 
 
 
+class NodeFillBlanks(NodeTemplate):
+
+    ndname = _('Fill Blanks')
+
+    action = 'fill-blanks'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeFillBlanks(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['options']  = {'forward':  _('Forward'),
+                                       'backward': _('Backward'),
+                                       'min':      _('Minimum'),
+                                       'max':      _('Maximum'),
+                                       'mean':     _('Mean'),
+                                       'zero':     _('Zero'),
+                                       'one':      _('One')}
+        self.frame.data['strategy'] = 'forward'
+
+        self._add_output()
+        self._add_input()
+        self._add_strategy()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['strategy'] = args[0]
+
+        widget = self.frame.contents[2].Widget
+        widget.set_data(self.frame.data['options'][args[0]])
+
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        strategy = self.frame.data['strategy']
+        table = table.fill_null(strategy = strategy)
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> str:
+        """"""
+        return self.frame.data['strategy']
+
+    def do_restore(self,
+                   value: str,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value)
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _add_strategy(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['strategy']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['strategy'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+
+        combo = NodeComboButton(title    = _('Strategy'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['options'])
+        self.frame.add_content(widget    = combo,
+                               get_data  = get_data,
+                               set_data  = set_data)
+
+
+
 _registered_nodes = [
     NodeBoolean(),
     NodeDecimal(),
@@ -4893,6 +5030,7 @@ _registered_nodes = [
 
     NodeConvertDataType(),
     NodeRenameColumns(),
+    NodeFillBlanks(),
 ]
 
 

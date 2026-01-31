@@ -130,7 +130,7 @@ class NodeComboButton(Gtk.Button):
                          spacing     = 2)
         box.append(subbox)
 
-        label = next((key for key, value in options.items() if value == get_data()), None)
+        label = next((v for k, v in options.items() if k == get_data()), None)
         label = Gtk.Label(label  = label,
                           xalign = 1.0)
         subbox.append(label)
@@ -185,7 +185,7 @@ class NodeComboButton(Gtk.Button):
                     list_item.image.set_opacity(0.0)
 
             model = Gtk.StringList()
-            for value in options:
+            for value in options.values():
                 model.append(value)
             selection = Gtk.NoSelection(model = model)
 
@@ -220,9 +220,9 @@ class NodeComboButton(Gtk.Button):
                 """"""
                 key = list(options.keys())[position]
                 value = list(options.values())[position]
-                label.set_label(key)
+                label.set_label(value)
                 popover.popdown()
-                set_data(value)
+                set_data(key)
 
             list_view.connect('activate', on_activated)
 

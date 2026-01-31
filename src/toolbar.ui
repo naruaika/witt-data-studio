@@ -1452,7 +1452,7 @@
                                   <object class="GtkButton" id="ConvertDataTypeButton">
                                     <property name="name">convert-data-type</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Convert Data Type</property>
+                                    <property name="tooltip-text" translatable="yes">Data Type</property>
                                     <property name="action-name">win.toolbar</property>
                                     <property name="action-target">'convert-data-type'</property>
                                     <child>
@@ -1548,12 +1548,12 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="FillValuesButton">
-                                    <property name="name">fill-values</property>
+                                  <object class="GtkButton" id="FillBlanksButton">
+                                    <property name="name">fill-blanks</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Fill</property>
+                                    <property name="tooltip-text" translatable="yes">Fill Blanks</property>
                                     <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'fill-values'</property>
+                                    <property name="action-target">'fill-blanks'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -1565,7 +1565,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Fill&#x00A0;&#x2060;&#x2335;</property>
+                                            <property name="label" translatable="yes">Fill Blanks</property>
                                             <property name="vexpand">true</property>
                                           </object>
                                         </child>

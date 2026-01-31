@@ -24,6 +24,7 @@ from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Pango
 from sys import float_info
+from typing import Any
 import json
 
 from ..core.utils import isiterable
@@ -159,23 +160,35 @@ class SheetTransformWindow(Adw.Window):
     def _create_combo_row(self,
                           title:       str,
                           description: str,
-                          options:     list[str],
+                          options:     dict,
                           ops_arg:     SheetOperationArg,
                           ) ->         None:
         """"""
         combo = Adw.ComboRow(title = title)
+
         if description not in {'', None}:
             combo.set_subtitle(description)
-        combo_model = Gtk.StringList()
-        for option in options:
-            combo_model.append(option)
-        combo.set_model(combo_model)
-        combo.bind_property(source_property = 'selected-item',
+
+        model = Gtk.StringList()
+        for option in options.values():
+            model.append(option)
+        combo.set_model(model)
+
+        self.ContentContainer.add(combo)
+
+        def transform_to(binding:  GObject.Binding,
+                         position: int,
+                         ) ->      str:
+            """"""
+            return list(options.keys())[position]
+
+        combo.bind_property(source_property = 'selected',
                             target          = ops_arg,
                             target_property = 'value',
                             flags           = GObject.BindingFlags.SYNC_CREATE,
-                            transform_to    = lambda _, val: val.get_string())
-        self.ContentContainer.add(combo)
+                            transform_to    = transform_to)
+
+        combo.set_selected(0)
 
     def _create_entry_row(self,
                           title:   str,

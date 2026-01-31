@@ -23,17 +23,17 @@ from gi.repository import Gtk
 from gi.repository import Pango
 from sys import float_info
 
-SEPARATOR_OPTS = {_('Tab'):       '\t',
-                  _('Semicolon'): ';',
-                  _('Comma'):     ',',
-                  _('Space'):     ' ',
-                  _('Pipe'):      '|'}
+SEPARATOR_OPTS = {'\t': _('Tab'),
+                  ';':  _('Semicolon'),
+                  ',':  _('Comma'),
+                  ' ':  _('Space'),
+                  '|':  _('Pipe')}
 
-QUOTE_CHAR_OPTS = {_('Double'): '"',
-                   _('Single'): "'"}
+QUOTE_CHAR_OPTS = {'"': _('Double'),
+                   "'": _('Single')}
 
-DECIMAL_COMMA_OPTS = {_('Period'): False,
-                      _('Comma'):  True}
+DECIMAL_COMMA_OPTS = {False: _('Period'),
+                      True:  _('Comma')}
 
 
 class FileImportCsvView(GObject.Object):
@@ -85,28 +85,28 @@ class FileImportCsvView(GObject.Object):
         # TODO: hide column-separator widget for TSV file
 
         model = Gtk.StringList()
-        for separator in SEPARATOR_OPTS:
+        for separator in SEPARATOR_OPTS.values():
             model.append(separator)
         separator = Adw.ComboRow(title = _('Column Separator'),
                                  model = model)
         group.add(separator)
 
-        values = list(SEPARATOR_OPTS.values())
         try:
+            values = list(SEPARATOR_OPTS.values())
             selected = values.index(self.default_args['separator'])
             separator.set_selected(selected)
         except:
             pass
 
         model = Gtk.StringList()
-        for quote_char in QUOTE_CHAR_OPTS:
+        for quote_char in QUOTE_CHAR_OPTS.values():
             model.append(quote_char)
         quote_char = Adw.ComboRow(title = _('Quote Character'),
                                   model = model)
         group.add(quote_char)
 
         model = Gtk.StringList()
-        for decimal_comma in DECIMAL_COMMA_OPTS:
+        for decimal_comma in DECIMAL_COMMA_OPTS.values():
             model.append(decimal_comma)
         decimal_comma = Adw.ComboRow(title = _('Decimal Separator'),
                                      model = model)
