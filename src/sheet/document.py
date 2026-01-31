@@ -222,15 +222,20 @@ class SheetDocument(Document):
                           lazyframe: LazyFrame,
                           ) ->       None:
             """"""
+            has_error = False
+
             try:
                 dataframe = await lazyframe.collect_async()
             except:
                 dataframe = DataFrame({_('#ERROR!'): None}).head(0)
+                has_error = True
 
             for tindex, table in enumerate(self.tables):
                 if table is old_table:
                     self.replace_table(dataframe, tindex)
                     table = self.tables[tindex]
+                    if has_error:
+                        table.placeholder = True
                     on_finish(table)
                     break
 
