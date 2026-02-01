@@ -29,17 +29,6 @@
         <property name="valign">start</property>
         <property name="spacing">10</property>
         <child>
-          <object class="GtkToggleButton" id="MinimapToggle">
-            <property name="valign">start</property>
-            <property name="icon-name">compass2-symbolic</property>
-            <style>
-              <class name="view"/>
-              <class name="frame"/>
-              <class name="circular"/>
-            </style>
-          </object>
-        </child>
-        <child>
           <object class="NodeMinimap" id="Minimap">
             <property name="height-request">125</property>
             <property name="width-request">125</property>
@@ -47,6 +36,17 @@
             <style>
               <class name="view"/>
               <class name="frame"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkToggleButton" id="MinimapToggle">
+            <property name="valign">start</property>
+            <property name="icon-name">compass2-symbolic</property>
+            <style>
+              <class name="view"/>
+              <class name="frame"/>
+              <class name="circular"/>
             </style>
           </object>
         </child>

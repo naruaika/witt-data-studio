@@ -354,11 +354,13 @@ class NodeEntry(Gtk.Entry):
     __gtype_name__ = 'NodeEntry'
 
     def __init__(self,
-                 get_data: callable,
-                 set_data: callable,
-                 ) ->      None:
+                 get_data:    callable,
+                 set_data:    callable,
+                 placeholder: str = None,
+                 ) ->         None:
         """"""
-        super().__init__(text = get_data())
+        super().__init__(text             = get_data(),
+                         placeholder_text = placeholder)
 
         def on_activated(entry: Gtk.Entry) -> None:
             """"""
@@ -420,9 +422,9 @@ class NodeLabel(Gtk.Label):
     __gtype_name__ = 'NodeLabel'
 
     def __init__(self,
-                 label:  str,
-                 linked: bool = False,
-                 ) ->    None:
+                 label:    str,
+                 can_link: bool = False,
+                 ) ->      None:
         """"""
         super().__init__(label     = label,
                          xalign    = 1.0,
@@ -430,7 +432,7 @@ class NodeLabel(Gtk.Label):
 
         self.add_css_class('node-label')
 
-        if linked:
+        if can_link:
             self.set_xalign(0.0)
             self.add_css_class('after-socket')
             self.add_css_class('node-widget')

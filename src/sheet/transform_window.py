@@ -24,7 +24,6 @@ from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Pango
 from sys import float_info
-from typing import Any
 import json
 
 from ..core.utils import isiterable
@@ -72,7 +71,7 @@ class SheetTransformWindow(Adw.Window):
         viewport.set_scroll_to_focus(False)
 
         # Make the window resize its height dynamically
-        scrolled_window.set_max_content_height(452)
+        scrolled_window.set_max_content_height(640)
         scrolled_window.set_propagate_natural_height(True)
 
         key_event_controller = Gtk.EventControllerKey()
@@ -106,6 +105,9 @@ class SheetTransformWindow(Adw.Window):
             if len(item) > 3:
                 defaults = item[3]
 
+            if indexed := dtype.endswith(':indexed'):
+                dtype = dtype.removesuffix(':indexed')
+
             match dtype:
                 case 'combo':
                     self._create_combo_row(title, description, contents, operation_arg)
@@ -124,7 +126,7 @@ class SheetTransformWindow(Adw.Window):
                     n_content += 1
 
                 case 'list-check':
-                    self._create_list_check(title, description, contents, defaults, operation_arg)
+                    self._create_list_check(title, description, contents, defaults, indexed, operation_arg)
 
                 case 'list-item':
                     self._create_list_item(title, contents, operation_arg)
@@ -233,6 +235,7 @@ class SheetTransformWindow(Adw.Window):
                            description: str,
                            options:     list[str],
                            defaults:    list[str],
+                           indexed:     bool,
                            ops_arg:     SheetOperationArg,
                            ) ->         None:
         """"""
@@ -240,6 +243,8 @@ class SheetTransformWindow(Adw.Window):
                              value:  str,
                              ) ->    None:
             """"""
+            if indexed:
+                value = options.index(value)
             args = json.loads(ops_arg.value) \
                    if ops_arg.value else []
             args.append(value) if button.get_active() \

@@ -269,7 +269,32 @@ def get_layout(action_name: str) -> tuple[str, list]:
         case 'replace-values':
             return (
                 _('Replace Values'),
-                [],
+                [
+                    (_('Search'), 'entry'),
+                    (_('Replace'), 'entry'),
+                    (
+                        [
+                            _('Search Options'),
+                            _('The options below apply only to text columns. '
+                              'Exact match always applies to non-text columns.'),
+                        ],
+                        'list-check:indexed',
+                        [
+                            _('Exact Match'),
+                            _('Case Sensitive'),
+                            _('Regular Exp.'),
+                        ],
+                    ),
+                    (
+                        [
+                            _('Search On'),
+                            _('Select column(s) to search for the value of. '
+                              'Leave blank to search all columns.'),
+                        ],
+                        'list-check',
+                        '$all-columns',
+                    ),
+                ],
             )
 
         case 'fill-blanks':

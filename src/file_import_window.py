@@ -284,8 +284,8 @@ class FileImportWindow(Adw.Window):
                 if not read_only:
                     kwargs['columns'] = self.conf_widgets['columns'].get_selected() or None
 
-            case _ if self.file_format in SPREADSHEET_FILES:
-                kwargs['df_names'] = self.conf_widgets['df_names'].get_selected() or None
+#           case _ if self.file_format in SPREADSHEET_FILES:
+#               kwargs['df_names'] = self.conf_widgets['df_names'].get_selected() or None
 
         return kwargs
 
@@ -313,9 +313,7 @@ class FileImportWindow(Adw.Window):
         kwargs = self._get_current_settings()
 
         if self.callback:
-            self.callback(self.file_path,
-                          all_columns,
-                          **kwargs)
+            self.callback(self.file_path, all_columns, **kwargs)
             return
 
         from .node.repository import NodeReadFile

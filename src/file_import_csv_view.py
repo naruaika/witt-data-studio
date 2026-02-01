@@ -82,7 +82,6 @@ class FileImportCsvView(GObject.Object):
         group = Adw.PreferencesGroup(title = _('How to Read File?'))
         self.preferences_page.add(group)
 
-        # TODO: hide column-separator widget for TSV file
 
         model = Gtk.StringList()
         for separator in SEPARATOR_OPTS.values():
@@ -92,8 +91,8 @@ class FileImportCsvView(GObject.Object):
         group.add(separator)
 
         try:
-            values = list(SEPARATOR_OPTS.values())
-            selected = values.index(self.default_args['separator'])
+            keys = list(SEPARATOR_OPTS.keys())
+            selected = keys.index(self.default_args['separator'])
             separator.set_selected(selected)
         except:
             pass
@@ -119,6 +118,10 @@ class FileImportCsvView(GObject.Object):
         self.conf_widgets['separator']     = separator
         self.conf_widgets['quote_char']    = quote_char
         self.conf_widgets['decimal_comma'] = decimal_comma
+
+        # Hide separators group for TSV file
+        if self.default_args['separator'] == '\t':
+            group.set_visible(False)
 
     def _setup_rows_group(self) -> None:
         """"""

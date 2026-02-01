@@ -150,11 +150,8 @@ class FileManager():
         if has_error:
             return None
 
-        if isinstance(result, DataFrame):
-            result = result.lazy()
-
         if columns:
-            result = result.select(columns)
+            result = result.lazy().select(columns)
 
         return result
 

@@ -271,6 +271,7 @@ class SheetEditor(Gtk.Box):
 
         create_action('convert-data-type',      lambda *_: self._transform_table('convert-data-type'))
         create_action('rename-columns',         lambda *_: self._transform_table('rename-columns'))
+        create_action('replace-values',         lambda *_: self._transform_table('replace-values'))
         create_action('fill-blanks',            lambda *_: self._transform_table('fill-blanks'))
 
     def _setup_commands(self) -> None:
@@ -335,6 +336,7 @@ class SheetEditor(Gtk.Box):
 
         create_command('convert-data-type',     f"{_('Table')}: {get_title_from_layout('convert-data-type')}...")
         create_command('rename-columns',        f"{_('Table')}: {get_title_from_layout('rename-columns')}...")
+        create_command('replace-values',        f"{_('Table')}: {get_title_from_layout('replace-values')}...")
         create_command('fill-blanks',           f"{_('Table')}: {get_title_from_layout('fill-blanks')}...")
 
     def set_data(self,
@@ -482,7 +484,7 @@ class SheetEditor(Gtk.Box):
         text_width = layout.get_size()[0] / Pango.SCALE
         cell_padding = self.display.DEFAULT_CELL_PADDING
         locator_width = int(text_width + cell_padding * 2 + 0.5)
-        locator_width = max(40, locator_width)
+        locator_width = max(45, locator_width)
 
         if locator_width != self.display.left_locator_width:
             self.display.left_locator_width = locator_width

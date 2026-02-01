@@ -240,6 +240,25 @@ class NodeFrame(Adw.Bin):
                     visited_frames.append(frame)
             del visited_frames
 
+        self.is_processing = True
+
+        # Resetting data by incoming input nodes
+        for content in self.contents:
+            if not (self_socket := content.Socket):
+                continue
+            if not self_socket.is_input():
+                continue
+            if not (links := self_socket.links):
+                continue
+            if not links[0].compatible:
+                continue
+            pair_socket = links[0].in_socket
+            pair_content = pair_socket.Content
+            value = pair_content.get_data()
+            content.set_data(value)
+
+        self.is_processing = False
+
         self.do_process(pair_socket, self_content)
 
         if forward:
@@ -281,8 +300,7 @@ class NodeFrame(Adw.Bin):
 
     def do_save(self) -> Any:
         """"""
-        value = None
-        return value
+        return None
 
     def do_restore(self,
                    value: Any,

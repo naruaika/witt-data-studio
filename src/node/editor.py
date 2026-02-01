@@ -298,6 +298,7 @@ class NodeEditor(Gtk.Overlay):
 
         create_action('convert-data-type',      lambda *_: create_node('convert-data-type'))
         create_action('rename-columns',         lambda *_: create_node('rename-columns'))
+        create_action('replace-values',         lambda *_: create_node('replace-values'))
         create_action('fill-blanks',            lambda *_: create_node('fill-blanks'))
 
     def _setup_commands(self) -> None:
@@ -360,19 +361,20 @@ class NodeEditor(Gtk.Overlay):
 
         create_command('sort-rows',             f"{_('Table')}: {_('Sort Rows')}")
 
+        create_command('new-constants',         '$placeholder')
         create_command('new-sheet',             f"{_('Create')}: {_('Sheet')}")
         create_command('new-viewer',            f"{_('Create')}: {_('Viewer')}")
         create_command('new-boolean',           f"{_('Create')}: {_('Constant')} {_('Boolean')}")
         create_command('new-decimal',           f"{_('Create')}: {_('Constant')} {_('Decimal')}")
         create_command('new-integer',           f"{_('Create')}: {_('Constant')} {_('Integer')}")
         create_command('new-string',            f"{_('Create')}: {_('Constant')} {_('String')}")
-        create_command('new-constants',         '$placeholder')
 
-        create_command('transpose-table',       f"{_('Table')}: {_('Transpose')}")
-        create_command('reverse-rows',          f"{_('Table')}: {_('Reverse')}")
+        create_command('transpose-table',       f"{_('Table')}: {_('Transpose Table')}")
+        create_command('reverse-rows',          f"{_('Table')}: {_('Reverse Rows')}")
 
         create_command('convert-data-type',     f"{_('Table')}: {_('Convert Data Type')}")
         create_command('rename-columns',        f"{_('Table')}: {_('Rename Columns')}")
+        create_command('replace-values',        f"{_('Table')}: {_('Replace Values')}")
         create_command('fill-blanks',           f"{_('Table')}: {_('Fill Blanks')}")
 
     def _setup_controllers(self) -> None:

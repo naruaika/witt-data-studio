@@ -1518,7 +1518,7 @@
                                   <object class="GtkButton" id="ReplaceValuesButton">
                                     <property name="name">replace-values</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Replace</property>
+                                    <property name="tooltip-text" translatable="yes">Replace Values</property>
                                     <property name="action-name">win.toolbar</property>
                                     <property name="action-target">'replace-values'</property>
                                     <child>
@@ -1532,7 +1532,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Replace</property>
+                                            <property name="label" translatable="yes">Replace Values</property>
                                             <property name="vexpand">true</property>
                                           </object>
                                         </child>
@@ -1581,12 +1581,11 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="PivotTableButton">
-                                    <property name="name">pivot-table</property>
+                                  <object class="GtkMenuButton" id="PivotColumnsButton">
+                                    <property name="name">pivot-columns</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Pivot</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'pivot-table'</property>
+                                    <property name="tooltip-text" translatable="yes">Pivot Columns</property>
+                                    <property name="menu-model">pivot_columns_menu</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -1598,7 +1597,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Pivot&#x00A0;&#x2060;&#x2335;</property>
+                                            <property name="label" translatable="yes">Pivot Columns&#x00A0;&#x2060;&#x2335;</property>
                                             <property name="vexpand">true</property>
                                           </object>
                                         </child>
@@ -1614,12 +1613,12 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="MoveColumnButton">
-                                    <property name="name">move-column</property>
+                                  <object class="GtkButton" id="ArrangeColumnsButton">
+                                    <property name="name">arrange-columns</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Move</property>
+                                    <property name="tooltip-text" translatable="yes">Arrange Columns</property>
                                     <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'move-column'</property>
+                                    <property name="action-target">'arrange-columns'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -1631,7 +1630,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Move&#x00A0;&#x2060;&#x2335;</property>
+                                            <property name="label" translatable="yes">Arrange Columns</property>
                                             <property name="vexpand">true</property>
                                           </object>
                                         </child>
@@ -2804,6 +2803,21 @@
         <attribute name="label" translatable="yes">_String</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">new-string</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <menu id="pivot_columns_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Pivot Columns</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">pivot-columns</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Unpivot Columns</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">unpivot-columns</attribute>
       </item>
     </section>
   </menu>
