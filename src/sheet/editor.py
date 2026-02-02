@@ -274,8 +274,10 @@ class SheetEditor(Gtk.Box):
         create_action('replace-values',         lambda *_: self._transform_table('replace-values'))
         create_action('fill-blanks',            lambda *_: self._transform_table('fill-blanks'))
 
-        create_action('split-column-'
-                      'by-delimiter',           lambda *_: self._transform_table('split-column-by-delimiter'))
+        create_action('split-column-by-'
+                      'delimiter',              lambda *_: self._transform_table('split-column-by-delimiter'))
+        create_action('split-column-by-'
+                      'no-characters',          lambda *_: self._transform_table('split-column-by-no-characters'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -344,8 +346,12 @@ class SheetEditor(Gtk.Box):
 
         create_command('split-column',          '$placeholder',
                                                 context = 'table_focus and column_string_focus')
-        create_command('split-column-'
-                       'by-delimiter',          f"{_('Table')}: {get_title_from_layout('split-column-by-delimiter')}...")
+        create_command('split-column-by-'
+                       'delimiter',             f"{_('Table')}: {get_title_from_layout('split-column-by-delimiter')}...",
+                                                context = 'table_focus and column_string_focus')
+        create_command('split-column-by-'
+                       'no-characters',         f"{_('Table')}: {get_title_from_layout('split-column-by-no-characters')}...",
+                                                context = 'table_focus and column_string_focus')
 
     def set_data(self,
                  tables: Tables = [],

@@ -2828,11 +2828,11 @@
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">split-column-by-delimiter</attribute>
       </item>
-      <!-- <item>
+      <item>
         <attribute name="label" translatable="yes">By Number of Characters</attribute>
         <attribute name="action">win.toolbar</attribute>
-        <attribute name="target">split-column-by-number-of-characters</attribute>
-      </item> -->
+        <attribute name="target">split-column-by-no-characters</attribute>
+      </item>
       <!-- <item>
         <attribute name="label" translatable="yes">By Positions</attribute>
         <attribute name="action">win.toolbar</attribute>

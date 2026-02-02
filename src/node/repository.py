@@ -5488,7 +5488,7 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
         self.frame.do_restore = self.do_restore
 
         self.frame.data['columns']      = []
-        self.frame.data['column']       = None
+        self.frame.data['column']       = ''
         self.frame.data['delimiter']    = ','
         self.frame.data['delimiters']   = {',':  _('Comma'),
                                            '=':  _('Equal Sign'),
@@ -5533,16 +5533,17 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
             combo.set_data(options[args[1]])
             entry.set_visible(False)
 
-        widget = self.frame.contents[4].Widget
-        widget = widget.get_first_child()
-        widget.set_data(args[2])
+        box = self.frame.contents[4].Widget
+        spin = box.get_first_child()
+        spin.set_data(args[2])
 
         options = self.frame.data['split-ats']
         option = list(options.keys())[0]
         if args[3] in options:
             option = options[args[3]]
-        widget = widget.get_next_sibling()
-        widget.set_data(option)
+        combo = spin.get_next_sibling()
+        combo.set_data(option)
+        combo.set_sensitive(args[2] > 0)
 
         self.frame.do_execute(backward = False)
 
@@ -5670,7 +5671,6 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
         widget = self.frame.contents[2].Widget
 
         if not table_columns:
-            self.frame.data['column'] = ''
             widget.set_sensitive(False)
             return
 
@@ -5717,7 +5717,7 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
 
         def set_custom(value: str) -> None:
             """"""
-            def callback(value: int) -> None:
+            def callback(value: str) -> None:
                 """"""
                 self.frame.data['delimiter'] = value
                 self.frame.do_execute(backward = False)
@@ -5803,6 +5803,276 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
 
 
 
+class NodeSplitColumnByNoCharacters(NodeTemplate):
+
+    ndname = _('Split Column by No. Characters')
+
+    action = 'split-column-by-no-characters'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeSplitColumnByNoCharacters(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns']    = []
+        self.frame.data['column']     = ''
+        self.frame.data['n-chars']    = 0
+        self.frame.data['strategies'] = {'first':  _('First'),
+                                         'last':   _('Last'),
+                                         'repeat': _('Repeat')}
+        self.frame.data['strategy']   = 'first'
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+        self._add_n_chars()
+        self._add_strategy()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column']   = args[0]
+        self.frame.data['n-chars']  = args[1]
+        self.frame.data['strategy'] = args[2]
+
+        widget = self.frame.contents[3].Widget
+        widget.set_data(args[1])
+
+        options = self.frame.data['strategies']
+        option = list(options.keys())[0]
+        if args[2] in options:
+            option = options[args[2]]
+        widget = self.frame.contents[4].Widget
+        widget.set_data(option)
+
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from polars import col
+            from polars import struct
+
+            column   = self.frame.data['column']
+            n_chars  = self.frame.data['n-chars']
+            strategy = self.frame.data['strategy']
+
+            n_columns = 0
+
+            match strategy:
+                case 'first':
+                    expr = struct([
+                        col(column).str.slice(0, n_chars).alias(f'{column}_0'),
+                        col(column).str.slice(n_chars).alias(f'{column}_1'),
+                    ])
+                    n_columns = 2
+
+                case 'last':
+                    expr = col(column).str.len_chars() - n_chars
+                    expr = struct([
+                        col(column).str.slice(0, expr).alias(f'{column}_0'),
+                        col(column).str.slice(-n_chars).alias(f'{column}_1'),
+                    ])
+                    n_columns = 2
+
+                case 'repeat':
+                    expr = col(column).str.len_chars().max() / n_chars
+                    n_columns = int(table.select(expr).collect().item())
+                    expr = col(column).str.extract_all(f'.{{1,{n_chars}}}') \
+                                      .list.to_struct(upper_bound = n_columns)
+
+            names = [f'{column}_{i}' for i in range(n_columns)]
+            expr = expr.struct.rename_fields(names)
+            table = table.with_columns(expr.alias(column)).unnest(column)
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> dict:
+        """"""
+        return {
+            'column':   self.frame.data['column'],
+            'n-chars':  self.frame.data['n-chars'],
+            'strategy': self.frame.data['strategy'],
+        }
+
+    def do_restore(self,
+                   value: dict,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value['column'],
+                          value['n-chars'],
+                          value['strategy'])
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.string()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget    = combo,
+                               get_data  = get_data,
+                               set_data  = set_data)
+
+        combo.set_sensitive(False)
+
+    def _add_n_chars(self) -> None:
+        """"""
+        def get_data() -> int:
+            """"""
+            return self.frame.data['n-chars']
+
+        def set_data(value: int) -> None:
+            """"""
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['n-chars'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        widget = NodeSpinButton(title    = _('No. Characters'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                lower    = 1,
+                                digits   = 0)
+        self.frame.add_content(widget   = widget,
+                               get_data = get_data,
+                               set_data = set_data)
+
+    def _add_strategy(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['strategy']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['strategy'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        widget = NodeComboButton(title    = _('Strategy'),
+                                 get_data = get_data,
+                                 set_data = set_data,
+                                 options  = self.frame.data['strategies'])
+        self.frame.add_content(widget   = widget,
+                               get_data = get_data,
+                               set_data = set_data)
+
+
+
 _registered_nodes = [
     NodeBoolean(),
     NodeDecimal(),
@@ -5840,6 +6110,7 @@ _registered_nodes = [
     NodeFillBlanks(),
 
     NodeSplitColumnByDelimiter(),
+    NodeSplitColumnByNoCharacters(),
 ]
 
 

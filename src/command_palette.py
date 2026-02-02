@@ -252,6 +252,9 @@ class CommandPalette(Adw.Bin):
             # Show all items if the query is empty
             self.Selection.set_model(self.ListStore)
             self.ListView.scroll_to(0, Gtk.ListScrollFlags.SELECT, None)
+
+            self._refresh_ui()
+
             return
 
         new_list_store = Gio.ListStore()

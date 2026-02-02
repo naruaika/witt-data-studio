@@ -168,7 +168,8 @@ class SheetTransformWindow(Adw.Window):
                 self.n_content += 1
 
             case 'spin':
-                self._create_spin_row(title, description, ops_arg)
+                lower, upper = contents if contents else (None, None)
+                self._create_spin_row(title, description, lower, upper, ops_arg)
                 self.n_content += 1
 
             case 'switch':
@@ -271,13 +272,17 @@ class SheetTransformWindow(Adw.Window):
     def _create_spin_row(self,
                          title:       str,
                          description: str,
+                         lower:       int,
+                         upper:       int,
                          ops_arg:     SheetOperationArg,
                          ) ->         None:
         """"""
         spin = Adw.SpinRow(title = title)
         if description not in {'', None}:
             spin.set_subtitle(description)
-        spin.set_range(float_info.min, float_info.max)
+        lower = float_info.min if lower is None else lower
+        upper = float_info.max if upper is None else upper
+        spin.set_range(lower, upper)
         spin.get_adjustment().set_page_increment(5)
         spin.get_adjustment().set_step_increment(1)
         spin.bind_property('text', ops_arg, 'value', GObject.BindingFlags.SYNC_CREATE)

@@ -301,8 +301,10 @@ class NodeEditor(Gtk.Overlay):
         create_action('replace-values',         lambda *_: create_node('replace-values'))
         create_action('fill-blanks',            lambda *_: create_node('fill-blanks'))
 
-        create_action('split-column-'
-                      'by-delimiter',           lambda *_: create_node('split-column-by-delimiter'))
+        create_action('split-column-by-'
+                      'delimiter',              lambda *_: create_node('split-column-by-delimiter'))
+        create_action('split-column-by-'
+                      'no-characters',          lambda *_: create_node('split-column-by-no-characters'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -381,8 +383,10 @@ class NodeEditor(Gtk.Overlay):
         create_command('fill-blanks',           f"{_('Table')}: {_('Fill Blanks')}")
 
         create_command('split-column',          '$placeholder')
-        create_command('split-column-'
-                       'by-delimiter',          f"{_('Column')}: {_('Split Column by Delimiter')}")
+        create_command('split-column-by-'
+                       'delimiter',             f"{_('Column')}: {_('Split Column by Delimiter')}")
+        create_command('split-column-by-'
+                       'no-characters',         f"{_('Column')}: {_('Split Column by No. Characters')}")
 
     def _setup_controllers(self) -> None:
         """"""

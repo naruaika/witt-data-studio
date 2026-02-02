@@ -55,7 +55,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
             return (
                 _('Keep Top K Rows'),
                 [
-                    (_('No. Rows'), 'spin'),
+                    (_('No. Rows'), 'spin', (1, None)),
                     (
                         [
                             _('Based On'),
@@ -71,7 +71,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
             return (
                 _('Keep Bottom K Rows'),
                 [
-                    (_('No. Rows'), 'spin'),
+                    (_('No. Rows'), 'spin', (1, None)),
                     (
                         [
                             _('Based On'),
@@ -87,7 +87,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
             return (
                 _('Keep First K Rows'),
                 [
-                    (_('No. Rows'), 'spin'),
+                    (_('No. Rows'), 'spin', (1, None)),
                 ],
             )
 
@@ -95,7 +95,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
             return (
                 _('Keep Last K Rows'),
                 [
-                    (_('No. Rows'), 'spin'),
+                    (_('No. Rows'), 'spin', (1, None)),
                 ],
             )
 
@@ -104,7 +104,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 _('Keep Range of Rows'),
                 [
                     (_('From Row'), 'spin'),
-                    (_('No. Rows'), 'spin'),
+                    (_('No. Rows'), 'spin', (1, None)),
                 ],
             )
 
@@ -112,7 +112,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
             return (
                 _('Keep Every nth Rows'),
                 [
-                    (_('Nth Row'), 'spin'),
+                    (_('Nth Row'), 'spin', (1, None)),
                     (_('From Row'), 'spin'),
                 ],
             )
@@ -136,7 +136,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
             return (
                 _('Remove First K Rows'),
                 [
-                    (_('No. Rows'), 'spin'),
+                    (_('No. Rows'), 'spin', (1, None)),
                 ],
             )
 
@@ -144,7 +144,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
             return (
                 _('Remove Last K Rows'),
                 [
-                    (_('No. Rows'), 'spin'),
+                    (_('No. Rows'), 'spin', (1, None)),
                 ],
             )
 
@@ -153,7 +153,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 _('Remove Range of Rows'),
                 [
                     (_('From Row'), 'spin'),
-                    (_('No. Rows'), 'spin'),
+                    (_('No. Rows'), 'spin', (1, None)),
                 ],
             )
 
@@ -357,19 +357,21 @@ def get_layout(action_name: str) -> tuple[str, list]:
 
         case 'split-column-by-no-characters':
             return (
-                _('Split Column by Number of Characters'),
+                _('Split Column by No. Characters'),
                 [
                     (
                         _('Column'),
                         'combo',
                         '$string-columns:use-column',
                     ),
+                    (_('No. Characters'), 'spin', (1, None)),
                     (
                         _('Strategy'),
                         'combo',
                         {
-                            'once':    _('Once'),
-                            'repeat':  _('Repeat'),
+                            'first':  _('First'),
+                            'last':   _('Last'),
+                            'repeat': _('Repeat'),
                         },
                     ),
                 ],
