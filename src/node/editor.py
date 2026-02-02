@@ -305,6 +305,8 @@ class NodeEditor(Gtk.Overlay):
                       'delimiter',              lambda *_: create_node('split-column-by-delimiter'))
         create_action('split-column-by-'
                       'no-characters',          lambda *_: create_node('split-column-by-no-characters'))
+        create_action('split-column-by-'
+                      'positions',              lambda *_: create_node('split-column-by-positions'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -387,6 +389,8 @@ class NodeEditor(Gtk.Overlay):
                        'delimiter',             f"{_('Column')}: {_('Split Column by Delimiter')}")
         create_command('split-column-by-'
                        'no-characters',         f"{_('Column')}: {_('Split Column by No. Characters')}")
+        create_command('split-column-by-'
+                       'positions',             f"{_('Column')}: {_('Split Column by Positions')}")
 
     def _setup_controllers(self) -> None:
         """"""

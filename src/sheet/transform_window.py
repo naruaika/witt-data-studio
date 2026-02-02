@@ -164,7 +164,8 @@ class SheetTransformWindow(Adw.Window):
                 self.n_content += 1
 
             case 'entry':
-                self._create_entry_row(title, ops_arg)
+                default = contents or None
+                self._create_entry_row(title, default, ops_arg)
                 self.n_content += 1
 
             case 'spin':
@@ -262,12 +263,16 @@ class SheetTransformWindow(Adw.Window):
 
     def _create_entry_row(self,
                           title:   str,
+                          default: str,
                           ops_arg: SheetOperationArg,
                           ) ->     None:
         """"""
         entry = Adw.EntryRow(title = title)
         entry.bind_property('text', ops_arg, 'value', GObject.BindingFlags.SYNC_CREATE)
         self.ContentContainer.add(entry)
+
+        if default is not None:
+            entry.set_text(str(default))
 
     def _create_spin_row(self,
                          title:       str,

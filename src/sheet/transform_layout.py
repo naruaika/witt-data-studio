@@ -377,4 +377,17 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
+        case 'split-column-by-positions':
+            return (
+                _('Split Column by Positions'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                    (_('Positions'), 'entry', '0, 1'),
+                ],
+            )
+
     raise KeyError()

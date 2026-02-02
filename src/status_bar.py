@@ -97,7 +97,6 @@ class StatusBar(Gtk.Box):
             button_content.set_icon_name('check-round-outline-symbolic')
 
         else:
-            button.set_tooltip_text(None)
             button.add_css_class('warning')
             button_content.set_label(_('Unsaved work'))
             button_content.set_icon_name('exclamation-mark-symbolic')

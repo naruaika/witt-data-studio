@@ -2829,15 +2829,15 @@
         <attribute name="target">split-column-by-delimiter</attribute>
       </item>
       <item>
-        <attribute name="label" translatable="yes">By Number of Characters</attribute>
+        <attribute name="label" translatable="yes">By No. Characters</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">split-column-by-no-characters</attribute>
       </item>
-      <!-- <item>
+      <item>
         <attribute name="label" translatable="yes">By Positions</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">split-column-by-positions</attribute>
-      </item> -->
+      </item>
     </section>
     <section>
       <!-- <item>

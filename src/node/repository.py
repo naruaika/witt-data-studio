@@ -6073,6 +6073,248 @@ class NodeSplitColumnByNoCharacters(NodeTemplate):
 
 
 
+class NodeSplitColumnByPositions(NodeTemplate):
+
+    ndname = _('Split Column by Positions')
+
+    action = 'split-column-by-positions'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeSplitColumnByPositions(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns']   = []
+        self.frame.data['column']    = ''
+        self.frame.data['positions'] = '0, 1'
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+        self._add_positions()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column']    = args[0]
+        self.frame.data['positions'] = args[1]
+
+        from ast import literal_eval
+        widget = self.frame.contents[3].Widget
+        widget.set_data(args[1])
+        try:
+            literal_eval(f'[{args[1]}]')
+            widget.remove_css_class('error')
+        except:
+            widget.add_css_class('error')
+
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from ast import literal_eval
+            from polars import col
+            from polars import struct
+
+            column = self.frame.data['column']
+            positions = self.frame.data['positions']
+
+            try:
+                positions = literal_eval(f'[{positions}]')
+            except:
+                positions = []
+            else:
+                positions = [abs(p) for p in positions]
+                positions.sort()
+                if positions[0] > 0:
+                    positions.insert(0, 0)
+
+            if positions:
+                exprs = []
+                while positions:
+                    offset = positions.pop(0)
+                    length = None
+                    if positions:
+                        length = positions[0] - offset
+                    expr = col(column).str.slice(offset, length)
+                    exprs.append(expr.alias(f'{column}_{len(exprs)}'))
+                expr = struct(exprs)
+
+                names = [f'{column}_{i}' for i in range(len(exprs))]
+                expr = expr.struct.rename_fields(names)
+                table = table.with_columns(expr.alias(column)).unnest(column)
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> dict:
+        """"""
+        return {
+            'column':    self.frame.data['column'],
+            'positions': self.frame.data['positions'],
+        }
+
+    def do_restore(self,
+                   value: dict,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value['column'],
+                          value['positions'])
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.string()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget    = combo,
+                               get_data  = get_data,
+                               set_data  = set_data)
+
+        combo.set_sensitive(False)
+
+    def _add_positions(self) -> None:
+        """"""
+        widget = None
+
+        def get_data() -> str:
+            """"""
+            return self.frame.data['positions']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                from ast import literal_eval
+                try:
+                    literal_eval(f'[{value}]')
+                    widget.remove_css_class('error')
+                except:
+                    widget.add_css_class('error')
+                self.frame.data['positions'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        widget = NodeEntry(get_data    = get_data,
+                           set_data    = set_data,
+                           placeholder = '0, 1')
+        self.frame.add_content(widget   = widget,
+                               get_data = get_data,
+                               set_data = set_data)
+
+
+
 _registered_nodes = [
     NodeBoolean(),
     NodeDecimal(),
@@ -6111,6 +6353,7 @@ _registered_nodes = [
 
     NodeSplitColumnByDelimiter(),
     NodeSplitColumnByNoCharacters(),
+    NodeSplitColumnByPositions(),
 ]
 
 
