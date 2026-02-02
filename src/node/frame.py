@@ -47,6 +47,7 @@ class NodeFrame(Adw.Bin):
         super().__init__(focusable = True)
 
         self.Title.set_label(title)
+        self.Title.set_tooltip_text(title)
 
         self.x      = x
         self.y      = y

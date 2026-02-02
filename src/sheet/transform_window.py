@@ -24,6 +24,7 @@ from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Pango
 from sys import float_info
+from typing import Any
 import json
 
 from ..core.utils import isiterable
@@ -83,73 +84,29 @@ class SheetTransformWindow(Adw.Window):
         self.options  = {}
         self.op_args  = []
 
-        n_content = 0
-        n_options = 0
+        self.n_content = 0
+        self.n_options = 0
 
-        is_dynamic = False
+        self.is_dynamic = False
 
         for item in layout:
-            operation_arg = SheetOperationArg()
-            self.op_args.append(operation_arg)
-
-            title, dtype = item[0], item[1]
-            description = None
-            contents = []
-            defaults = []
-
-            if isiterable(title):
-                title = item[0][0]
-                description = item[0][1]
-            if len(item) > 2:
-                contents = item[2]
-            if len(item) > 3:
-                defaults = item[3]
-
-            if indexed := dtype.endswith(':indexed'):
-                dtype = dtype.removesuffix(':indexed')
-
-            match dtype:
-                case 'combo':
-                    self._create_combo_row(title, description, contents, operation_arg)
-                    n_content += 1
-
-                case 'entry':
-                    self._create_entry_row(title, operation_arg)
-                    n_content += 1
-
-                case 'spin':
-                    self._create_spin_row(title, description, operation_arg)
-                    n_content += 1
-
-                case 'switch':
-                    self._create_switch_row(title, description, operation_arg)
-                    n_content += 1
-
-                case 'list-check':
-                    self._create_list_check(title, description, contents, defaults, indexed, operation_arg)
-
-                case 'list-item':
-                    self._create_list_item(title, contents, operation_arg)
-                    is_dynamic = True
-
-                case 'list-switch':
-                    self._create_list_switch(contents, operation_arg)
+            self._create_widget(item)
 
         if 'new_column' in self.kwargs:
             self._create_new_column_row()
-            n_options += 1
+            self.n_options += 1
         if 'new_sheet' in self.kwargs:
             self._create_new_sheet_row()
-            n_options += 1
+            self.n_options += 1
 
         # Remove or re-position to the end
         self.PreferencesPage.remove(self.OptionsContainer)
-        if n_content == 0:
+        if self.n_content == 0:
             self.ContentContainer.unparent()
-        if n_options > 0:
+        if self.n_options > 0:
             self.PreferencesPage.add(self.OptionsContainer)
 
-        if is_dynamic:
+        if self.is_dynamic:
             scrolled_window.set_min_content_height(362)
 
         # We set the maximum content height previously to prevent
@@ -159,10 +116,81 @@ class SheetTransformWindow(Adw.Window):
         GLib.idle_add(scrolled_window.set_min_content_height, -1)
         GLib.idle_add(scrolled_window.set_max_content_height, -1)
 
+    def _create_widget(self,
+                       item: Any,
+                       ) ->  None:
+        """"""
+        title, dtype = item[0], item[1]
+        description = None
+        contents = []
+        defaults = []
+
+        if isiterable(title):
+            title = item[0][0]
+            description = item[0][1]
+        if len(item) > 2:
+            contents = item[2]
+        if len(item) > 3:
+            defaults = item[3]
+
+        custom = dtype.endswith(':custom')
+        dtype = dtype.removesuffix(':custom')
+
+        indexed = dtype.endswith(':indexed')
+        dtype = dtype.removesuffix(':indexed')
+
+        if dtype != 'group':
+            ops_arg = SheetOperationArg()
+            self.op_args.append(ops_arg)
+
+        match dtype:
+            case 'group':
+                main_group = self.ContentContainer
+
+                group = Adw.PreferencesGroup()
+                self.PreferencesPage.add(group)
+                self.ContentContainer = group
+                if title:
+                    group.set_title(title)
+
+                for i in contents:
+                    self._create_widget(i)
+
+                self.ContentContainer = main_group
+
+            case 'combo':
+                default = defaults[0] if defaults else None
+                self._create_combo_row(title, description, contents, default, custom, ops_arg)
+                self.n_content += 1
+
+            case 'entry':
+                self._create_entry_row(title, ops_arg)
+                self.n_content += 1
+
+            case 'spin':
+                self._create_spin_row(title, description, ops_arg)
+                self.n_content += 1
+
+            case 'switch':
+                self._create_switch_row(title, description, ops_arg)
+                self.n_content += 1
+
+            case 'list-check':
+                self._create_list_check(title, description, contents, defaults, indexed, ops_arg)
+
+            case 'list-item':
+                self._create_list_item(title, contents, ops_arg)
+                self.is_dynamic = True
+
+            case 'list-switch':
+                self._create_list_switch(contents, ops_arg)
+
     def _create_combo_row(self,
                           title:       str,
                           description: str,
                           options:     dict,
+                          default:     str,
+                          custom:      bool,
                           ops_arg:     SheetOperationArg,
                           ) ->         None:
         """"""
@@ -171,17 +199,52 @@ class SheetTransformWindow(Adw.Window):
         if description not in {'', None}:
             combo.set_subtitle(description)
 
+        if isinstance(options, list):
+            options = {o: o for o in options}
+
         model = Gtk.StringList()
         for option in options.values():
             model.append(option)
+        if custom:
+            model.append(_('Custom'))
         combo.set_model(model)
 
-        self.ContentContainer.add(combo)
+        if custom:
+            group = Adw.PreferencesGroup()
+            self.PreferencesPage.add(group)
+            group.add(combo)
+        else:
+            self.ContentContainer.add(combo)
+
+        if custom:
+            custom_ops_arg = SheetOperationArg()
+            entry = Adw.EntryRow(title = _('Custom'))
+            group.add(entry)
+
+            def custom_transform_to(binding: GObject.Binding,
+                                    text:    str,
+                                    ) ->     str:
+                """"""
+                position = combo.get_selected()
+                if custom and position == len(options):
+                    ops_arg.value = text
+                    return text
+
+            entry.bind_property(source_property = 'text',
+                                target          = custom_ops_arg,
+                                target_property = 'value',
+                                flags           = GObject.BindingFlags.SYNC_CREATE,
+                                transform_to    = custom_transform_to)
 
         def transform_to(binding:  GObject.Binding,
                          position: int,
                          ) ->      str:
             """"""
+            if custom:
+                entry.set_sensitive(False)
+                if position == len(options):
+                    entry.set_sensitive(True)
+                    return custom_ops_arg.value
             return list(options.keys())[position]
 
         combo.bind_property(source_property = 'selected',
@@ -190,7 +253,11 @@ class SheetTransformWindow(Adw.Window):
                             flags           = GObject.BindingFlags.SYNC_CREATE,
                             transform_to    = transform_to)
 
-        combo.set_selected(0)
+        if default:
+            selected = next((i for i, key in enumerate(options) if key == default), 0)
+            combo.set_selected(selected)
+        else:
+            combo.set_selected(0)
 
     def _create_entry_row(self,
                           title:   str,

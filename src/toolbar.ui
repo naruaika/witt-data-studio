@@ -1681,12 +1681,11 @@
                               <object class="GtkGrid">
                                 <property name="vexpand">true</property>
                                 <child>
-                                  <object class="GtkButton" id="SplitColumnButton">
+                                  <object class="GtkMenuButton" id="SplitColumnButton">
                                     <property name="name">split-column</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Split Column</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'split-column'</property>
+                                    <property name="menu-model">split_column_menu</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">vertical</property>
@@ -2819,6 +2818,48 @@
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">unpivot-columns</attribute>
       </item>
+    </section>
+  </menu>
+
+  <menu id="split_column_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">By Delimiter</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">split-column-by-delimiter</attribute>
+      </item>
+      <!-- <item>
+        <attribute name="label" translatable="yes">By Number of Characters</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">split-column-by-number-of-characters</attribute>
+      </item> -->
+      <!-- <item>
+        <attribute name="label" translatable="yes">By Positions</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">split-column-by-positions</attribute>
+      </item> -->
+    </section>
+    <section>
+      <!-- <item>
+        <attribute name="label" translatable="yes">By Lowercase to Uppercase</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">split-column-by-lowercase-to-uppercase</attribute>
+      </item> -->
+      <!-- <item>
+        <attribute name="label" translatable="yes">By Uppercase to Lowercase</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">split-column-by-uppercase-to-lowercase</attribute>
+      </item> -->
+      <!-- <item>
+        <attribute name="label" translatable="yes">By Digit to Non-Digit</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">split-column-by-digit-to-non-digit</attribute>
+      </item> -->
+      <!-- <item>
+        <attribute name="label" translatable="yes">By Non-Digit to Digit</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">split-column-by-non-digit-to-digit</attribute>
+      </item> -->
     </section>
   </menu>
 </interface>

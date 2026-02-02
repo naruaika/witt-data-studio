@@ -116,6 +116,8 @@ class NodeComboButton(Gtk.Button):
                  options:  dict,
                  ) ->      None:
         """"""
+        self.set_options(options)
+
         box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
                       spacing     = 6)
 
@@ -130,9 +132,11 @@ class NodeComboButton(Gtk.Button):
                          spacing     = 2)
         box.append(subbox)
 
-        label = next((v for k, v in options.items() if k == get_data()), None)
-        label = Gtk.Label(label  = label,
-                          xalign = 1.0)
+        label = next((v for k, v in self.options.items() if k == get_data()), None)
+        label = Gtk.Label(label        = label,
+                          xalign       = 1.0,
+                          ellipsize    = Pango.EllipsizeMode.END,
+                          tooltip_text = label)
         subbox.append(label)
 
         icon = Gtk.Image(icon_name = 'pan-down-symbolic')
@@ -185,7 +189,7 @@ class NodeComboButton(Gtk.Button):
                     list_item.image.set_opacity(0.0)
 
             model = Gtk.StringList()
-            for value in options.values():
+            for value in self.options.values():
                 model.append(value)
             selection = Gtk.NoSelection(model = model)
 
@@ -218,9 +222,10 @@ class NodeComboButton(Gtk.Button):
                              position:  int,
                              ) ->       None:
                 """"""
-                key = list(options.keys())[position]
-                value = list(options.values())[position]
+                key = list(self.options.keys())[position]
+                value = list(self.options.values())[position]
                 label.set_label(value)
+                label.set_tooltip_text(value)
                 popover.popdown()
                 set_data(key)
 
@@ -248,6 +253,15 @@ class NodeComboButton(Gtk.Button):
         subbox = box.get_last_child()
         label = subbox.get_first_child()
         label.set_label(value)
+        label.set_tooltip_text(value)
+
+    def set_options(self,
+                    options: dict,
+                    ) ->     None:
+        """"""
+        self.options = options
+        if isinstance(options, list):
+            self.options = {o: o for o in options}
 
 
 
@@ -356,15 +370,17 @@ class NodeEntry(Gtk.Entry):
     def __init__(self,
                  get_data:    callable,
                  set_data:    callable,
-                 placeholder: str = None,
+                 placeholder: str = _('Value'),
                  ) ->         None:
         """"""
         super().__init__(text             = get_data(),
-                         placeholder_text = placeholder)
+                         placeholder_text = placeholder,
+                         show_emoji_icon  = True)
 
         def on_activated(entry: Gtk.Entry) -> None:
             """"""
             set_data(entry.get_text())
+            self.grab_focus()
 
         self.connect('activate', on_activated)
 
@@ -372,7 +388,7 @@ class NodeEntry(Gtk.Entry):
                  value: str,
                  ) ->   None:
         """"""
-        self.set_text(value)
+        self.set_text(str(value))
 
 
 

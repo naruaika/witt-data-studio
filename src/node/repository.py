@@ -480,8 +480,6 @@ class NodeReadFile(NodeTemplate):
                 self._add_rows_selector(with_from_rows  = True,
                                         with_has_header = True)
                 self._add_columns_selector()
-                if file_format != 'tsv':
-                    self._add_separators_group()
 
             case 'parquet':
                 self._add_rows_selector(with_from_rows  = False,
@@ -490,6 +488,9 @@ class NodeReadFile(NodeTemplate):
 
 #           case _ if file_format in SPREADSHEET_FILES:
 #               ...
+
+        if file_format in {'csv', 'txt'}:
+            self._add_delimiters_group()
 
         if file_format in {'csv', 'tsv', 'txt', 'parquet'}:
             if self.frame.data['column-expanded']:
@@ -673,7 +674,7 @@ class NodeReadFile(NodeTemplate):
                                   on_clicked = on_clicked)
         self.frame.add_content(chooser)
 
-    def _add_separators_group(self) -> None:
+    def _add_delimiters_group(self) -> None:
         """"""
         box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
         box.add_css_class('linked')
@@ -682,7 +683,7 @@ class NodeReadFile(NodeTemplate):
         box.append(self._add_quote_character())
         box.append(self._add_decimal_separator())
 
-        expander = Gtk.Expander(label = _('Separators'),
+        expander = Gtk.Expander(label = _('Delimiters'),
                                 child = box)
         self.frame.add_content(expander)
 
@@ -1938,7 +1939,7 @@ class NodeKeepTopKRows(NodeTemplate):
         self.frame.data['table'] = table
         self._refresh_columns()
 
-        if table.collect_schema().names():
+        if self.frame.data['all-columns']:
             if columns := self.frame.data['columns']:
                 n_rows = self.frame.data['n-rows']
                 table = table.top_k(n_rows, by = columns)
@@ -2161,7 +2162,7 @@ class NodeKeepBottomKRows(NodeTemplate):
         self.frame.data['table'] = table
         self._refresh_columns()
 
-        if table.collect_schema().names():
+        if self.frame.data['all-columns']:
             if columns := self.frame.data['columns']:
                 n_rows = self.frame.data['n-rows']
                 table = table.bottom_k(n_rows, by = columns)
@@ -3017,7 +3018,7 @@ class NodeKeepDuplicateRows(NodeTemplate):
         self.frame.data['table'] = table
         self._refresh_columns()
 
-        if table.collect_schema().names():
+        if self.frame.data['all-columns']:
             if columns := self.frame.data['columns']:
                 from polars import struct
                 table = table.filter(struct(columns).is_duplicated())
@@ -3658,8 +3659,12 @@ class NodeRemoveDuplicateRows(NodeTemplate):
         self.frame.data['keep-order'] = args[1]
         self.frame.data['columns']    = args[2]
 
+        options = self.frame.data['all-keeps']
+        option = list(options.keys())[0]
+        if args[0] in options:
+            option = options[args[0]]
         widget = self.frame.contents[2].Widget
-        widget.set_data(self.frame.data['all-keeps'][args[0]])
+        widget.set_data(option)
 
         widget = self.frame.contents[3].Widget
         widget.set_data(args[1])
@@ -3686,7 +3691,7 @@ class NodeRemoveDuplicateRows(NodeTemplate):
         self.frame.data['table'] = table
         self._refresh_columns()
 
-        if table.collect_schema().names():
+        if self.frame.data['all-columns']:
             if columns := self.frame.data['columns']:
                 keep = self.frame.data['keep-rows']
                 order = self.frame.data['keep-order']
@@ -3958,9 +3963,7 @@ class NodeSortRows(NodeTemplate):
         self.frame.data['table'] = table
         self._refresh_selector()
 
-        table_columns = table.collect_schema().names()
-
-        if table_columns:
+        if self.frame.data['all-columns']:
             if levels := self.frame.data['levels']:
                 bys = []
                 descending = []
@@ -4399,8 +4402,6 @@ class NodeConvertDataType(NodeTemplate):
         self.frame.data['table'] = table
         self._refresh_selector()
 
-        table_columns = table.collect_schema().names()
-
         from polars import Date
         from polars import Time
         from polars import Datetime
@@ -4439,7 +4440,7 @@ class NodeConvertDataType(NodeTemplate):
             'uint64':      UInt64,
         }
 
-        if table_columns:
+        if self.frame.data['all-columns']:
             if maps := self.frame.data['maps']:
                 table = table.cast({m[0]: options[m[1]] for m in maps if m[1] in options})
 
@@ -4658,9 +4659,7 @@ class NodeRenameColumns(NodeTemplate):
         self.frame.data['table'] = table
         self._refresh_selector()
 
-        table_columns = table.collect_schema().names()
-
-        if table_columns:
+        if self.frame.data['all-columns']:
             if maps := self.frame.data['maps']:
                 table = table.rename({m[0]: m[1] for m in maps if m[1].strip()})
 
@@ -5357,8 +5356,12 @@ class NodeFillBlanks(NodeTemplate):
         """"""
         self.frame.data['strategy'] = args[0]
 
+        options = self.frame.data['options']
+        option = list(options.keys())[0]
+        if args[0] in options:
+            option = options[args[0]]
         widget = self.frame.contents[2].Widget
-        widget.set_data(self.frame.data['options'][args[0]])
+        widget.set_data(option)
 
         self.frame.do_execute(backward = False)
 
@@ -5456,7 +5459,6 @@ class NodeFillBlanks(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-
         combo = NodeComboButton(title    = _('Strategy'),
                                 get_data = get_data,
                                 set_data = set_data,
@@ -5464,6 +5466,340 @@ class NodeFillBlanks(NodeTemplate):
         self.frame.add_content(widget    = combo,
                                get_data  = get_data,
                                set_data  = set_data)
+
+
+
+class NodeSplitColumnByDelimiter(NodeTemplate):
+
+    ndname = _('Split Column by Delimiter')
+
+    action = 'split-column-by-delimiter'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeSplitColumnByDelimiter(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns']      = []
+        self.frame.data['column']       = None
+        self.frame.data['delimiter']    = ','
+        self.frame.data['delimiters']   = {',':  _('Comma'),
+                                           '=':  _('Equal Sign'),
+                                           ';':  _('Semicolon'),
+                                           ' ':  _('Space'),
+                                           '\n': _('Tab'),
+                                           '$':  _('Custom')}
+        self.frame.data['ct.delimiter'] = False
+        self.frame.data['n-columns']    = 0
+        self.frame.data['split-ats']    = {'every': _('Every Occurrence'),
+                                           'first': _('First Occurrence')}
+        self.frame.data['split-at']     = 'every'
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+        self._add_delimiter()
+        self._add_options()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column']    = args[0]
+        self.frame.data['delimiter'] = args[1]
+        self.frame.data['n-columns'] = args[2]
+        self.frame.data['split-at']  = args[3]
+
+        options = self.frame.data['delimiters']
+        is_custom = args[1] not in options
+        use_custom = self.frame.data['ct.delimiter']
+        box = self.frame.contents[3].Widget
+        combo = box.get_first_child()
+        entry = combo.get_next_sibling()
+        if is_custom and not use_custom:
+            option = list(options.values())[-1]
+            combo.set_data(option)
+            entry.set_data(args[1])
+            entry.set_visible(True)
+            self.frame.data['ct.delimiter'] = True
+        else:
+            combo.set_data(options[args[1]])
+            entry.set_visible(False)
+
+        widget = self.frame.contents[4].Widget
+        widget = widget.get_first_child()
+        widget.set_data(args[2])
+
+        options = self.frame.data['split-ats']
+        option = list(options.keys())[0]
+        if args[3] in options:
+            option = options[args[3]]
+        widget = widget.get_next_sibling()
+        widget.set_data(option)
+
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from polars import col
+
+            column    = self.frame.data['column']
+            delimiter = self.frame.data['delimiter']
+            n_columns = self.frame.data['n-columns']
+            split_at  = self.frame.data['split-at']
+
+            if n_columns == 0:
+                expr = col(column).str.count_matches(delimiter)
+                n_columns = table.select((expr + 1).max()).collect().item()
+
+            if split_at == 'first':
+                expr = col(column).str.splitn(delimiter, n_columns)
+            else:
+                expr = col(column).str.split_exact(delimiter, n_columns - 1)
+
+            names = [f'{column}_{i}' for i in range(n_columns)]
+            expr = expr.struct.rename_fields(names)
+            table = table.with_columns(expr).unnest(column)
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> dict:
+        """"""
+        return {
+            'column':    self.frame.data['column'],
+            'delimiter': self.frame.data['delimiter'],
+            'n-columns': self.frame.data['n-columns'],
+            'split-at':  self.frame.data['split-at'],
+        }
+
+    def do_restore(self,
+                   value: dict,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value['column'],
+                          value['delimiter'],
+                          value['n-columns'],
+                          value['split-at'])
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.string()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            self.frame.data['column'] = ''
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget    = combo,
+                               get_data  = get_data,
+                               set_data  = set_data)
+
+        combo.set_sensitive(False)
+
+    def _add_delimiter(self) -> None:
+        """"""
+        box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+        box.add_css_class('linked')
+        self.frame.add_content(box)
+
+        def get_custom() -> str:
+            """"""
+            return self.frame.data['delimiter']
+
+        def set_custom(value: str) -> None:
+            """"""
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['delimiter'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        entry = NodeEntry(get_custom, set_custom, _('Custom'))
+        entry.set_visible(False)
+
+        def get_data() -> str:
+            """"""
+            if self.frame.data['ct.delimiter']:
+                return '$'
+            return self.frame.data['delimiter']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                if value == '$':
+                    value = entry.get_text()
+                    self.frame.data['delimiter'] = value
+                    self.frame.data['ct.delimiter'] = True
+                    entry.set_visible(True)
+                else:
+                    self.frame.data['delimiter'] = value
+                    self.frame.data['ct.delimiter'] = False
+                    entry.set_visible(False)
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Delimiter'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['delimiters'])
+
+        box.append(combo)
+        box.append(entry)
+
+    def _add_options(self) -> None:
+        """"""
+        box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+        box.add_css_class('linked')
+        self.frame.add_content(box)
+
+        def get_split_at() -> str:
+            """"""
+            return self.frame.data['split-at']
+
+        def set_split_at(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['split-at'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('At Delimiter'),
+                                get_data = get_split_at,
+                                set_data = set_split_at,
+                                options  = self.frame.data['split-ats'])
+
+        def get_n_columns() -> int:
+            """"""
+            return self.frame.data['n-columns']
+
+        def set_n_columns(value: int) -> None:
+            """"""
+            def callback(value: int) -> None:
+                """"""
+                combo.set_sensitive(value > 0)
+                self.frame.data['n-columns'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        spin = NodeSpinButton(title    = _('No. Columns'),
+                              get_data = get_n_columns,
+                              set_data = set_n_columns,
+                              lower    = 0,
+                              digits   = 0)
+
+        box.append(spin)
+        box.append(combo)
 
 
 
@@ -5502,6 +5838,8 @@ _registered_nodes = [
     NodeRenameColumns(),
     NodeReplaceValues(),
     NodeFillBlanks(),
+
+    NodeSplitColumnByDelimiter(),
 ]
 
 

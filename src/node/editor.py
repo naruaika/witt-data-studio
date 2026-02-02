@@ -301,6 +301,9 @@ class NodeEditor(Gtk.Overlay):
         create_action('replace-values',         lambda *_: create_node('replace-values'))
         create_action('fill-blanks',            lambda *_: create_node('fill-blanks'))
 
+        create_action('split-column-'
+                      'by-delimiter',           lambda *_: create_node('split-column-by-delimiter'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -376,6 +379,10 @@ class NodeEditor(Gtk.Overlay):
         create_command('rename-columns',        f"{_('Table')}: {_('Rename Columns')}")
         create_command('replace-values',        f"{_('Table')}: {_('Replace Values')}")
         create_command('fill-blanks',           f"{_('Table')}: {_('Fill Blanks')}")
+
+        create_command('split-column',          '$placeholder')
+        create_command('split-column-'
+                       'by-delimiter',          f"{_('Column')}: {_('Split Column by Delimiter')}")
 
     def _setup_controllers(self) -> None:
         """"""

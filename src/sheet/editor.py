@@ -274,6 +274,9 @@ class SheetEditor(Gtk.Box):
         create_action('replace-values',         lambda *_: self._transform_table('replace-values'))
         create_action('fill-blanks',            lambda *_: self._transform_table('fill-blanks'))
 
+        create_action('split-column-'
+                      'by-delimiter',           lambda *_: self._transform_table('split-column-by-delimiter'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -339,6 +342,11 @@ class SheetEditor(Gtk.Box):
         create_command('replace-values',        f"{_('Table')}: {get_title_from_layout('replace-values')}...")
         create_command('fill-blanks',           f"{_('Table')}: {get_title_from_layout('fill-blanks')}...")
 
+        create_command('split-column',          '$placeholder',
+                                                context = 'table_focus and column_string_focus')
+        create_command('split-column-'
+                       'by-delimiter',          f"{_('Table')}: {get_title_from_layout('split-column-by-delimiter')}...")
+
     def set_data(self,
                  tables: Tables = [],
                  sparse: Sparse = {},
@@ -364,6 +372,8 @@ class SheetEditor(Gtk.Box):
         # Reset sheet display properties: column widths,
         # row heights, hidden columns, hidden rows, etc.
         self.display.reset()
+
+        gc.collect()
 
         def do_finish(table: DataTable) -> None:
             """"""
@@ -616,10 +626,6 @@ class SheetEditor(Gtk.Box):
         if not isinstance(table, DataTable):
             return False
 
-        for idx, arg in enumerate(func_args):
-            if arg == '$column':
-                func_args[idx] = column_name
-
         window = self.get_root()
         editor = window.node_editor
 
@@ -716,9 +722,15 @@ class SheetEditor(Gtk.Box):
                     do_evaluate(vidx, rows[ridx][-1])
 
             if isinstance(var, str):
+                if not var.startswith('$'):
+                    return
+
                 if '-columns' in var:
-                    checked = var.endswith(':checked')
-                    var = var.removesuffix(':checked')
+                    check_all = var.endswith(':check-all')
+                    var = var.removesuffix(':check-all')
+
+                    use_column = var.endswith(':use-column')
+                    var = var.removesuffix(':use-column')
 
                     rows[ridx] = list(rows[ridx])
 
@@ -731,8 +743,12 @@ class SheetEditor(Gtk.Box):
                     if var == '$integer-columns':
                         rows[ridx][-1] = column_integers
 
-                    if checked:
+                    if check_all:
                         defaults = deepcopy(rows[ridx][-1])
+                        rows[ridx].append(defaults)
+
+                    if use_column:
+                        defaults = [column_name]
                         rows[ridx].append(defaults)
 
                     rows[ridx] = tuple(rows[ridx])

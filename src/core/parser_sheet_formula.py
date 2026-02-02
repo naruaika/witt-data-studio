@@ -2088,6 +2088,7 @@ class Transformer(Transformer):
 
     def collect(self, result):
         """"""
+        # TODO: implement _SafeLazyFrame
         if isinstance(result, _SafeGroupBy):
             return result._groupby
         if isinstance(result, _SafeDynamicGroupBy):

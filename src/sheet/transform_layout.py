@@ -317,4 +317,62 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
+        case 'split-column-by-delimiter':
+            return (
+                _('Split Column by Delimiter'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                    (
+                        _('Delimiter'),
+                        'combo:custom',
+                        {
+                            ',':  _('Comma'),
+                            '=':  _('Equal Sign'),
+                            ';':  _('Semicolon'),
+                            ' ':  _('Space'),
+                            '\n': _('Tab'),
+                        },
+                    ),
+                    (
+                        None,
+                        'group',
+                        [
+                            (_('No. Columns'), 'spin'),
+                            (
+                                _('At Delimiter'),
+                                'combo',
+                                {
+                                    'every': _('Every Occurrence'),
+                                    'first': _('First Occurrence'),
+                                },
+                            ),
+                        ],
+                    ),
+                ],
+            )
+
+        case 'split-column-by-no-characters':
+            return (
+                _('Split Column by Number of Characters'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                    (
+                        _('Strategy'),
+                        'combo',
+                        {
+                            'once':    _('Once'),
+                            'repeat':  _('Repeat'),
+                        },
+                    ),
+                ],
+            )
+
     raise KeyError()
