@@ -7,8 +7,8 @@
     "sources": [
         {
             "type": "file",
-            "url": "https://files.pythonhosted.org/packages/6d/f4/4af37df2ae23ccc8d21d1d2a9743573cab5ebdc1969b33d4fa2c32eba430/witt_strutil-0.1.0-cp313-abi3-manylinux_2_34_x86_64.whl",
-            "sha256": "c1950fe4074465a6bba0d919b26b6793aa523199541c25d46cb3f1deb8d3909f"
+            "url": "https://files.pythonhosted.org/packages/da/01/cf3ce19942e4c3b299194efc1f0dedde506b505ed7ae1bbedb6e7fde1eae/witt_strutil-0.1.1-cp313-abi3-manylinux_2_34_x86_64.whl",
+            "sha256": "9e6a7ad914e172d25d3908aa8439c94ed359c2d7f58afa5ea2f8b9332443f66f"
         }
     ]
 }

@@ -2829,9 +2829,9 @@
         <attribute name="target">split-column-by-delimiter</attribute>
       </item>
       <item>
-        <attribute name="label" translatable="yes">By No. Characters</attribute>
+        <attribute name="label" translatable="yes">By Number of Characters</attribute>
         <attribute name="action">win.toolbar</attribute>
-        <attribute name="target">split-column-by-no-characters</attribute>
+        <attribute name="target">split-column-by-number-of-characters</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">By Positions</attribute>
@@ -2840,16 +2840,16 @@
       </item>
     </section>
     <section>
-      <!-- <item>
+      <item>
         <attribute name="label" translatable="yes">By Lowercase to Uppercase</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">split-column-by-lowercase-to-uppercase</attribute>
-      </item> -->
-      <!-- <item>
+      </item>
+      <item>
         <attribute name="label" translatable="yes">By Uppercase to Lowercase</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">split-column-by-uppercase-to-lowercase</attribute>
-      </item> -->
+      </item>
       <!-- <item>
         <attribute name="label" translatable="yes">By Digit to Non-Digit</attribute>
         <attribute name="action">win.toolbar</attribute>

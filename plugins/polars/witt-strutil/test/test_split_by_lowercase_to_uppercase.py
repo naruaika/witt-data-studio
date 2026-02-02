@@ -1,4 +1,4 @@
-# test_pig_latinnify.py
+# test_split_by_lowercase_to_uppercase.py
 #
 # Copyright (c) 2025 Naufan Rusyda Faikar
 #
@@ -17,32 +17,34 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-from witt_strutil import pig_latinnify
+from witt_strutil import split_by_lowercase_to_uppercase
 import polars
 
-def test_pig_latinnify():
+def test_split_by_lowercase_to_uppercase():
     df = polars.DataFrame({
         'input': [
-            'he does not know',
-            'this',
-            'is',
-            'banana',
-            'black',
-            'smile',
-            'straight',
-            'hello!',
+            'SymbianOS',
+            'WinCE',
+            'webOS',
+            'iPhone',
+            'JSONfile',
+            'GObject',
+            'Python',
+            'Sony Ericsson',
+            'BlackBerry OS',
         ],
         'expected': [
-            'ehay oesday otnay owknay',
-            'isthay',
-            'isway',
-            'ananabay',
-            'ackblay',
-            'ilesmay',
-            'aightstray',
-            'ellohay!',
+            ['Symbian', 'OS'],
+            ['Win', 'CE'],
+            ['web', 'OS'],
+            ['i', 'Phone'],
+            ['JSONfile'],
+            ['GObject'],
+            ['Python'],
+            ['Sony Ericsson'],
+            ['Black', 'Berry OS'],
         ],
     })
-    df = df.with_columns(output=pig_latinnify('input'))
+    df = df.with_columns(output=split_by_lowercase_to_uppercase('input'))
 
     assert df['output'].to_list() == df['expected'].to_list()

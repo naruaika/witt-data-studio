@@ -17,7 +17,6 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-
 from witt_strutil import to_sponge_case
 import polars
 
@@ -27,4 +26,4 @@ def test_to_sponge_case():
     })
     df = df.with_columns(output=to_sponge_case('input'))
 
-    assert True # no idea how to test this
+    assert True # no idea how to test this :/

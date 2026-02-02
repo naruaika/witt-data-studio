@@ -17,7 +17,6 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-
 from witt_strutil import split_by_chars
 import polars
 

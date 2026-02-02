@@ -17,7 +17,6 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-
 from witt_strutil import to_sentence_case
 import polars
 
@@ -35,6 +34,7 @@ def test_to_sentence_case():
             'CONSTANT_CASE',
             'dot.case',
             'Sentence case',
+            None,
         ],
         'expected': [
             'Lorem. Ipsum! Dolor? Sit amet.',
@@ -48,6 +48,7 @@ def test_to_sentence_case():
             'Constant_case',
             'Dot.case',
             'Sentence case',
+            None,
         ],
     })
     df = df.with_columns(output=to_sentence_case('input'))

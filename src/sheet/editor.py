@@ -277,9 +277,13 @@ class SheetEditor(Gtk.Box):
         create_action('split-column-by-'
                       'delimiter',              lambda *_: self._transform_table('split-column-by-delimiter'))
         create_action('split-column-by-'
-                      'no-characters',          lambda *_: self._transform_table('split-column-by-no-characters'))
+                      'number-of-characters',   lambda *_: self._transform_table('split-column-by-number-of-characters'))
         create_action('split-column-by-'
                       'positions',              lambda *_: self._transform_table('split-column-by-positions'))
+        create_action('split-column-by-'
+                      'lowercase-to-uppercase', lambda *_: self._transform_table('split-column-by-lowercase-to-uppercase'))
+        create_action('split-column-by-'
+                      'uppercase-to-lowercase', lambda *_: self._transform_table('split-column-by-uppercase-to-lowercase'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -352,10 +356,18 @@ class SheetEditor(Gtk.Box):
                        'delimiter',             f"{_('Column')}: {get_title_from_layout('split-column-by-delimiter')}...",
                                                 context = 'table_focus and column_string_focus')
         create_command('split-column-by-'
-                       'no-characters',         f"{_('Column')}: {get_title_from_layout('split-column-by-no-characters')}...",
+                       'number-of-characters',  f"{_('Column')}: {get_title_from_layout('split-column-by-number-of-characters')}...",
                                                 context = 'table_focus and column_string_focus')
         create_command('split-column-by-'
                        'positions',             f"{_('Column')}: {get_title_from_layout('split-column-by-positions')}...",
+                                                context = 'table_focus and column_string_focus')
+        create_command('split-column-by-'
+                       'lowercase-to-'
+                       'uppercase',             f"{_('Column')}: {get_title_from_layout('split-column-by-lowercase-to-uppercase')}...",
+                                                context = 'table_focus and column_string_focus')
+        create_command('split-column-by-'
+                       'uppercase-to-'
+                       'lowercase',             f"{_('Column')}: {get_title_from_layout('split-column-by-uppercase-to-lowercase')}...",
                                                 context = 'table_focus and column_string_focus')
 
     def set_data(self,

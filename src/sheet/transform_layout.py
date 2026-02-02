@@ -355,9 +355,9 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
-        case 'split-column-by-no-characters':
+        case 'split-column-by-number-of-characters':
             return (
-                _('Split Column by No. Characters'),
+                _('Split Column by Number of Characters'),
                 [
                     (
                         _('Column'),
@@ -387,6 +387,30 @@ def get_layout(action_name: str) -> tuple[str, list]:
                         '$string-columns:use-column',
                     ),
                     (_('Positions'), 'entry', '0, 1'),
+                ],
+            )
+
+        case 'split-column-by-lowercase-to-uppercase':
+            return (
+                _('Split Column by Lowercase to Uppercase'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'split-column-by-uppercase-to-lowercase':
+            return (
+                _('Split Column by Uppercase to Lowercase'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
                 ],
             )
 

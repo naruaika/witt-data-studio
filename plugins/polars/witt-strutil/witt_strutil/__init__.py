@@ -13,7 +13,6 @@ if TYPE_CHECKING:
 
 LIB = Path(__file__).parent
 
-
 def pig_latinnify(expression: IntoExprColumn) -> Expr:
     return register_plugin_function(plugin_path    = LIB,
                                     function_name  = 'pig_latinnify',
@@ -25,6 +24,18 @@ def split_by_chars(expression: IntoExprColumn, characters: str) -> Expr:
                                     function_name  = 'split_by_chars',
                                     args           = [expression],
                                     kwargs         = {'characters': characters},
+                                    is_elementwise = True)
+
+def split_by_lowercase_to_uppercase(expression: IntoExprColumn) -> Expr:
+    return register_plugin_function(plugin_path    = LIB,
+                                    function_name  = 'split_by_lowercase_to_uppercase',
+                                    args           = [expression],
+                                    is_elementwise = True)
+
+def split_by_uppercase_to_lowercase(expression: IntoExprColumn) -> Expr:
+    return register_plugin_function(plugin_path    = LIB,
+                                    function_name  = 'split_by_uppercase_to_lowercase',
+                                    args           = [expression],
                                     is_elementwise = True)
 
 def to_sentence_case(expression: IntoExprColumn) -> Expr:

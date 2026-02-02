@@ -304,9 +304,13 @@ class NodeEditor(Gtk.Overlay):
         create_action('split-column-by-'
                       'delimiter',              lambda *_: create_node('split-column-by-delimiter'))
         create_action('split-column-by-'
-                      'no-characters',          lambda *_: create_node('split-column-by-no-characters'))
+                      'number-of-characters',   lambda *_: create_node('split-column-by-number-of-characters'))
         create_action('split-column-by-'
                       'positions',              lambda *_: create_node('split-column-by-positions'))
+        create_action('split-column-by-'
+                      'lowercase-to-uppercase', lambda *_: create_node('split-column-by-lowercase-to-uppercase'))
+        create_action('split-column-by-'
+                      'uppercase-to-lowercase', lambda *_: create_node('split-column-by-uppercase-to-lowercase'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -388,9 +392,15 @@ class NodeEditor(Gtk.Overlay):
         create_command('split-column-by-'
                        'delimiter',             f"{_('Column')}: {_('Split Column by Delimiter')}")
         create_command('split-column-by-'
-                       'no-characters',         f"{_('Column')}: {_('Split Column by No. Characters')}")
+                       'number-of-characters',  f"{_('Column')}: {_('Split Column by Number of Characters')}")
         create_command('split-column-by-'
                        'positions',             f"{_('Column')}: {_('Split Column by Positions')}")
+        create_command('split-column-by-'
+                       'lowercase-to-'
+                       'uppercase',             f"{_('Column')}: {_('Split Column by Lowercase to Uppercase')}")
+        create_command('split-column-by-'
+                       'uppercase-to-'
+                       'lowercase',             f"{_('Column')}: {_('Split Column by Uppercase to Lowercase')}")
 
     def _setup_controllers(self) -> None:
         """"""

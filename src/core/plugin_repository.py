@@ -17,8 +17,8 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-from polars.api import register_expr_namespace
 from polars import Expr
+from polars.api import register_expr_namespace
 
 try:
     import witt_strutil as strx
@@ -41,6 +41,14 @@ try:
                            ) ->        Expr:
             """"""
             return strx.split_by_chars(self._expr, characters)
+
+        def split_by_lowercase_to_uppercase(self) -> Expr:
+            """"""
+            return strx.split_by_lowercase_to_uppercase(self._expr)
+
+        def split_by_uppercase_to_lowercase(self) -> Expr:
+            """"""
+            return strx.split_by_uppercase_to_lowercase(self._expr)
 
         def to_sentence_case(self) -> Expr:
             """"""

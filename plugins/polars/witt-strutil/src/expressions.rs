@@ -17,13 +17,20 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-
 #![allow(clippy::unused_unit)]
+use polars::chunked_array::builder::list::ListStringChunkedBuilder;
 use polars::prelude::*;
 use pyo3_polars::derive::polars_expr;
 use rand::Rng;
 use serde::Deserialize;
 use std::fmt::Write;
+
+fn list_string_output(_: &[Field]) -> PolarsResult<Field> {
+    Ok(Field::new(
+        "".into(),
+        DataType::List(Box::new(DataType::String)),
+    ))
+}
 
 fn is_vowel(c: char) -> bool {
     matches!(c.to_ascii_lowercase(), 'a' | 'e' | 'i' | 'o' | 'u')
@@ -122,13 +129,75 @@ fn split_by_chars(inputs: &[Series], kwargs: SplitByCharsKwargs) -> PolarsResult
     Ok(out.into_series())
 }
 
+#[polars_expr(output_type_func=list_string_output)]
+fn split_by_lowercase_to_uppercase(inputs: &[Series]) -> PolarsResult<Series> {
+    let ca: &StringChunked = inputs[0].str()?;
+    let mut builder = ListStringChunkedBuilder::new("".into(), ca.len(), 0);
+    for opt_s in ca.into_iter() {
+        match opt_s {
+            None => builder.append_null(),
+            Some(s) => {
+                let mut parts: Vec<String> = Vec::new();
+                let mut buffer = String::new();
+                let mut chars = s.chars().peekable();
+                while let Some(c) = chars.next() {
+                    buffer.push(c);
+                    if c.is_lowercase() {
+                        if let Some(&next) = chars.peek() {
+                            if next.is_uppercase() {
+                                parts.push(std::mem::take(&mut buffer));
+                            }
+                        }
+                    }
+                }
+                if !buffer.is_empty() {
+                    parts.push(buffer);
+                }
+                builder.append_series(&Series::new("".into(), parts))?;
+            }
+        }
+    }
+    Ok(builder.finish().into_series())
+}
+
+#[polars_expr(output_type_func=list_string_output)]
+fn split_by_uppercase_to_lowercase(inputs: &[Series]) -> PolarsResult<Series> {
+    let ca: &StringChunked = inputs[0].str()?;
+    let mut builder = ListStringChunkedBuilder::new("".into(), ca.len(), 0);
+    for opt_s in ca.into_iter() {
+        match opt_s {
+            None => builder.append_null(),
+            Some(s) => {
+                let mut parts: Vec<String> = Vec::new();
+                let mut buffer = String::new();
+                let mut chars = s.chars().peekable();
+                while let Some(c) = chars.next() {
+                    buffer.push(c);
+                    if c.is_uppercase() {
+                        if let Some(&next) = chars.peek() {
+                            if next.is_lowercase() {
+                                parts.push(std::mem::take(&mut buffer));
+                            }
+                        }
+                    }
+                }
+                if !buffer.is_empty() {
+                    parts.push(buffer);
+                }
+                builder.append_series(&Series::new("".into(), parts))?;
+            }
+        }
+    }
+    Ok(builder.finish().into_series())
+}
+
 #[polars_expr(output_type=String)]
 fn to_sentence_case(inputs: &[Series]) -> PolarsResult<Series> {
     let ca: &StringChunked = inputs[0].str()?;
     let out: StringChunked = ca.apply_into_string_amortized(|value: &str, output: &mut String| {
         let mut capitalize_next = true;
         let mut last_char_was_lowercase = false;
-        let mut last_char_was_sentence_ender = false;
+        let mut last_char_was_punctuation = false;
 
         for c in value.chars() {
             if c.is_alphabetic() {
@@ -148,24 +217,24 @@ fn to_sentence_case(inputs: &[Series]) -> PolarsResult<Series> {
                 // Update state variables for the next iteration.
                 capitalize_next = false;
                 last_char_was_lowercase = c.is_lowercase();
-                last_char_was_sentence_ender = false;
+                last_char_was_punctuation = false;
             }
             // It's a non-alphabetic character.
             else {
                 output.push(c);
 
                 if c == '.' || c == '!' || c == '?' {
-                    last_char_was_sentence_ender = true;
+                    last_char_was_punctuation = true;
                 }
                 // Capitalize the next letter if the last character was a sentence ender and this is a space.
-                else if c.is_whitespace() && last_char_was_sentence_ender {
+                else if c.is_whitespace() && last_char_was_punctuation {
                     capitalize_next = true;
-                    last_char_was_sentence_ender = false;
+                    last_char_was_punctuation = false;
                 }
                 // For other characters like hyphens or underscores, do not capitalize the next letter.
                 else {
                     capitalize_next = false;
-                    last_char_was_sentence_ender = false;
+                    last_char_was_punctuation = false;
                 }
                 last_char_was_lowercase = false;
             }

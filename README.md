@@ -82,7 +82,7 @@ To override some environment variables or to add command-line arguments to the a
 
 ```txt
 #!/bin/bash
-__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia GTK_DEBUG= WDS_DEBUG= POLARS_VERBOSE= /app/bin/witt-data-studio "$@"
+GOBJECT_DEBUG= GTK_DEBUG= WDS_DEBUG= POLARS_VERBOSE= witt-data-studio "$@"
 ```
 
 With `debugpy` in Visual Studio Code, you'll need to setup `.vscode/launch.json` for example:
@@ -121,19 +121,22 @@ pip install -r build-aux/requirements-devel.txt
 
 To add new dependencies using [`pip`](https://packaging.python.org/en/latest/key_projects/#pip) to the [`flatpak-builder`](https://docs.flatpak.org/en/latest/flatpak-builder.html) manifest json file, you can use the [`flatpak-pip-generator`](https://github.com/flatpak/flatpak-builder-tools/tree/master/pip). Either adding the reference to the `com.macipra.witt*.json` files or copy-pasting the content directly into the manifest files and delete the generated file. Do not forget to update the `requirements*.txt` files as well.
 
-When it comes to the plugin development, usually I do this following example steps:
+When it comes to the plugin development, usually I do the following steps:
 
 1. Activate the virtual environment: `source .pyenv/bin/activate`
-1. Go to the plugin directory: `cd plugins/polars/witt-strutil`
+1. Go to the plugin directory, for example: `cd plugins/polars/witt-strutil`
 1. Check if there's any dependency issues: `cargo check`
-1. Install the plugin in the current virtual environment: `maturin develop`
-1. Write/update some tests in `test/` directory
+1. Install the plugin in the current environment: `maturin develop`
 1. Run the tests, make sure they all pass: `pytest -vv -s`
-1. Build the plugin as a wheel (.whl) file: `maturin build --release`
-1. Copy the wheel file to the `dist` directory: `cp target/wheels/*.whl ../../../dist/`
-1. Type in the command palette and run: `Run Flatpak: Update Dependencies`
-1. Type in the command palette and run: `Run Flatpak: Build and Run` (or <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd>)
-1. Update the related files if necessary. For example, if we want to bump the version up, we need to update `Cargo.toml` and the related files in the `build-aux/` directory. We need to publish it to the [PyPI](https://pypi.org/) if it's a Python package.
+
+On the release cycle:
+
+1. Bump the version up by updating the `Cargo.toml` file.
+1. Build the distribution files: `maturin build --release --sdist`
+1. Publish to the [PyPI](https://pypi.org/): `python -m twine upload <target-file>`.
+1. Update the `requirements*.txt` and `python3-witt*.json` files.
+
+Do not forget to run `Run Flatpak: Update Dependencies` in the command palette before exporting the application.
 
 ## Licenses
 

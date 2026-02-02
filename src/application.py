@@ -181,12 +181,13 @@ class Application(Adw.Application):
         Config.set_tbl_width_chars(-1)
         Config.set_fmt_str_lengths(20)
 
+        from .core import plugin_repository
+
         def do_preload() -> None:
             """"""
             # FIXME: be aware that any of these is possible
             # to be required by any node that is running on
             # startup.
-            from .core import plugin_repository
             from .core.parser_command_context import parser
             from .core.parser_sheet_formula import parser
 
