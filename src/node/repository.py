@@ -36,6 +36,7 @@ from ..core.utils import unique_name
 from .action import ActionEditNode
 from .data_type import Sheet
 from .frame import NodeFrame
+from .frame import NodeFrameType
 from .content import NodeContent
 from .socket import NodeSocket
 from .socket import NodeSocketType
@@ -429,6 +430,7 @@ class NodeReadFile(NodeTemplate):
         """"""
         self = NodeReadFile(x, y)
 
+        self.frame.node_type  = NodeFrameType.SOURCE
         self.frame.set_data   = self.set_data
         self.frame.do_process = self.do_process
         self.frame.do_save    = self.do_save
@@ -480,17 +482,16 @@ class NodeReadFile(NodeTemplate):
                 self._add_rows_selector(with_from_rows  = True,
                                         with_has_header = True)
                 self._add_delimiters_group(visible = file_format not in {'tsv'})
-                self._add_columns_selector()
+                self.frame.data['refresh-columns'] = True
 
             case 'parquet':
                 self._add_rows_selector(with_from_rows  = False,
                                         with_has_header = False)
-                self._add_columns_selector()
+                self.frame.data['refresh-columns'] = True
 
 #           case _ if file_format in SPREADSHEET_FILES:
 #               ...
 
-        self.frame.data['refresh-columns'] = True
         self.frame.do_execute(backward = False)
 
     def do_process(self,
@@ -502,10 +503,6 @@ class NodeReadFile(NodeTemplate):
 
         if not file_path:
             return
-
-        self.frame.is_processing = True
-        # Prevents recursive processing
-        # when setting node socket data
 
         kwargs = self.frame.data['kwargs']
         kwargs = deepcopy(kwargs)
@@ -596,9 +593,6 @@ class NodeReadFile(NodeTemplate):
         if not cur_columns:
             self.frame.data['kwargs']['columns'] = table_columns
 
-        content = self.frame.contents[0]
-        content.set_data(result)
-
         if self.frame.data['refresh-columns']:
             content = self.frame.contents[-1]
             self.frame.remove_content(content)
@@ -611,7 +605,7 @@ class NodeReadFile(NodeTemplate):
 
         self.frame.data['refresh-columns'] = False
 
-        self.frame.is_processing = False
+        self.frame.data['table'] = result
 
     def do_save(self) -> dict:
         """"""
@@ -1048,9 +1042,9 @@ class NodeSheet(NodeTemplate):
 
             self_socket = self_content.Socket
             if links := self_socket.links:
-                pair_socket = links[0].in_socket
-                pair_content = pair_socket.Content
-                table = pair_content.get_data()
+                _pair_socket = links[0].in_socket
+                _pair_content = _pair_socket.Content
+                table = _pair_content.get_data()
                 coordinate = self.frame.data[title]
                 value.tables.append((coordinate, table))
 
@@ -1308,6 +1302,7 @@ class NodeViewer(NodeTemplate):
         """"""
         self = NodeViewer(x, y)
 
+        self.frame.node_type  = NodeFrameType.TARGET
         self.frame.is_active  = self.is_active
         self.frame.set_active = self.set_active
         self.frame.do_process = self.do_process

@@ -170,7 +170,7 @@ class SheetDocument(Document):
                 content = content.collect()
             else:
                 to_load = content
-                content = DataFrame({_('#LOADING!'): None}).head(0)
+                content = DataFrame({'#LOADING!': None}).head(0)
 
         if not isinstance(content, DataFrame):
             from io import BytesIO
@@ -227,7 +227,7 @@ class SheetDocument(Document):
             try:
                 dataframe = await lazyframe.collect_async()
             except Exception as e:
-                dataframe = DataFrame({_('#ERROR!'): None}).head(0)
+                dataframe = DataFrame({'#ERROR!': None}).head(0)
                 has_error = True
                 print(e)
 
@@ -237,6 +237,8 @@ class SheetDocument(Document):
                     table = self.tables[tindex]
                     if has_error:
                         table.placeholder = True
+                    else:
+                        table.query_plan = lazyframe.serialize()
                     on_finish(table)
                     break
 

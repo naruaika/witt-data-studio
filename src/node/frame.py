@@ -17,6 +17,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+from enum import Enum
 from gi.repository import Adw
 from gi.repository import Gdk
 from gi.repository import GLib
@@ -27,6 +28,13 @@ from typing import TypeAlias
 
 Point2D: TypeAlias = tuple[float, float]
 
+class NodeFrameType(Enum):
+
+    BRANCH = 3
+    SOURCE = 1
+    TARGET = 2
+
+
 @Gtk.Template(resource_path = '/com/macipra/witt/node/frame.ui')
 class NodeFrame(Adw.Bin):
 
@@ -34,24 +42,25 @@ class NodeFrame(Adw.Bin):
 
     Head  = Gtk.Template.Child()
     Title = Gtk.Template.Child()
-
     Body  = Gtk.Template.Child()
 
     def __init__(self,
-                 title:  'str',
-                 x:      'float'        = 0.0,
-                 y:      'float'        = 0.0,
-                 parent: 'NodeTemplate' = None,
-                 ) ->    'None':
+                 title:     'str',
+                 x:         'float'         = 0.0,
+                 y:         'float'         = 0.0,
+                 parent:    'NodeTemplate'  = None,
+                 node_type: 'NodeFrameType' = None,
+                 ) ->       'None':
         """"""
         super().__init__(focusable = True)
 
         self.Title.set_label(title)
         self.Title.set_tooltip_text(title)
 
-        self.x      = x
-        self.y      = y
-        self.parent = parent
+        self.x         = x
+        self.y         = y
+        self.parent    = parent
+        self.node_type = node_type or NodeFrameType.BRANCH
 
         self.contents:    list['NodeContent'] = []
         self.in_points:   list['Point2D']     = []
@@ -207,6 +216,7 @@ class NodeFrame(Adw.Bin):
                    backward:     'bool'        = True,
                    forward:      'bool'        = True,
                    specified:    'bool'        = False,
+                   initiator:    'bool'        = True,
                    ) ->          'None':
         """"""
         if self.is_processing:
@@ -215,6 +225,7 @@ class NodeFrame(Adw.Bin):
         if self_content:
             self_socket = self_content.Socket
 
+        # Process parent frames
         if backward:
             visited_frames = []
             for content in self.contents:
@@ -235,15 +246,14 @@ class NodeFrame(Adw.Bin):
                     frame = link.in_socket.Frame
                     if frame in visited_frames:
                         continue
-                    frame.do_execute(socket,
-                                     self_content,
-                                     forward = False)
+                    frame.do_execute(pair_socket  = socket,
+                                     self_content = self_content,
+                                     forward      = False,
+                                     initiator    = False)
                     visited_frames.append(frame)
-            del visited_frames
 
+        # Get data from parent frames
         self.is_processing = True
-
-        # Resetting data by incoming input nodes
         for content in self.contents:
             if not (self_socket := content.Socket):
                 continue
@@ -253,15 +263,24 @@ class NodeFrame(Adw.Bin):
                 continue
             if not links[0].compatible:
                 continue
-            _pair_socket = links[0].in_socket
-            _pair_content = _pair_socket.Content
-            value = _pair_content.get_data()
+            psocket = links[0].in_socket
+            pcontent = psocket.Content
+            value = pcontent.get_data()
             content.set_data(value)
-
         self.is_processing = False
 
         self.do_process(pair_socket, self_content)
 
+        # Collect all target frames and prevent
+        # them from being processed right away.
+        targets = set()
+        is_target = self.node_type != NodeFrameType.TARGET
+        if forward and initiator and is_target:
+            self._collect_targets(targets)
+        for frame, socket in targets:
+            frame.is_processing = True
+
+        # Process child frames
         if forward:
             visited_frames = []
             for content in self.contents:
@@ -282,11 +301,19 @@ class NodeFrame(Adw.Bin):
                     frame = link.out_socket.Frame
                     if frame in visited_frames:
                         continue
-                    frame.do_execute(socket,
-                                     self_content,
-                                     backward = False)
+                    frame.do_execute(pair_socket  = socket,
+                                     self_content = self_content,
+                                     backward     = False,
+                                     initiator    = False)
                     visited_frames.append(frame)
-            del visited_frames
+
+        # Process all target frames
+        for frame, socket in targets:
+            frame.is_processing = False
+            frame.do_execute(pair_socket  = socket,
+                             self_content = self_content,
+                             backward     = False,
+                             initiator    = False)
 
     def do_process(self,
                    pair_socket:  'NodeSocket',
@@ -298,6 +325,30 @@ class NodeFrame(Adw.Bin):
         # it back to False. It would mostly can help with
         # recursion issues.
         pass
+
+    def _collect_targets(self,
+                         targets: 'set',
+                         socket:  'NodeSocket' = None,
+                         ) ->     'None':
+        """"""
+        if self.node_type == NodeFrameType.TARGET:
+            targets.add((self, socket))
+            return
+
+        visited_frames = []
+        for content in self.contents:
+            if not (socket := content.Socket):
+                continue
+            if not socket.is_output():
+                continue
+            for link in socket.links:
+                if not link.compatible:
+                    continue
+                frame = link.out_socket.Frame
+                if frame in visited_frames:
+                    continue
+                frame._collect_targets(targets, socket)
+                visited_frames.append(frame)
 
     def do_save(self) -> Any:
         """"""

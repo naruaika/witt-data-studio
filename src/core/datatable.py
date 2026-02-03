@@ -72,12 +72,15 @@ class DataTable(DataFrame):
                  content:      DataFrame,
                  with_header:  bool,
                  bounding_box: BoundingBox,
-                 placeholder:  bool = False,
+                 placeholder:  bool  = False,
+                 query_plan:   bytes = None,
                  ) ->          None:
         """"""
         super().__init__(content)
 
+        self.content      = content
         self.tname        = tname
         self.with_header  = with_header
         self.bounding_box = bounding_box
         self.placeholder  = placeholder
+        self.query_plan   = query_plan

@@ -24,6 +24,7 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
 from polars import DataFrame
+from polars import LazyFrame
 from polars import Float32
 from polars import Float64
 from polars import Int8
@@ -381,6 +382,19 @@ class SheetEditor(Gtk.Box):
             for widget in widgets:
                 widget.unparent()
 
+        # Get cached dataframes by query plan
+        cache_hits = []
+        for index, (coordinate, table) in enumerate(tables):
+            if not isinstance(table, LazyFrame):
+                continue
+            query_plan = table.serialize()
+            for t in self.document.tables:
+                if t.query_plan == query_plan:
+                    tables[index] = (coordinate, t.content)
+                    cache_hits.append((index, query_plan))
+                    break
+
+        # Clean up the old tables
         while self.document.tables:
             del self.document.tables[0]
 
@@ -437,6 +451,11 @@ class SheetEditor(Gtk.Box):
 
             if self.configs['adjust-columns']:
                 self._readjust_column_widths_by_value(value)
+
+        # Flag the new table instances from cache
+        for (index, query_plan) in cache_hits:
+            table = self.document.tables[index]
+            table.query_plan = query_plan
 
         self.Canvas.cleanup() # invalidate render caches
 
