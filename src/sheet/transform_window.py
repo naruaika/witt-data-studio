@@ -116,6 +116,8 @@ class SheetTransformWindow(Adw.Window):
         GLib.idle_add(scrolled_window.set_min_content_height, -1)
         GLib.idle_add(scrolled_window.set_max_content_height, -1)
 
+        self.ApplyButton.grab_focus()
+
     def _create_widget(self,
                        item: Any,
                        ) ->  None:
