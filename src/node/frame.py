@@ -253,9 +253,9 @@ class NodeFrame(Adw.Bin):
                 continue
             if not links[0].compatible:
                 continue
-            pair_socket = links[0].in_socket
-            pair_content = pair_socket.Content
-            value = pair_content.get_data()
+            _pair_socket = links[0].in_socket
+            _pair_content = _pair_socket.Content
+            value = _pair_content.get_data()
             content.set_data(value)
 
         self.is_processing = False
@@ -346,7 +346,14 @@ class NodeFrame(Adw.Bin):
                        content: 'NodeContent',
                        ) ->     'None':
         """"""
+        content.Container.unparent()
+        if content in self.contents:
+            self.contents.remove(content)
+
         editor = self.get_editor()
+
+        if not editor:
+            return
 
         if content.Socket:
             for link in content.Socket.links:
@@ -361,19 +368,19 @@ class NodeFrame(Adw.Bin):
                     content.do_remove(content)
                 link.unlink()
 
-        content.Container.unparent()
-        if content in self.contents:
-            self.contents.remove(content)
-
     def compute_points(self) -> None:
         """"""
+        editor = self.get_editor()
+
+        if not editor:
+            return
+
+        canvas = editor.Canvas
+
         self.in_sockets  = []
         self.in_points   = []
         self.out_sockets = []
         self.out_points  = []
-
-        editor = self.get_editor()
-        canvas = editor.Canvas
 
         ref_point = Graphene.Point().init(0, 0)
 
@@ -399,6 +406,10 @@ class NodeFrame(Adw.Bin):
     def select(self) -> None:
         """"""
         editor = self.get_editor()
+
+        if not editor:
+            return
+
         if self not in editor.selected_nodes:
             editor.selected_nodes.append(self)
         self.add_css_class('selected')
@@ -431,9 +442,14 @@ class NodeFrame(Adw.Bin):
     def get_editor(self) -> 'NodeEditor':
         """"""
         canvas = self.get_parent()
+
+        if not canvas:
+            return None
+
         viewport = canvas.get_parent()
         scrolled_window = viewport.get_parent()
         editor = scrolled_window.get_parent()
+
         return editor
 
 from .editor import NodeEditor

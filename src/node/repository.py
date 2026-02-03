@@ -479,6 +479,7 @@ class NodeReadFile(NodeTemplate):
             case 'csv' | 'tsv' | 'txt':
                 self._add_rows_selector(with_from_rows  = True,
                                         with_has_header = True)
+                self._add_delimiters_group(visible = file_format not in {'tsv'})
                 self._add_columns_selector()
 
             case 'parquet':
@@ -489,14 +490,7 @@ class NodeReadFile(NodeTemplate):
 #           case _ if file_format in SPREADSHEET_FILES:
 #               ...
 
-        if file_format in {'csv', 'txt'}:
-            self._add_delimiters_group()
-
-        if file_format in {'csv', 'tsv', 'txt', 'parquet'}:
-            if self.frame.data['column-expanded']:
-                widget = self.frame.contents[-1].Widget
-                widget.set_expanded(True)
-
+        self.frame.data['refresh-columns'] = True
         self.frame.do_execute(backward = False)
 
     def do_process(self,
@@ -513,16 +507,11 @@ class NodeReadFile(NodeTemplate):
         # Prevents recursive processing
         # when setting node socket data
 
-        if self.frame.data['refresh-columns']:
-            self.frame.data['kwargs']['columns'] = []
-
         kwargs = self.frame.data['kwargs']
         kwargs = deepcopy(kwargs)
 
-        # Remove the `columns` argument when it's an empty list
-        # to prevent loading an empty dataframe from the source
-        if 'columns' in kwargs and not kwargs['columns']:
-            del kwargs['columns']
+        # Do not include the columns when taking a sample
+        del kwargs['columns']
 
         has_error = False
 
@@ -571,44 +560,54 @@ class NodeReadFile(NodeTemplate):
                 result = FileManager.read_file(file_path, **kwargs)
                 if isinstance(result, LazyFrame):
                     result.head(1_000).collect()
+                has_error = False
             except:
                 pass # TODO: show errors to user
 
-        if result is None:
+        if has_error:
             result = DataFrame()
 
 #       # Post-process the resulting data
 #       from fastexcel import ExcelReader
 #       if isinstance(result, ExcelReader):
 #           pass
-#       else:
+
+        table_columns = result.collect_schema().names()
+        self.frame.data['all-columns'] = table_columns
+
+        # TODO: if the workflow is run on schedule and the source
+        # seems has changed, stop the process and notify the user
+
+        cur_columns = self.frame.data['kwargs']['columns']
+
+        if table_columns and cur_columns:
+            # Filter unvalid columns from selection
+            new_columns = []
+            for column in table_columns:
+                if column in cur_columns:
+                    new_columns.append(column)
+            new_columns = new_columns or table_columns
+            self.frame.data['kwargs']['columns'] = new_columns
+
+            # Apply the columns filter
+            kwargs['columns'] = new_columns
+            result = result.select(kwargs['columns'])
+
+        if not cur_columns:
+            self.frame.data['kwargs']['columns'] = table_columns
+
         content = self.frame.contents[0]
         content.set_data(result)
-
-        if isinstance(result, LazyFrame):
-            table_columns = result.collect_schema().names()
-        else:
-            table_columns = result.columns
-
-        # Repopulate the column list if necessary only
-        # to prevent any unwanted glitches for example
-        # content is being collapsed on toggling items
-        if 'columns' not in kwargs:
-#           from ..core.utils import get_file_format
-#           from ..file_import_window import SPREADSHEET_FILES
-#           file_format = get_file_format(self.file_path)
-#           if file_format not in SPREADSHEET_FILES:
-            self.frame.data['all-columns'] = table_columns
-            self.frame.data['kwargs']['columns'] = table_columns
 
         if self.frame.data['refresh-columns']:
             content = self.frame.contents[-1]
             self.frame.remove_content(content)
-            self._add_columns_selector()
+            if table_columns:
+                self._add_columns_selector()
 
-            if self.frame.data['column-expanded']:
-                widget = self.frame.contents[-1].Widget
-                widget.set_expanded(True)
+        if self.frame.data['column-expanded']:
+            widget = self.frame.contents[-1].Widget
+            widget.set_expanded(True)
 
         self.frame.data['refresh-columns'] = False
 
@@ -674,9 +673,12 @@ class NodeReadFile(NodeTemplate):
                                   on_clicked = on_clicked)
         self.frame.add_content(chooser)
 
-    def _add_delimiters_group(self) -> None:
+    def _add_delimiters_group(self,
+                              visible: bool = True,
+                              ) ->     None:
         """"""
-        box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+        box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL,
+                      visible     = visible)
         box.add_css_class('linked')
 
         box.append(self._add_column_separator())
@@ -1553,12 +1555,12 @@ class NodeChooseColumns(NodeTemplate):
 
         if table_columns:
             if columns := self.frame.data['columns']:
-                sorted = []
+                sorted_columns = []
                 for column in table_columns:
                     if column in columns:
-                        sorted.append(column)
-                if sorted:
-                    table = table.select(sorted)
+                        sorted_columns.append(column)
+                if sorted_columns:
+                    table = table.select(sorted_columns)
 
         self.frame.data['table'] = table
 
@@ -1633,8 +1635,8 @@ class NodeChooseColumns(NodeTemplate):
         if table_columns:
             if self.frame.data['columns']:
                 columns = []
-                for column in self.frame.data['columns']:
-                    if column in table_columns:
+                for column in table_columns:
+                    if column in self.frame.data['columns']:
                         columns.append(column)
                 columns = columns or table_columns
                 self.frame.data['columns'] = columns
@@ -1745,11 +1747,11 @@ class NodeRemoveColumns(NodeTemplate):
 
         if table_columns:
             if columns := self.frame.data['columns']:
-                sorted = []
+                sorted_columns = []
                 for column in table_columns:
                     if column not in columns:
-                        sorted.append(column)
-                table = table.select(sorted)
+                        sorted_columns.append(column)
+                table = table.select(sorted_columns)
 
         self.frame.data['table'] = table
 
@@ -1824,8 +1826,8 @@ class NodeRemoveColumns(NodeTemplate):
         if table_columns:
             if self.frame.data['columns']:
                 columns = []
-                for column in self.frame.data['columns']:
-                    if column in table_columns:
+                for column in table_columns:
+                    if column in self.frame.data['columns']:
                         columns.append(column)
                 self.frame.data['columns'] = columns
 
@@ -2047,8 +2049,8 @@ class NodeKeepTopKRows(NodeTemplate):
         if table_columns:
             if self.frame.data['columns']:
                 columns = []
-                for column in self.frame.data['columns']:
-                    if column in table_columns:
+                for column in table_columns:
+                    if column in self.frame.data['columns']:
                         columns.append(column)
                 self.frame.data['columns'] = columns
 
@@ -2270,8 +2272,8 @@ class NodeKeepBottomKRows(NodeTemplate):
         if table_columns:
             if self.frame.data['columns']:
                 columns = []
-                for column in self.frame.data['columns']:
-                    if column in table_columns:
+                for column in table_columns:
+                    if column in self.frame.data['columns']:
                         columns.append(column)
                 self.frame.data['columns'] = columns
 
@@ -3096,8 +3098,8 @@ class NodeKeepDuplicateRows(NodeTemplate):
         if table_columns:
             if self.frame.data['columns']:
                 columns = []
-                for column in self.frame.data['columns']:
-                    if column in table_columns:
+                for column in table_columns:
+                    if column in self.frame.data['columns']:
                         columns.append(column)
                 self.frame.data['columns'] = columns
 
@@ -3856,8 +3858,8 @@ class NodeRemoveDuplicateRows(NodeTemplate):
         if table_columns:
             if self.frame.data['columns']:
                 columns = []
-                for column in self.frame.data['columns']:
-                    if column in table_columns:
+                for column in table_columns:
+                    if column in self.frame.data['columns']:
                         columns.append(column)
                 self.frame.data['columns'] = columns
 
@@ -5263,8 +5265,8 @@ class NodeReplaceValues(NodeTemplate):
         if table_columns:
             if self.frame.data['columns']:
                 columns = []
-                for column in self.frame.data['columns']:
-                    if column in table_columns:
+                for column in table_columns:
+                    if column in self.frame.data['columns']:
                         columns.append(column)
                 columns = columns or table_columns
                 self.frame.data['columns'] = columns

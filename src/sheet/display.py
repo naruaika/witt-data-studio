@@ -50,7 +50,7 @@ class SheetDisplay():
     # Holds the visible indices for each row and column,
     # starts from 0. It should be less or equals to the
     # length of the visibility flags.
-    row_vseries:   Series  = Series(dtype = UInt32)
+    row_vseries:    Series = Series(dtype = UInt32)
     column_vseries: Series = Series(dtype = UInt32)
 
     # Holds the height and width of each row and column.
@@ -696,7 +696,7 @@ class SheetDisplay():
         left_offset = cell_x - x_offset
 
         top_limit  = top_offset  - (viewport_height - (viewport_height % self.DEFAULT_CELL_HEIGHT)) + cell_height
-        left_limit = left_offset - (viewport_width  - (viewport_width % self.DEFAULT_CELL_WIDTH))   + cell_width
+        left_limit = left_offset - (viewport_width  - (viewport_width  % self.DEFAULT_CELL_WIDTH))  + cell_width
 
         near_edges = []
 
