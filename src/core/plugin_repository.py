@@ -50,6 +50,14 @@ try:
             """"""
             return strx.split_by_uppercase_to_lowercase(self._expr)
 
+        def split_by_digit_to_nondigit(self) -> Expr:
+            """"""
+            return strx.split_by_digit_to_nondigit(self._expr)
+
+        def split_by_nondigit_to_digit(self) -> Expr:
+            """"""
+            return strx.split_by_nondigit_to_digit(self._expr)
+
         def to_sentence_case(self) -> Expr:
             """"""
             return strx.to_sentence_case(self._expr)

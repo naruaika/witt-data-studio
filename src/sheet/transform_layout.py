@@ -414,4 +414,28 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
+        case 'split-column-by-digit-to-nondigit':
+            return (
+                _('Split Column by Digit to Non-Digit'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'split-column-by-nondigit-to-digit':
+            return (
+                _('Split Column by Non-Digit to Digit'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
     raise KeyError()

@@ -2850,16 +2850,16 @@
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">split-column-by-uppercase-to-lowercase</attribute>
       </item>
-      <!-- <item>
+      <item>
         <attribute name="label" translatable="yes">By Digit to Non-Digit</attribute>
         <attribute name="action">win.toolbar</attribute>
-        <attribute name="target">split-column-by-digit-to-non-digit</attribute>
-      </item> -->
-      <!-- <item>
+        <attribute name="target">split-column-by-digit-to-nondigit</attribute>
+      </item>
+      <item>
         <attribute name="label" translatable="yes">By Non-Digit to Digit</attribute>
         <attribute name="action">win.toolbar</attribute>
-        <attribute name="target">split-column-by-non-digit-to-digit</attribute>
-      </item> -->
+        <attribute name="target">split-column-by-nondigit-to-digit</attribute>
+      </item>
     </section>
   </menu>
 </interface>

@@ -38,6 +38,18 @@ def split_by_uppercase_to_lowercase(expression: IntoExprColumn) -> Expr:
                                     args           = [expression],
                                     is_elementwise = True)
 
+def split_by_digit_to_nondigit(expression: IntoExprColumn) -> Expr:
+    return register_plugin_function(plugin_path    = LIB,
+                                    function_name  = 'split_by_digit_to_nondigit',
+                                    args           = [expression],
+                                    is_elementwise = True)
+
+def split_by_nondigit_to_digit(expression: IntoExprColumn) -> Expr:
+    return register_plugin_function(plugin_path    = LIB,
+                                    function_name  = 'split_by_nondigit_to_digit',
+                                    args           = [expression],
+                                    is_elementwise = True)
+
 def to_sentence_case(expression: IntoExprColumn) -> Expr:
     return register_plugin_function(plugin_path    = LIB,
                                     function_name  = 'to_sentence_case',

@@ -191,6 +191,68 @@ fn split_by_uppercase_to_lowercase(inputs: &[Series]) -> PolarsResult<Series> {
     Ok(builder.finish().into_series())
 }
 
+#[polars_expr(output_type_func=list_string_output)]
+fn split_by_digit_to_nondigit(inputs: &[Series]) -> PolarsResult<Series> {
+    let ca: &StringChunked = inputs[0].str()?;
+    let mut builder = ListStringChunkedBuilder::new("".into(), ca.len(), 0);
+    for opt_s in ca.into_iter() {
+        match opt_s {
+            None => builder.append_null(),
+            Some(s) => {
+                let mut parts: Vec<String> = Vec::new();
+                let mut buffer = String::new();
+                let mut chars = s.chars().peekable();
+                while let Some(c) = chars.next() {
+                    buffer.push(c);
+                    if c.is_ascii_digit() {
+                        if let Some(&next) = chars.peek() {
+                            if !next.is_ascii_digit() {
+                                parts.push(std::mem::take(&mut buffer));
+                            }
+                        }
+                    }
+                }
+                if !buffer.is_empty() {
+                    parts.push(buffer);
+                }
+                builder.append_series(&Series::new("".into(), parts))?;
+            }
+        }
+    }
+    Ok(builder.finish().into_series())
+}
+
+#[polars_expr(output_type_func=list_string_output)]
+fn split_by_nondigit_to_digit(inputs: &[Series]) -> PolarsResult<Series> {
+    let ca: &StringChunked = inputs[0].str()?;
+    let mut builder = ListStringChunkedBuilder::new("".into(), ca.len(), 0);
+    for opt_s in ca.into_iter() {
+        match opt_s {
+            None => builder.append_null(),
+            Some(s) => {
+                let mut parts: Vec<String> = Vec::new();
+                let mut buffer = String::new();
+                let mut chars = s.chars().peekable();
+                while let Some(c) = chars.next() {
+                    buffer.push(c);
+                    if !c.is_ascii_digit() {
+                        if let Some(&next) = chars.peek() {
+                            if next.is_ascii_digit() {
+                                parts.push(std::mem::take(&mut buffer));
+                            }
+                        }
+                    }
+                }
+                if !buffer.is_empty() {
+                    parts.push(buffer);
+                }
+                builder.append_series(&Series::new("".into(), parts))?;
+            }
+        }
+    }
+    Ok(builder.finish().into_series())
+}
+
 #[polars_expr(output_type=String)]
 fn to_sentence_case(inputs: &[Series]) -> PolarsResult<Series> {
     let ca: &StringChunked = inputs[0].str()?;

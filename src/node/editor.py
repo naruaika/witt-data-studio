@@ -311,6 +311,10 @@ class NodeEditor(Gtk.Overlay):
                       'lowercase-to-uppercase', lambda *_: create_node('split-column-by-lowercase-to-uppercase'))
         create_action('split-column-by-'
                       'uppercase-to-lowercase', lambda *_: create_node('split-column-by-uppercase-to-lowercase'))
+        create_action('split-column-by-'
+                      'digit-to-nondigit',      lambda *_: create_node('split-column-by-digit-to-nondigit'))
+        create_action('split-column-by-'
+                      'nondigit-to-digit',      lambda *_: create_node('split-column-by-nondigit-to-digit'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -401,6 +405,10 @@ class NodeEditor(Gtk.Overlay):
         create_command('split-column-by-'
                        'uppercase-to-'
                        'lowercase',             f"{_('Column')}: {_('Split Column by Uppercase to Lowercase')}")
+        create_command('split-column-by-'
+                       'digit-to-nondigit',     f"{_('Column')}: {_('Split Column by Digit to Non-Digit')}")
+        create_command('split-column-by-'
+                       'nondigit-to-digit',     f"{_('Column')}: {_('Split Column by Non-Digit to Digit')}")
 
     def _setup_controllers(self) -> None:
         """"""

@@ -1042,9 +1042,9 @@ class NodeSheet(NodeTemplate):
 
             self_socket = self_content.Socket
             if links := self_socket.links:
-                _pair_socket = links[0].in_socket
-                _pair_content = _pair_socket.Content
-                table = _pair_content.get_data()
+                psocket = links[0].in_socket
+                pcontent = psocket.Content
+                table = pcontent.get_data()
                 coordinate = self.frame.data[title]
                 value.tables.append((coordinate, table))
 
@@ -6374,8 +6374,10 @@ class NodeSplitColumnByLowercaseToUppercase(NodeTemplate):
             # than if we choose to materialize the split for the unnesting
             # The software should be clever enough to make a decision when
             # to materialize things and when to not.
+            struct_expr = col(column).list.to_struct(fields      = lambda i: f'{column}_{i}',
+                                                     upper_bound = upper_expr)
             table = table.with_columns(split_expr.alias(column)) \
-                         .with_columns(col(column).list.to_struct(upper_bound = upper_expr)) \
+                         .with_columns(struct_expr) \
                          .unnest(column)
 
         self.frame.data['table'] = table
@@ -6549,8 +6551,10 @@ class NodeSplitColumnByUppercaseToLowercase(NodeTemplate):
             split_expr = col(column).strx.split_by_uppercase_to_lowercase()
             upper_expr = table.select(split_expr.list.len().max()).collect().item()
 
+            struct_expr = col(column).list.to_struct(fields      = lambda i: f'{column}_{i}',
+                                                     upper_bound = upper_expr)
             table = table.with_columns(split_expr.alias(column)) \
-                         .with_columns(col(column).list.to_struct(upper_bound = upper_expr)) \
+                         .with_columns(struct_expr) \
                          .unnest(column)
 
         self.frame.data['table'] = table
@@ -6665,6 +6669,361 @@ class NodeSplitColumnByUppercaseToLowercase(NodeTemplate):
         combo.set_sensitive(False)
 
 
+
+class NodeSplitColumnByDigitToNonDigit(NodeTemplate):
+
+    ndname = _('Split Column by Digit to Non-Digit')
+
+    action = 'split-column-by-digit-to-nondigit'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeSplitColumnByDigitToNonDigit(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns'] = []
+        self.frame.data['column']  = ''
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column'] = args[0]
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from polars import col
+
+            column = self.frame.data['column']
+
+            split_expr = col(column).strx.split_by_digit_to_nondigit()
+            upper_expr = table.select(split_expr.list.len().max()).collect().item()
+
+            struct_expr = col(column).list.to_struct(fields      = lambda i: f'{column}_{i}',
+                                                     upper_bound = upper_expr)
+            table = table.with_columns(split_expr.alias(column)) \
+                         .with_columns(struct_expr) \
+                         .unnest(column)
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> str:
+        """"""
+        return self.frame.data['column']
+
+    def do_restore(self,
+                   value: str,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value)
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.string()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget    = combo,
+                               get_data  = get_data,
+                               set_data  = set_data)
+
+        combo.set_sensitive(False)
+
+
+
+class NodeSplitColumnByNonDigitToDigit(NodeTemplate):
+
+    ndname = _('Split Column by Non-Digit to Digit')
+
+    action = 'split-column-by-nondigit-to-digit'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeSplitColumnByNonDigitToDigit(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns'] = []
+        self.frame.data['column']  = ''
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column'] = args[0]
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from polars import col
+
+            column = self.frame.data['column']
+
+            split_expr = col(column).strx.split_by_nondigit_to_digit()
+            upper_expr = table.select(split_expr.list.len().max()).collect().item()
+
+            struct_expr = col(column).list.to_struct(fields      = lambda i: f'{column}_{i}',
+                                                     upper_bound = upper_expr)
+            table = table.with_columns(split_expr.alias(column)) \
+                         .with_columns(struct_expr) \
+                         .unnest(column)
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> str:
+        """"""
+        return self.frame.data['column']
+
+    def do_restore(self,
+                   value: str,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value)
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.string()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget    = combo,
+                               get_data  = get_data,
+                               set_data  = set_data)
+
+        combo.set_sensitive(False)
+
+
+
 _registered_nodes = [
     NodeBoolean(),
     NodeDecimal(),
@@ -6706,6 +7065,8 @@ _registered_nodes = [
     NodeSplitColumnByPositions(),
     NodeSplitColumnByLowercaseToUppercase(),
     NodeSplitColumnByUppercaseToLowercase(),
+    NodeSplitColumnByDigitToNonDigit(),
+    NodeSplitColumnByNonDigitToDigit(),
 ]
 
 

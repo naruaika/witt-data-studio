@@ -285,6 +285,10 @@ class SheetEditor(Gtk.Box):
                       'lowercase-to-uppercase', lambda *_: self._transform_table('split-column-by-lowercase-to-uppercase'))
         create_action('split-column-by-'
                       'uppercase-to-lowercase', lambda *_: self._transform_table('split-column-by-uppercase-to-lowercase'))
+        create_action('split-column-by-'
+                      'digit-to-nondigit',      lambda *_: self._transform_table('split-column-by-digit-to-nondigit'))
+        create_action('split-column-by-'
+                      'nondigit-to-digit',      lambda *_: self._transform_table('split-column-by-nondigit-to-digit'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -369,6 +373,12 @@ class SheetEditor(Gtk.Box):
         create_command('split-column-by-'
                        'uppercase-to-'
                        'lowercase',             f"{_('Column')}: {get_title_from_layout('split-column-by-uppercase-to-lowercase')}...",
+                                                context = 'table_focus and column_string_focus')
+        create_command('split-column-by-'
+                       'digit-to-nondigit',     f"{_('Column')}: {get_title_from_layout('split-column-by-digit-to-nondigit')}...",
+                                                context = 'table_focus and column_string_focus')
+        create_command('split-column-by-'
+                       'nondigit-to-digit',     f"{_('Column')}: {get_title_from_layout('split-column-by-nondigit-to-digit')}...",
                                                 context = 'table_focus and column_string_focus')
 
     def set_data(self,
