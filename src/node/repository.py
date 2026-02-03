@@ -482,11 +482,13 @@ class NodeReadFile(NodeTemplate):
                 self._add_rows_selector(with_from_rows  = True,
                                         with_has_header = True)
                 self._add_delimiters_group(visible = file_format not in {'tsv'})
+                self._add_columns_selector()
                 self.frame.data['refresh-columns'] = True
 
             case 'parquet':
                 self._add_rows_selector(with_from_rows  = False,
                                         with_has_header = False)
+                self._add_columns_selector()
                 self.frame.data['refresh-columns'] = True
 
 #           case _ if file_format in SPREADSHEET_FILES:
