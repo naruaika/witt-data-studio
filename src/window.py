@@ -359,6 +359,8 @@ class Window(Adw.ApplicationWindow):
                                   undoable,
                                   add_only)
 
+        self._post_do()
+
         if add_only:
             return True
 
@@ -368,16 +370,6 @@ class Window(Adw.ApplicationWindow):
         if editor := self.get_selected_editor():
             editor.refresh_ui()
             editor.grab_focus()
-
-        if self.history.undo_stack:
-            from .node.action import ActionSelectByClick
-            from .node.action import ActionSelectByRubberband
-            classes = (ActionSelectByClick, ActionSelectByRubberband)
-            last_action = self.history.undo_stack[-1]
-            is_selection = isinstance(last_action, classes)
-            if not (is_selection and not last_action.group):
-                self.StatusBar.set_file_saved(False)
-                self.file_saved = False
 
         return True
 
@@ -395,15 +387,7 @@ class Window(Adw.ApplicationWindow):
             editor.refresh_ui()
             editor.grab_focus()
 
-        if self.history.redo_stack:
-            from .node.action import ActionSelectByClick
-            from .node.action import ActionSelectByRubberband
-            classes = (ActionSelectByClick, ActionSelectByRubberband)
-            last_action = self.history.redo_stack[-1]
-            is_selection = isinstance(last_action, classes)
-            if not (is_selection and not last_action.group):
-                self.StatusBar.set_file_saved(False)
-                self.file_saved = False
+        self._post_undo()
 
         return success
 
@@ -421,17 +405,37 @@ class Window(Adw.ApplicationWindow):
             editor.refresh_ui()
             editor.grab_focus()
 
-        if self.history.undo_stack:
-            from .node.action import ActionSelectByClick
-            from .node.action import ActionSelectByRubberband
-            classes = (ActionSelectByClick, ActionSelectByRubberband)
-            last_action = self.history.undo_stack[-1]
-            is_selection = isinstance(last_action, classes)
-            if not (is_selection and not last_action.group):
-                self.StatusBar.set_file_saved(False)
-                self.file_saved = False
+        self._post_do()
 
         return success
+
+    def _post_do(self) -> None:
+        """"""
+        if not self.history.undo_stack:
+            return
+
+        from .node.action import ActionSelectByClick
+        from .node.action import ActionSelectByRubberband
+        classes = (ActionSelectByClick, ActionSelectByRubberband)
+        last_action = self.history.undo_stack[-1]
+        is_selection = isinstance(last_action, classes)
+        if not (is_selection and not last_action.group):
+            self.StatusBar.set_file_saved(False)
+            self.file_saved = False
+
+    def _post_undo(self) -> None:
+        """"""
+        if not self.history.redo_stack:
+            return
+
+        from .node.action import ActionSelectByClick
+        from .node.action import ActionSelectByRubberband
+        classes = (ActionSelectByClick, ActionSelectByRubberband)
+        last_action = self.history.redo_stack[-1]
+        is_selection = isinstance(last_action, classes)
+        if not (is_selection and not last_action.group):
+            self.StatusBar.set_file_saved(False)
+            self.file_saved = False
 
     def add_new_editor(self,
                        editor: Editor,
