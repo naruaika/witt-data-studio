@@ -357,10 +357,11 @@ class SheetTransformWindow(Adw.Window):
         subbox.append(label_title)
 
         if description not in {'', None}:
-            label_description = Gtk.Label(xalign    = 0.0,
-                                          wrap      = True,
-                                          wrap_mode = Pango.WrapMode.WORD,
-                                          label     = description)
+            label_description = Gtk.Label(xalign     = 0.0,
+                                          wrap       = True,
+                                          wrap_mode  = Pango.WrapMode.WORD,
+                                          label      = description,
+                                          margin_top = 3)
             label_description.add_css_class('subtitle')
             subbox.append(label_description)
 

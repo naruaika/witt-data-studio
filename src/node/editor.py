@@ -322,6 +322,8 @@ class NodeEditor(Gtk.Overlay):
                       'uppercase',              lambda *_: create_node('change-case-to-uppercase'))
         create_action('change-case-to-'
                       'titlecase',              lambda *_: create_node('change-case-to-titlecase'))
+        create_action('trim-contents',          lambda *_: create_node('trim-contents'))
+        create_action('clean-contents',         lambda *_: create_node('clean-contents'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -391,7 +393,7 @@ class NodeEditor(Gtk.Overlay):
         create_command('new-integer',           f"{_('Create')}: {_('Constant')} {_('Integer')}")
         create_command('new-string',            f"{_('Create')}: {_('Constant')} {_('String')}")
 
-        create_command('transpose-table',       f"{_('Table')}: {_('Transpose')}")
+        create_command('transpose-table',       f"{_('Table')}: {_('Transpose Table')}")
         create_command('reverse-rows',          f"{_('Table')}: {_('Reverse Rows')}")
 
         create_command('change-data-type',      f"{_('Table')}: {_('Change Data Type')}")
@@ -424,6 +426,9 @@ class NodeEditor(Gtk.Overlay):
                        'uppercase',             f"{_('Column')}: {_('Change Case to Uppercase')}")
         create_command('change-case-to-'
                        'titlecase',             f"{_('Column')}: {_('Change Case to Title Case')}")
+
+        create_command('trim-contents',         f"{_('Column')}: {_('Trim Contents')}")
+        create_command('clean-contents',        f"{_('Column')}: {_('Clean Contents')}")
 
     def _setup_controllers(self) -> None:
         """"""

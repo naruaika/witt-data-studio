@@ -297,6 +297,9 @@ class SheetEditor(Gtk.Box):
         create_action('change-case-to-'
                       'titlecase',              lambda *_: self._transform_table('change-case-to-titlecase'))
 
+        create_action('trim-contents',          lambda *_: self._transform_table('trim-contents'))
+        create_action('clean-contents',         lambda *_: self._transform_table('clean-contents'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -398,6 +401,11 @@ class SheetEditor(Gtk.Box):
                                                 context = 'table_focus and column_string_focus')
         create_command('change-case-to-'
                        'titlecase',             f"{_('Column')}: {get_title_from_layout('change-case-to-titlecase')}...",
+                                                context = 'table_focus and column_string_focus')
+
+        create_command('trim-contents',         f"{_('Column')}: {get_title_from_layout('trim-contents')}...",
+                                                context = 'table_focus and column_string_focus')
+        create_command('clean-contents',        f"{_('Column')}: {get_title_from_layout('clean-contents')}...",
                                                 context = 'table_focus and column_string_focus')
 
     def set_data(self,
@@ -642,19 +650,19 @@ class SheetEditor(Gtk.Box):
             # Find longest table content
             try:
                 expr = col(col_name).cast(String).fill_null('(Blank)')
-                _sample_data = sample_data.with_columns(expr)
+                sample_text = sample_data.with_columns(expr)
 
                 expr = col(col_name).str.len_chars().max()
-                max_length = _sample_data.select(expr).item()
+                max_length = sample_text.select(expr).item()
 
                 expr = col(col_name).str.len_chars() == max_length
                 expr = when(expr).then(col(col_name)) \
                                  .otherwise(None) \
-                                 .alias('sample_text')
-                sample_text = _sample_data.with_columns(expr) \
-                                          .drop_nulls('sample_text') \
+                                 .alias('$sample-text')
+                sample_text = sample_text.with_columns(expr) \
+                                          .drop_nulls('$sample-text') \
                                           .sample(1) \
-                                          .item(0, 'sample_text')
+                                          .item(0, '$sample-text')
                 sample_text = str(sample_text)
 
             # Assumes that the column is non-arbitrary dtype,

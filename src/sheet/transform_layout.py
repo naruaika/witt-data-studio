@@ -343,7 +343,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                             '=':  _('Equal Sign'),
                             ';':  _('Semicolon'),
                             ' ':  _('Space'),
-                            '\n': _('Tab'),
+                            '\t': _('Tab'),
                         },
                     ),
                     (
@@ -479,6 +479,50 @@ def get_layout(action_name: str) -> tuple[str, list]:
                         _('Column'),
                         'combo',
                         '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'trim-contents':
+            return (
+                _('Trim Contents'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                    (
+                        _('Characters'),
+                        'combo:custom',
+                        {
+                            ' \n': _('Spaces & Newlines'),
+                            ' ':   _('Spaces Only'),
+                            '\n':  _('Newlines Only'),
+                        },
+                    ),
+                ],
+            )
+
+        case 'clean-contents':
+            return (
+                _('Clean Contents'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                    (
+                        [
+                            _('To Keep'),
+                            _('Select one or more control characters to keep'),
+                        ],
+                        'list-check:indexed',
+                        [
+                            _('Newlines'),
+                            _('Tabs'),
+                        ],
                     ),
                 ],
             )

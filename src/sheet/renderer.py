@@ -32,10 +32,13 @@ from gi.repository import Gtk
 from gi.repository import Pango
 from gi.repository import PangoCairo
 from polars import Series
+import re
 
 from .document import SheetDocument
 from .display import SheetDisplay
 from .selection import SheetSelection
+
+WHITESPACE_PATTERN = re.compile(r'(^\s+)|(\s+$)', re.MULTILINE)
 
 class SheetRenderer():
 
@@ -675,11 +678,24 @@ class SheetRenderer():
 
                 cell_text = str(cell_value)
 
-                # Truncate before the first line break to prevent overflow
-                cell_text = cell_text.split('\n', 1)[0]
-
                 # Truncate the contents for performance reasons
-                cell_text = cell_text[:int(cell_width * 0.2)] # TODO: 0.2 is a magic number
+                cell_text = cell_text[:int(cell_width * 0.2)] # 0.2 is a magic number
+
+                # Truncate before the first line break to prevent overflow
+                # and make the newlines obvious to the users by displaying
+                # it using bent arrow character
+                if '\n' in cell_text:
+                    cell_text = cell_text.split('\n', 1)[0]
+                    cell_text += '\u21B5'
+
+                # Make the tab characters visible to the users
+                cell_text = cell_text.replace('\t', '\u21E5')
+
+                # Make the whitespaces obvious to the users by
+                # replacing them with middle dot characters
+                repl = lambda m: m.group(0).replace(' ', '\u00B7')
+                cell_text = WHITESPACE_PATTERN.sub(repl, cell_text)
+
                 layout.set_text(cell_text, -1)
 
                 x_text = x + display.DEFAULT_CELL_PADDING

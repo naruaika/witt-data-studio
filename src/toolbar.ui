@@ -2880,18 +2880,18 @@
         <attribute name="target">change-case-to-titlecase</attribute>
       </item>
     </section>
-    <!-- <section>
+    <section>
       <item>
-        <attribute name="label" translatable="yes">Trim</attribute>
+        <attribute name="label" translatable="yes">Trim Contents</attribute>
         <attribute name="action">win.toolbar</attribute>
-        <attribute name="target">trim-text-column</attribute>
+        <attribute name="target">trim-contents</attribute>
       </item>
       <item>
-        <attribute name="label" translatable="yes">Clean</attribute>
+        <attribute name="label" translatable="yes">Clean Contents</attribute>
         <attribute name="action">win.toolbar</attribute>
-        <attribute name="target">clean-text-column</attribute>
+        <attribute name="target">clean-contents</attribute>
       </item>
-    </section> -->
+    </section>
     <!-- <section>
       <item>
         <attribute name="label" translatable="yes">Add Prefix</attribute>
