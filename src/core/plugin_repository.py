@@ -19,6 +19,7 @@
 
 from polars import Expr
 from polars.api import register_expr_namespace
+from warnings import deprecated
 
 try:
     import witt_strutil as strx
@@ -36,24 +37,29 @@ try:
             """"""
             return strx.pig_latinnify(self._expr)
 
-        def split_by_chars(self,
-                           characters: str,
-                           ) ->        Expr:
+        def split_by_character_transition(self,
+                                          before: list[str],
+                                          after:  list[str],
+                                          ) ->    Expr:
             """"""
-            return strx.split_by_chars(self._expr, characters)
+            return strx.split_by_character_transition(self._expr, before, after)
 
+        @deprecated('Use split_by_character_transition instead')
         def split_by_lowercase_to_uppercase(self) -> Expr:
             """"""
             return strx.split_by_lowercase_to_uppercase(self._expr)
 
+        @deprecated('Use split_by_character_transition instead')
         def split_by_uppercase_to_lowercase(self) -> Expr:
             """"""
             return strx.split_by_uppercase_to_lowercase(self._expr)
 
+        @deprecated('Use split_by_character_transition instead')
         def split_by_digit_to_nondigit(self) -> Expr:
             """"""
             return strx.split_by_digit_to_nondigit(self._expr)
 
+        @deprecated('Use split_by_character_transition instead')
         def split_by_nondigit_to_digit(self) -> Expr:
             """"""
             return strx.split_by_nondigit_to_digit(self._expr)

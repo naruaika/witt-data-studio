@@ -46,4 +46,4 @@ SecretStorage==3.5.0
 six==1.17.0
 twine==6.2.0
 urllib3==2.6.3
-witt-strutil==0.1.2
+witt-strutil==0.1.3

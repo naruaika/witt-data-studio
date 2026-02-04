@@ -15,4 +15,4 @@ python-dateutil==2.9.0.post0
 PyYAML==6.0.3
 scipy==1.17.0
 six==1.17.0
-witt-strutil==0.1.2
+witt-strutil==0.1.3

@@ -6366,10 +6366,14 @@ class NodeSplitColumnByLowercaseToUppercase(NodeTemplate):
 
         if self.frame.data['columns']:
             from polars import col
+            from string import ascii_lowercase
+            from string import ascii_uppercase
 
             column = self.frame.data['column']
 
-            split_expr = col(column).strx.split_by_lowercase_to_uppercase()
+            before = list(ascii_lowercase)
+            after  = list(ascii_uppercase)
+            split_expr = col(column).strx.split_by_character_transition(before, after)
             upper_expr = table.select(split_expr.list.len().max()).collect().item()
 
             # FIXME: this process is expensive but it requires less memory
@@ -6547,10 +6551,14 @@ class NodeSplitColumnByUppercaseToLowercase(NodeTemplate):
 
         if self.frame.data['columns']:
             from polars import col
+            from string import ascii_lowercase
+            from string import ascii_uppercase
 
             column = self.frame.data['column']
 
-            split_expr = col(column).strx.split_by_uppercase_to_lowercase()
+            before = list(ascii_uppercase)
+            after  = list(ascii_lowercase)
+            split_expr = col(column).strx.split_by_character_transition(before, after)
             upper_expr = table.select(split_expr.list.len().max()).collect().item()
 
             struct_expr = col(column).list.to_struct(fields      = lambda i: f'{column}_{i}',
@@ -6724,10 +6732,14 @@ class NodeSplitColumnByDigitToNonDigit(NodeTemplate):
 
         if self.frame.data['columns']:
             from polars import col
+            from string import ascii_letters
+            from string import digits
 
             column = self.frame.data['column']
 
-            split_expr = col(column).strx.split_by_digit_to_nondigit()
+            before = list(digits)
+            after  = list(ascii_letters)
+            split_expr = col(column).strx.split_by_character_transition(before, after)
             upper_expr = table.select(split_expr.list.len().max()).collect().item()
 
             struct_expr = col(column).list.to_struct(fields      = lambda i: f'{column}_{i}',
@@ -6901,10 +6913,14 @@ class NodeSplitColumnByNonDigitToDigit(NodeTemplate):
 
         if self.frame.data['columns']:
             from polars import col
+            from string import ascii_letters
+            from string import digits
 
             column = self.frame.data['column']
 
-            split_expr = col(column).strx.split_by_nondigit_to_digit()
+            before = list(ascii_letters)
+            after  = list(digits)
+            split_expr = col(column).strx.split_by_character_transition(before, after)
             upper_expr = table.select(split_expr.list.len().max()).collect().item()
 
             struct_expr = col(column).list.to_struct(fields      = lambda i: f'{column}_{i}',
@@ -7065,6 +7081,7 @@ _registered_nodes = [
     NodeSplitColumnByDelimiter(),
     NodeSplitColumnByNumberOfCharacters(),
     NodeSplitColumnByPositions(),
+
     NodeSplitColumnByLowercaseToUppercase(),
     NodeSplitColumnByUppercaseToLowercase(),
     NodeSplitColumnByDigitToNonDigit(),

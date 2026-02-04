@@ -23,6 +23,7 @@ use polars::prelude::*;
 use pyo3_polars::derive::polars_expr;
 use rand::Rng;
 use serde::Deserialize;
+use std::collections::HashSet;
 use std::fmt::Write;
 
 fn list_string_output(_: &[Field]) -> PolarsResult<Field> {
@@ -109,26 +110,53 @@ fn pig_latinnify(inputs: &[Series]) -> PolarsResult<Series> {
 }
 
 #[derive(Deserialize)]
-pub struct SplitByCharsKwargs {
-    characters: String,
+pub struct SplitByCharacterTransitionKwargs {
+    before: Vec<String>,
+    after: Vec<String>,
 }
 
-#[polars_expr(output_type=String)]
-fn split_by_chars(inputs: &[Series], kwargs: SplitByCharsKwargs) -> PolarsResult<Series> {
+#[polars_expr(output_type_func=list_string_output)]
+fn split_by_character_transition(inputs: &[Series], kwargs: SplitByCharacterTransitionKwargs) -> PolarsResult<Series> {
     let ca: &StringChunked = inputs[0].str()?;
-    let SplitByCharsKwargs { characters } = kwargs;
-    let mut all_results: Vec<String> = Vec::new();
-    for value in ca.iter() {
-        if let Some(s) = value {
-            for part in s.split(|c: char| characters.contains(c)) {
-                all_results.push(part.trim().to_string());
+    let before_set: HashSet<char> = kwargs
+        .before
+        .iter()
+        .filter_map(|s| s.chars().next())
+        .collect();
+    let after_set: HashSet<char> = kwargs
+        .after
+        .iter()
+        .filter_map(|s| s.chars().next())
+        .collect();
+    let mut builder = ListStringChunkedBuilder::new("".into(), ca.len(), 0);
+    for opt_s in ca.into_iter() {
+        match opt_s {
+            None => builder.append_null(),
+            Some(s) => {
+                let mut parts: Vec<String> = Vec::new();
+                let mut buffer = String::new();
+                let mut chars = s.chars().peekable();
+                while let Some(c) = chars.next() {
+                    buffer.push(c);
+                    if before_set.contains(&c) {
+                        if let Some(&next) = chars.peek() {
+                            if after_set.contains(&next) {
+                                parts.push(std::mem::take(&mut buffer));
+                            }
+                        }
+                    }
+                }
+                if !buffer.is_empty() {
+                    parts.push(buffer);
+                }
+                builder.append_series(&Series::new("".into(), parts))?;
             }
         }
     }
-    let out: StringChunked = all_results.iter().map(|s| Some(s.as_str())).collect::<StringChunked>();
-    Ok(out.into_series())
+    Ok(builder.finish().into_series())
 }
 
+#[deprecated(since="0.1.3", note="Please use `split_by_character_transition` instead")]
 #[polars_expr(output_type_func=list_string_output)]
 fn split_by_lowercase_to_uppercase(inputs: &[Series]) -> PolarsResult<Series> {
     let ca: &StringChunked = inputs[0].str()?;
@@ -160,6 +188,7 @@ fn split_by_lowercase_to_uppercase(inputs: &[Series]) -> PolarsResult<Series> {
     Ok(builder.finish().into_series())
 }
 
+#[deprecated(since="0.1.3", note="Please use `split_by_character_transition` instead")]
 #[polars_expr(output_type_func=list_string_output)]
 fn split_by_uppercase_to_lowercase(inputs: &[Series]) -> PolarsResult<Series> {
     let ca: &StringChunked = inputs[0].str()?;
@@ -191,6 +220,7 @@ fn split_by_uppercase_to_lowercase(inputs: &[Series]) -> PolarsResult<Series> {
     Ok(builder.finish().into_series())
 }
 
+#[deprecated(since="0.1.3", note="Please use `split_by_character_transition` instead")]
 #[polars_expr(output_type_func=list_string_output)]
 fn split_by_digit_to_nondigit(inputs: &[Series]) -> PolarsResult<Series> {
     let ca: &StringChunked = inputs[0].str()?;
@@ -222,6 +252,7 @@ fn split_by_digit_to_nondigit(inputs: &[Series]) -> PolarsResult<Series> {
     Ok(builder.finish().into_series())
 }
 
+#[deprecated(since="0.1.3", note="Please use `split_by_character_transition` instead")]
 #[polars_expr(output_type_func=list_string_output)]
 fn split_by_nondigit_to_digit(inputs: &[Series]) -> PolarsResult<Series> {
     let ca: &StringChunked = inputs[0].str()?;
