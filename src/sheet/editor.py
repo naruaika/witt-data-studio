@@ -660,9 +660,9 @@ class SheetEditor(Gtk.Box):
                                  .otherwise(None) \
                                  .alias('$sample-text')
                 sample_text = sample_text.with_columns(expr) \
-                                          .drop_nulls('$sample-text') \
-                                          .sample(1) \
-                                          .item(0, '$sample-text')
+                                         .drop_nulls('$sample-text') \
+                                         .head(1) \
+                                         .item(0, '$sample-text')
                 sample_text = str(sample_text)
 
             # Assumes that the column is non-arbitrary dtype,
