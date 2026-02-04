@@ -63,8 +63,7 @@ class SheetTransformWindow(Adw.Window):
                          application   = application)
 
         self.set_title(title)
-        self.WindowTitle.set_title(title)
-        self.WindowTitle.set_subtitle(subtitle)
+        self.WindowTitle.set_title(_('Transform'))
 
         # Disable scroll to focus behavior of the Gtk.Viewport
         scrolled_window = self.PreferencesPage.get_first_child()
@@ -110,11 +109,17 @@ class SheetTransformWindow(Adw.Window):
             scrolled_window.set_min_content_height(362)
 
         # We set the maximum content height previously to prevent
-        # the window from filling the entire user screen's height.
-        # But we don't want to prevent from manually resizing the
+        # the window from filling the entire user screen's height
+        # but we don't want to prevent from manually resizing the
         # window to any size, so we reset the property here.
         GLib.idle_add(scrolled_window.set_min_content_height, -1)
         GLib.idle_add(scrolled_window.set_max_content_height, -1)
+
+        # We set the window title after a delay so that the window
+        # when displayed doesn't try to resize to fit the title in
+        # case the title is too long
+        GLib.idle_add(self.WindowTitle.set_title, title)
+        GLib.idle_add(self.WindowTitle.set_subtitle, subtitle)
 
         self.ApplyButton.grab_focus()
 
@@ -663,8 +668,9 @@ class SheetTransformWindow(Adw.Window):
                             set_data: callable,
                             ) ->      Gtk.Entry:
         """"""
-        entry = Gtk.Entry(hexpand = True,
-                          valign  = Gtk.Align.CENTER)
+        entry = Gtk.Entry(hexpand          = True,
+                          valign           = Gtk.Align.CENTER,
+                          placeholder_text = _('Type here...'))
 
         def on_text_changed(entry:      Gtk.Entry,
                             param_spec: GObject.ParamSpec,

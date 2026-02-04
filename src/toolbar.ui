@@ -1449,12 +1449,12 @@
                               <object class="GtkGrid">
                                 <property name="vexpand">true</property>
                                 <child>
-                                  <object class="GtkButton" id="ConvertDataTypeButton">
-                                    <property name="name">convert-data-type</property>
+                                  <object class="GtkButton" id="ChangeDataTypeButton">
+                                    <property name="name">change-data-type</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Data Type</property>
                                     <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'convert-data-type'</property>
+                                    <property name="action-target">'change-data-type'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -1548,12 +1548,12 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="FillBlanksButton">
-                                    <property name="name">fill-blanks</property>
+                                  <object class="GtkButton" id="FillBlankCellsButton">
+                                    <property name="name">fill-blank-cells</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Fill Blanks</property>
                                     <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'fill-blanks'</property>
+                                    <property name="action-target">'fill-blank-cells'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -1719,12 +1719,11 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="FormatColumnButton">
+                                  <object class="GtkMenuButton" id="FormatColumnButton">
                                     <property name="name">format-column</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Format</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'format-column'</property>
+                                    <property name="menu-model">format_column_menu</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -2861,5 +2860,49 @@
         <attribute name="target">split-column-by-nondigit-to-digit</attribute>
       </item>
     </section>
+  </menu>
+
+  <menu id="format_column_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">To Lowercase</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">change-case-to-lowercase</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">To Uppercase</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">change-case-to-uppercase</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">To Title Case</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">change-case-to-titlecase</attribute>
+      </item>
+    </section>
+    <!-- <section>
+      <item>
+        <attribute name="label" translatable="yes">Trim</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">trim-text-column</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Clean</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">clean-text-column</attribute>
+      </item>
+    </section> -->
+    <!-- <section>
+      <item>
+        <attribute name="label" translatable="yes">Add Prefix</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">add-column-prefix</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Add Suffix</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">add-column-suffix</attribute>
+      </item>
+    </section> -->
   </menu>
 </interface>

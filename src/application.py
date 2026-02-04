@@ -107,7 +107,7 @@ class Application(Adw.Application):
                                  issue_url          = f'{repository_url}/issues',
                                  support_url        = f'{repository_url}/discussions',
                                  translator_credits = _('translator-credits'))
-        window = self.get_active_window()
+        window = self.get_active_main_window()
         dialog.present(window)
 
     def _on_exit_action(self,

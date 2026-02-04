@@ -215,9 +215,9 @@ def get_layout(action_name: str) -> tuple[str, list]:
         case 'reverse-rows':
             return (_('Reverse Rows'), [])
 
-        case 'convert-data-type':
+        case 'change-data-type':
             return (
-                _('Convert Data Type'),
+                _('Change Data Type'),
                 [
                     (
                         _('Mapping'),
@@ -297,9 +297,9 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
-        case 'fill-blanks':
+        case 'fill-blank-cells':
             return (
-                _('Fill Blanks'),
+                _('Fill Blank Cells'),
                 [
                     (
                         _('Strategy'),
@@ -313,6 +313,15 @@ def get_layout(action_name: str) -> tuple[str, list]:
                             'zero':     _('Zero'),
                             'one':      _('One'),
                         },
+                    ),
+                    (
+                        [
+                            _('Columns'),
+                            _('Select column(s) with blank cell(s) to fill. '
+                              'Leave blank to fill all columns.'),
+                        ],
+                        'list-check',
+                        '$all-columns',
                     ),
                 ],
             )
@@ -429,6 +438,42 @@ def get_layout(action_name: str) -> tuple[str, list]:
         case 'split-column-by-nondigit-to-digit':
             return (
                 _('Split Column by Non-Digit to Digit'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'change-case-to-lowercase':
+            return (
+                _('Change Case to Lowercase'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'change-case-to-uppercase':
+            return (
+                _('Change Case to Uppercase'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'change-case-to-titlecase':
+            return (
+                _('Change Case to Title Case'),
                 [
                     (
                         _('Column'),

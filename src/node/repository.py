@@ -4349,18 +4349,18 @@ class NodeReverseRows(NodeTemplate):
 
 
 
-class NodeConvertDataType(NodeTemplate):
+class NodeChangeDataType(NodeTemplate):
 
-    ndname = _('Convert Data Type')
+    ndname = _('Change Data Type')
 
-    action = 'convert-data-type'
+    action = 'change-data-type'
 
     @staticmethod
     def new(x:   int = 0,
             y:   int = 0,
             ) -> NodeFrame:
         """"""
-        self = NodeConvertDataType(x, y)
+        self = NodeChangeDataType(x, y)
 
         self.frame.set_data   = self.set_data
         self.frame.do_process = self.do_process
@@ -5318,32 +5318,36 @@ class NodeReplaceValues(NodeTemplate):
 
 
 
-class NodeFillBlanks(NodeTemplate):
+class NodeFillBlankCells(NodeTemplate):
 
-    ndname = _('Fill Blanks')
+    ndname = _('Fill Blank Cells')
 
-    action = 'fill-blanks'
+    action = 'fill-blank-cells'
 
     @staticmethod
     def new(x:   int = 0,
             y:   int = 0,
             ) -> NodeFrame:
         """"""
-        self = NodeFillBlanks(x, y)
+        self = NodeFillBlankCells(x, y)
 
         self.frame.set_data   = self.set_data
         self.frame.do_process = self.do_process
         self.frame.do_save    = self.do_save
         self.frame.do_restore = self.do_restore
 
-        self.frame.data['options']  = {'forward':  _('Forward'),
-                                       'backward': _('Backward'),
-                                       'min':      _('Minimum'),
-                                       'max':      _('Maximum'),
-                                       'mean':     _('Mean'),
-                                       'zero':     _('Zero'),
-                                       'one':      _('One')}
-        self.frame.data['strategy'] = 'forward'
+        self.frame.data['options']         = {'forward':  _('Forward'),
+                                              'backward': _('Backward'),
+                                              'min':      _('Minimum'),
+                                              'max':      _('Maximum'),
+                                              'mean':     _('Mean'),
+                                              'zero':     _('Zero'),
+                                              'one':      _('One')}
+        self.frame.data['strategy']        = 'forward'
+        self.frame.data['all-columns']     = []
+        self.frame.data['columns']         = []
+        self.frame.data['refresh-columns'] = False
+        self.frame.data['column-expanded'] = False
 
         self._add_output()
         self._add_input()
@@ -5354,6 +5358,7 @@ class NodeFillBlanks(NodeTemplate):
     def set_data(self, *args, **kwargs) -> None:
         """"""
         self.frame.data['strategy'] = args[0]
+        self.frame.data['columns']  = args[1]
 
         options = self.frame.data['options']
         option = list(options.keys())[0]
@@ -5362,6 +5367,7 @@ class NodeFillBlanks(NodeTemplate):
         widget = self.frame.contents[2].Widget
         widget.set_data(option)
 
+        self.frame.data['refresh-columns'] = True
         self.frame.do_execute(backward = False)
 
     def do_process(self,
@@ -5373,26 +5379,44 @@ class NodeFillBlanks(NodeTemplate):
 
         if not (links := self_content.Socket.links):
             self.frame.data['table'] = DataFrame()
+            self._refresh_selector()
             return
 
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        self.frame.data['table'] = table
+        self._refresh_selector()
+
+        table_columns = table.collect_schema().names()
+
         strategy = self.frame.data['strategy']
-        table = table.fill_null(strategy = strategy)
+        columns = self.frame.data['columns']
+
+        from polars import col
+
+        if table_columns and columns:
+            expr = col(columns).fill_null(strategy = strategy)
+            table = table.with_columns(expr)
+        else:
+            table = table.fill_null(strategy = strategy)
 
         self.frame.data['table'] = table
 
-    def do_save(self) -> str:
+    def do_save(self) -> dict:
         """"""
-        return self.frame.data['strategy']
+        return {
+            'strategy': self.frame.data['strategy'],
+            'columns':  deepcopy(self.frame.data['columns'])
+        }
 
     def do_restore(self,
-                   value: str,
+                   value: dict,
                    ) ->   None:
         """"""
         try:
-            self.set_data(value)
+            self.set_data(value['strategy'],
+                          value['columns'])
         except:
             pass # TODO: show errors to user
 
@@ -5465,6 +5489,69 @@ class NodeFillBlanks(NodeTemplate):
         self.frame.add_content(widget    = combo,
                                get_data  = get_data,
                                set_data  = set_data)
+
+    def _refresh_selector(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        table_columns = table.collect_schema().names()
+
+        # Filter unvalid columns from selection
+        if table_columns:
+            if self.frame.data['columns']:
+                columns = []
+                for column in table_columns:
+                    if column in self.frame.data['columns']:
+                        columns.append(column)
+                self.frame.data['columns'] = columns
+
+        if self.frame.data['all-columns'] != table_columns:
+            self.frame.data['refresh-columns'] = True
+
+        self.frame.data['all-columns'] = table_columns
+
+        if self.frame.data['refresh-columns']:
+            if len(self.frame.contents) == 4:
+                content = self.frame.contents[-1]
+                self.frame.remove_content(content)
+            if table_columns:
+                self._add_selector()
+
+        if self.frame.data['column-expanded']:
+            if len(self.frame.contents) == 3:
+                widget = self.frame.contents[-1].Widget
+                widget.set_expanded(True)
+
+        self.frame.data['refresh-columns'] = False
+
+    def _add_selector(self) -> None:
+        """"""
+        def get_data() -> list[str]:
+            """"""
+            return self.frame.data['columns']
+
+        def set_data(value: list[str]) -> None:
+            """"""
+            def callback(value: list[str]) -> None:
+                """"""
+                self.frame.data['columns'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        group = NodeCheckGroup(get_data = get_data,
+                               set_data = set_data,
+                               options  = self.frame.data['all-columns'])
+        expander = Gtk.Expander(label = _('Columns'),
+                                child = group)
+        self.frame.add_content(expander)
+
+        def on_expanded(widget:     Gtk.Widget,
+                        param_spec: GObject.ParamSpec,
+                        ) ->        None:
+            """"""
+            self.frame.data['column-expanded'] = expander.get_expanded()
+
+        expander.connect('notify::expanded', on_expanded)
 
 
 
@@ -7042,6 +7129,510 @@ class NodeSplitColumnByNonDigitToDigit(NodeTemplate):
 
 
 
+class NodeChangeCaseToLowercase(NodeTemplate):
+
+    ndname = _('Change Case to Lowercase')
+
+    action = 'change-case-to-lowercase'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeChangeCaseToLowercase(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns'] = []
+        self.frame.data['column']  = ''
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column'] = args[0]
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from polars import col
+            column = self.frame.data['column']
+            table = table.with_columns(col(column).str.to_lowercase())
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> str:
+        """"""
+        return self.frame.data['column']
+
+    def do_restore(self,
+                   value: str,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value)
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.string()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget    = combo,
+                               get_data  = get_data,
+                               set_data  = set_data)
+
+        combo.set_sensitive(False)
+
+
+
+class NodeChangeCaseToUppercase(NodeTemplate):
+
+    ndname = _('Change Case to Uppercase')
+
+    action = 'change-case-to-uppercase'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeChangeCaseToUppercase(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns'] = []
+        self.frame.data['column']  = ''
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column'] = args[0]
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from polars import col
+            column = self.frame.data['column']
+            table = table.with_columns(col(column).str.to_uppercase())
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> str:
+        """"""
+        return self.frame.data['column']
+
+    def do_restore(self,
+                   value: str,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value)
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.string()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget    = combo,
+                               get_data  = get_data,
+                               set_data  = set_data)
+
+        combo.set_sensitive(False)
+
+
+
+class NodeChangeCaseToTitleCase(NodeTemplate):
+
+    ndname = _('Change Case to Title Case')
+
+    action = 'change-case-to-titlecase'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeChangeCaseToTitleCase(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns'] = []
+        self.frame.data['column']  = ''
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column'] = args[0]
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from polars import col
+            column = self.frame.data['column']
+            table = table.with_columns(col(column).str.to_titlecase())
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> str:
+        """"""
+        return self.frame.data['column']
+
+    def do_restore(self,
+                   value: str,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value)
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.string()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget    = combo,
+                               get_data  = get_data,
+                               set_data  = set_data)
+
+        combo.set_sensitive(False)
+
+
+
 _registered_nodes = [
     NodeBoolean(),
     NodeDecimal(),
@@ -7073,10 +7664,10 @@ _registered_nodes = [
     NodeTransposeTable(),
     NodeReverseRows(),
 
-    NodeConvertDataType(),
+    NodeChangeDataType(),
     NodeRenameColumns(),
     NodeReplaceValues(),
-    NodeFillBlanks(),
+    NodeFillBlankCells(),
 
     NodeSplitColumnByDelimiter(),
     NodeSplitColumnByNumberOfCharacters(),
@@ -7086,6 +7677,10 @@ _registered_nodes = [
     NodeSplitColumnByUppercaseToLowercase(),
     NodeSplitColumnByDigitToNonDigit(),
     NodeSplitColumnByNonDigitToDigit(),
+
+    NodeChangeCaseToLowercase(),
+    NodeChangeCaseToUppercase(),
+    NodeChangeCaseToTitleCase(),
 ]
 
 

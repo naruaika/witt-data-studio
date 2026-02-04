@@ -270,10 +270,10 @@ class SheetEditor(Gtk.Box):
         create_action('transpose-table',        lambda *_: self._transform_table('transpose-table'))
         create_action('reverse-rows',           lambda *_: self._transform_table('reverse-rows'))
 
-        create_action('convert-data-type',      lambda *_: self._transform_table('convert-data-type'))
+        create_action('change-data-type',       lambda *_: self._transform_table('change-data-type'))
         create_action('rename-columns',         lambda *_: self._transform_table('rename-columns'))
         create_action('replace-values',         lambda *_: self._transform_table('replace-values'))
-        create_action('fill-blanks',            lambda *_: self._transform_table('fill-blanks'))
+        create_action('fill-blank-cells',       lambda *_: self._transform_table('fill-blank-cells'))
 
         create_action('split-column-by-'
                       'delimiter',              lambda *_: self._transform_table('split-column-by-delimiter'))
@@ -289,6 +289,13 @@ class SheetEditor(Gtk.Box):
                       'digit-to-nondigit',      lambda *_: self._transform_table('split-column-by-digit-to-nondigit'))
         create_action('split-column-by-'
                       'nondigit-to-digit',      lambda *_: self._transform_table('split-column-by-nondigit-to-digit'))
+
+        create_action('change-case-to-'
+                      'lowercase',              lambda *_: self._transform_table('change-case-to-lowercase'))
+        create_action('change-case-to-'
+                      'uppercase',              lambda *_: self._transform_table('change-case-to-uppercase'))
+        create_action('change-case-to-'
+                      'titlecase',              lambda *_: self._transform_table('change-case-to-titlecase'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -350,10 +357,10 @@ class SheetEditor(Gtk.Box):
         create_command('transpose-table',       f"{_('Table')}: {get_title_from_layout('transpose-table')}...")
         create_command('reverse-rows',          f"{_('Table')}: {get_title_from_layout('reverse-rows')}")
 
-        create_command('convert-data-type',     f"{_('Table')}: {get_title_from_layout('convert-data-type')}...")
+        create_command('change-data-type',      f"{_('Table')}: {get_title_from_layout('change-data-type')}...")
         create_command('rename-columns',        f"{_('Table')}: {get_title_from_layout('rename-columns')}...")
         create_command('replace-values',        f"{_('Table')}: {get_title_from_layout('replace-values')}...")
-        create_command('fill-blanks',           f"{_('Table')}: {get_title_from_layout('fill-blanks')}...")
+        create_command('fill-blank-cells',      f"{_('Table')}: {get_title_from_layout('fill-blank-cells')}...")
 
         create_command('split-column',          '$placeholder',
                                                 context = 'table_focus and column_string_focus')
@@ -379,6 +386,18 @@ class SheetEditor(Gtk.Box):
                                                 context = 'table_focus and column_string_focus')
         create_command('split-column-by-'
                        'nondigit-to-digit',     f"{_('Column')}: {get_title_from_layout('split-column-by-nondigit-to-digit')}...",
+                                                context = 'table_focus and column_string_focus')
+
+        create_command('format-column',         '$placeholder',
+                                                context = 'table_focus and column_string_focus')
+        create_command('change-case-to-'
+                       'lowercase',             f"{_('Column')}: {get_title_from_layout('change-case-to-lowercase')}...",
+                                                context = 'table_focus and column_string_focus')
+        create_command('change-case-to-'
+                       'uppercase',             f"{_('Column')}: {get_title_from_layout('change-case-to-uppercase')}...",
+                                                context = 'table_focus and column_string_focus')
+        create_command('change-case-to-'
+                       'titlecase',             f"{_('Column')}: {get_title_from_layout('change-case-to-titlecase')}...",
                                                 context = 'table_focus and column_string_focus')
 
     def set_data(self,
