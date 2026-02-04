@@ -686,15 +686,15 @@ class SheetRenderer():
                 # it using bent arrow character
                 if '\n' in cell_text:
                     cell_text = cell_text.split('\n', 1)[0]
-                    cell_text += '\u21B5'
+#                   cell_text += '\u21B5'
 
                 # Make the tab characters visible to the users
-                cell_text = cell_text.replace('\t', '\u21E5')
+#               cell_text = cell_text.replace('\t', '\u21E5')
 
                 # Make the whitespaces obvious to the users by
                 # replacing them with middle dot characters
-                repl = lambda m: m.group(0).replace(' ', '\u00B7')
-                cell_text = WHITESPACE_PATTERN.sub(repl, cell_text)
+#               repl = lambda m: m.group(0).replace(' ', '\u00B7')
+#               cell_text = WHITESPACE_PATTERN.sub(repl, cell_text)
 
                 layout.set_text(cell_text, -1)
 
