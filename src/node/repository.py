@@ -8102,7 +8102,7 @@ class NodeCleanContents(NodeTemplate):
         box.append(self._add_newlines())
         box.append(self._add_tabs())
 
-        expander = Gtk.Expander(label = _('Search Options'),
+        expander = Gtk.Expander(label = _('To Keep'),
                                 child = box)
         self.frame.add_content(expander)
 
