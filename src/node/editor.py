@@ -872,8 +872,8 @@ class NodeEditor(Gtk.Overlay):
             if is_linked := len(self._target_socket.links) > 0:
                 from .action import ActionEditNode
                 frame = self._target_socket.Frame
-                old_value = frame.do_save()
-                values = (old_value, old_value)
+                value = frame.do_save()
+                values = (value, value)
                 action = ActionEditNode(self, frame, values)
                 window.do(action, add_only = True)
 
@@ -882,16 +882,27 @@ class NodeEditor(Gtk.Overlay):
             # Revert if the target node is unchanged
             if is_linked:
                 new_value = frame.do_save()
-                if old_value == new_value:
+                if value == new_value:
                     window.history.undo_stack.remove(action)
                 else:
-                    action.values = (old_value, new_value)
+                    action.values = (value, new_value)
 
             if self._target_socket == self.removed_socket:
                 self.removed_link   = None
                 self.removed_socket = None
 
         if self.removed_link:
+            # Keep track of the state of the target node
+            # TODO: we should also track downstream nodes
+            if not self._target_socket:
+                from .action import ActionEditNode
+                socket = self.removed_link.out_socket
+                frame = socket.Frame
+                value = frame.do_save()
+                values = (value, value)
+                action = ActionEditNode(self, frame, values)
+                window.do(action, add_only = True)
+
             from .action import ActionDeleteLink
             action = ActionDeleteLink(self, self.removed_link)
             window.do(action, add_only = True)
