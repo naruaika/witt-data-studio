@@ -329,6 +329,8 @@ class NodeEditor(Gtk.Overlay):
         create_action('add-prefix',             lambda *_: create_node('add-prefix'))
         create_action('add-suffix',             lambda *_: create_node('add-suffix'))
 
+        create_action('merge-columns',          lambda *_: create_node('merge-columns'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -436,6 +438,8 @@ class NodeEditor(Gtk.Overlay):
 
         create_command('add-prefix',            f"{_('Column')}: {_('Add Prefix')}")
         create_command('add-suffix',            f"{_('Column')}: {_('Add Suffix')}")
+
+        create_command('merge-columns',         f"{_('Column')}: {_('Merge Columns')}")
 
     def _setup_controllers(self) -> None:
         """"""

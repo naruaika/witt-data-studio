@@ -1584,7 +1584,7 @@
                                   <object class="GtkMenuButton" id="PivotColumnsButton">
                                     <property name="name">pivot-columns</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Pivot Columns</property>
+                                    <property name="tooltip-text" translatable="yes">Pivot</property>
                                     <property name="menu-model">pivot_columns_menu</property>
                                     <child>
                                       <object class="GtkBox">
@@ -1597,7 +1597,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Pivot Columns&#x00A0;&#x2060;&#x2335;</property>
+                                            <property name="label" translatable="yes">Pivot&#x00A0;&#x2060;&#x2335;</property>
                                             <property name="vexpand">true</property>
                                           </object>
                                         </child>
@@ -1616,7 +1616,7 @@
                                   <object class="GtkButton" id="ArrangeColumnsButton">
                                     <property name="name">arrange-columns</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Arrange Columns</property>
+                                    <property name="tooltip-text" translatable="yes">Arrange</property>
                                     <property name="action-name">win.toolbar</property>
                                     <property name="action-target">'arrange-columns'</property>
                                     <child>
@@ -1630,7 +1630,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Arrange Columns</property>
+                                            <property name="label" translatable="yes">Arrange</property>
                                             <property name="vexpand">true</property>
                                           </object>
                                         </child>

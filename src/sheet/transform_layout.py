@@ -553,4 +553,33 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
+        case 'merge-columns':
+            return (
+                _('Merge Columns'),
+                [
+                    (
+                        [
+                            _('Columns'),
+                            _('Select two or more columns to merge'),
+                        ],
+                        'list-check',
+                        '$all-columns:use-column',
+                    ),
+                    (
+                        _('Separator'),
+                        'combo:custom',
+                        {
+                            '':   _('None'),
+                            ':':  _('Colon'),
+                            ',':  _('Comma'),
+                            '=':  _('Equal Sign'),
+                            ';':  _('Semicolon'),
+                            ' ':  _('Space'),
+                            '\t': _('Tab'),
+                        },
+                    ),
+                    (f'{_('Alias')} ({_('Optional')})', 'entry'),
+                ],
+            )
+
     raise KeyError()

@@ -375,6 +375,7 @@ class NodeEntry(Gtk.Entry):
         """"""
         super().__init__(text             = get_data(),
                          placeholder_text = placeholder,
+                         tooltip_text     = placeholder,
                          show_emoji_icon  = True)
 
         def on_activated(entry: Gtk.Entry) -> None:

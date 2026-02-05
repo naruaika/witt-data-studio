@@ -36,6 +36,10 @@ from polars import UInt8
 from polars import UInt16
 from polars import UInt32
 from polars import UInt64
+from polars import Date
+from polars import Time
+from polars import Datetime
+from polars import Duration
 from typing import Any
 from typing import TypeAlias
 import gc
@@ -49,8 +53,9 @@ Coordinate: TypeAlias = tuple[Row, Column]
 Tables:     TypeAlias = dict[Coordinate, DataFrame]
 Sparse:     TypeAlias = dict[Coordinate, Any]
 
-FLOAT_TYPES   = {Float32, Float64}
-INTEGER_TYPES = {Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64}
+FLOAT_TYPES    = {Float32, Float64}
+INTEGER_TYPES  = {Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64}
+TEMPORAL_TYPES = {Date, Time, Datetime, Duration}
 
 @Gtk.Template(resource_path = '/com/macipra/witt/sheet/editor.ui')
 class SheetEditor(Gtk.Box):
@@ -175,31 +180,50 @@ class SheetEditor(Gtk.Box):
         table, column_name = self.document.get_table_column_by_position(lcolumn, lrow)
         table_focus = isinstance(table, DataTable) and not table.placeholder
 
-        n_all_tables = len(self.document.tables) # TODO
-        n_table_columns = table.width if table_focus else 0
+        n_tables = len(self.document.tables) # TODO
+        n_columns = table.width if table_focus else 0
 
-        variables['table_focus']           = table_focus
-        variables['n_all_tables']          = n_all_tables
-        variables['n_table_columns']       = n_table_columns
-        variables['column_float_focus']    = False
-        variables['column_string_focus']   = False
-        variables['column_integer_focus']  = False
-        variables['column_numeric_focus']  = False
-        variables['column_temporal_focus'] = False
+        variables['table_focus'] = table_focus
+        variables['n_tables']    = n_tables
+        variables['n_columns']   = n_columns
+
+        variables['float_focus']    = False
+        variables['string_focus']   = False
+        variables['integer_focus']  = False
+        variables['numeric_focus']  = False
+        variables['temporal_focus'] = False
 
         if table_focus:
-            column_dtype          = table.schema[column_name]
-            column_string_focus   = column_dtype == String
-            column_float_focus    = column_dtype in FLOAT_TYPES
-            column_integer_focus  = column_dtype in INTEGER_TYPES
-            column_numeric_focus  = column_dtype.is_numeric()
-            column_temporal_focus = column_dtype.is_temporal()
+            column_dtype   = table.schema[column_name]
+            string_focus   = column_dtype == String
+            float_focus    = column_dtype in FLOAT_TYPES
+            integer_focus  = column_dtype in INTEGER_TYPES
+            numeric_focus  = column_dtype.is_numeric()
+            temporal_focus = column_dtype.is_temporal()
 
-            variables['column_float_focus']    = column_float_focus
-            variables['column_string_focus']   = column_string_focus
-            variables['column_integer_focus']  = column_integer_focus
-            variables['column_numeric_focus']  = column_numeric_focus
-            variables['column_temporal_focus'] = column_temporal_focus
+            variables['float_focus']    = float_focus
+            variables['string_focus']   = string_focus
+            variables['integer_focus']  = integer_focus
+            variables['numeric_focus']  = numeric_focus
+            variables['temporal_focus'] = temporal_focus
+
+            target_dtypes = []
+            if string_focus:
+                target_dtypes += [String]
+            if float_focus:
+                target_dtypes += list(FLOAT_TYPES)
+            if integer_focus:
+                target_dtypes += list(INTEGER_TYPES)
+            if numeric_focus:
+                target_dtypes += list(FLOAT_TYPES)
+                target_dtypes += list(INTEGER_TYPES)
+            if temporal_focus:
+                target_dtypes += list(TEMPORAL_TYPES)
+            target_dtypes = set(target_dtypes)
+
+            if target_dtypes:
+                from polars import col
+                variables['n_columns'] = table.select(col(target_dtypes)).width
 
         def isrelevant(context: str) -> bool:
             """"""
@@ -303,6 +327,8 @@ class SheetEditor(Gtk.Box):
         create_action('add-prefix',             lambda *_: self._transform_table('add-prefix'))
         create_action('add-suffix',             lambda *_: self._transform_table('add-suffix'))
 
+        create_action('merge-columns',          lambda *_: self._transform_table('merge-columns'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -369,52 +395,54 @@ class SheetEditor(Gtk.Box):
         create_command('fill-blank-cells',      f"{_('Table')}: {get_title_from_layout('fill-blank-cells')}...")
 
         create_command('split-column',          '$placeholder',
-                                                context = 'table_focus and column_string_focus')
+                                                context = 'table_focus and string_focus')
         create_command('split-column-by-'
                        'delimiter',             f"{_('Column')}: {get_title_from_layout('split-column-by-delimiter')}...",
-                                                context = 'table_focus and column_string_focus')
+                                                context = 'table_focus and string_focus')
         create_command('split-column-by-'
                        'number-of-characters',  f"{_('Column')}: {get_title_from_layout('split-column-by-number-of-characters')}...",
-                                                context = 'table_focus and column_string_focus')
+                                                context = 'table_focus and string_focus')
         create_command('split-column-by-'
                        'positions',             f"{_('Column')}: {get_title_from_layout('split-column-by-positions')}...",
-                                                context = 'table_focus and column_string_focus')
+                                                context = 'table_focus and string_focus')
         create_command('split-column-by-'
                        'lowercase-to-'
                        'uppercase',             f"{_('Column')}: {get_title_from_layout('split-column-by-lowercase-to-uppercase')}...",
-                                                context = 'table_focus and column_string_focus')
+                                                context = 'table_focus and string_focus')
         create_command('split-column-by-'
                        'uppercase-to-'
                        'lowercase',             f"{_('Column')}: {get_title_from_layout('split-column-by-uppercase-to-lowercase')}...",
-                                                context = 'table_focus and column_string_focus')
+                                                context = 'table_focus and string_focus')
         create_command('split-column-by-'
                        'digit-to-nondigit',     f"{_('Column')}: {get_title_from_layout('split-column-by-digit-to-nondigit')}...",
-                                                context = 'table_focus and column_string_focus')
+                                                context = 'table_focus and string_focus')
         create_command('split-column-by-'
                        'nondigit-to-digit',     f"{_('Column')}: {get_title_from_layout('split-column-by-nondigit-to-digit')}...",
-                                                context = 'table_focus and column_string_focus')
+                                                context = 'table_focus and string_focus')
 
         create_command('format-column',         '$placeholder',
-                                                context = 'table_focus and column_string_focus')
+                                                context = 'table_focus and string_focus')
         create_command('change-case-to-'
                        'lowercase',             f"{_('Column')}: {get_title_from_layout('change-case-to-lowercase')}...",
-                                                context = 'table_focus and column_string_focus')
+                                                context = 'table_focus and string_focus')
         create_command('change-case-to-'
                        'uppercase',             f"{_('Column')}: {get_title_from_layout('change-case-to-uppercase')}...",
-                                                context = 'table_focus and column_string_focus')
+                                                context = 'table_focus and string_focus')
         create_command('change-case-to-'
                        'titlecase',             f"{_('Column')}: {get_title_from_layout('change-case-to-titlecase')}...",
-                                                context = 'table_focus and column_string_focus')
+                                                context = 'table_focus and string_focus')
 
         create_command('trim-contents',         f"{_('Column')}: {get_title_from_layout('trim-contents')}...",
-                                                context = 'table_focus and column_string_focus')
+                                                context = 'table_focus and string_focus')
         create_command('clean-contents',        f"{_('Column')}: {get_title_from_layout('clean-contents')}...",
-                                                context = 'table_focus and column_string_focus')
+                                                context = 'table_focus and string_focus')
 
         create_command('add-prefix',            f"{_('Column')}: {get_title_from_layout('add-prefix')}...",
-                                                context = 'table_focus and column_string_focus')
+                                                context = 'table_focus and string_focus')
         create_command('add-suffix',            f"{_('Column')}: {get_title_from_layout('add-suffix')}...",
-                                                context = 'table_focus and column_string_focus')
+                                                context = 'table_focus and string_focus')
+
+        create_command('merge-columns',         f"{_('Column')}: {get_title_from_layout('merge-columns')}...")
 
     def set_data(self,
                  tables: Tables = [],
