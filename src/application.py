@@ -355,6 +355,9 @@ class Application(Adw.Application):
                 'target': target,
             })
 
+        sort_key = lambda l: l['target']['content']
+        save_data['links'] = sorted(save_data['links'], key = sort_key)
+
         def do_finish(success:   bool,
                       file_path: str,
                       ) ->       None:
