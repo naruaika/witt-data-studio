@@ -10,7 +10,8 @@
         "--share=network",
         "--socket=fallback-x11",
         "--socket=wayland",
-        "--filesystem=host"
+        "--filesystem=host",
+        "--env=GSK_RENDERER=gl"
     ],
     "cleanup" : [
         "/include",

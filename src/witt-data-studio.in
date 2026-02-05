@@ -49,10 +49,6 @@ if __name__ == '__main__':
     except ModuleNotFoundError:
         pass
 
-    # Force to use OpenGL instead of Vulkan
-    # for the best performance at this time
-    # os.environ['GSK_RENDERER'] = 'gl'
-
     import gi
     gi.require_version('Adw', '1')
     gi.require_version('Gdk', '4.0')
