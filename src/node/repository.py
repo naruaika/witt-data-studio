@@ -8711,7 +8711,7 @@ class NodeMergeColumns(NodeTemplate):
             separator = self.frame.data['separator']
             alias     = self.frame.data['alias'] or columns[0]
 
-            exprs = [col(column) for column in columns]
+            exprs = [col(column).fill_null('') for column in columns]
             expr = concat_str(exprs        = exprs,
                               separator    = separator,
                               ignore_nulls = True)
@@ -9502,6 +9502,1021 @@ class NodeExtractLastCharacters(NodeTemplate):
 
 
 
+class NodeExtractTextInRange(NodeTemplate):
+
+    ndname = _('Extract Text in Range')
+
+    action = 'extract-text-in-range'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeExtractTextInRange(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns']    = []
+        self.frame.data['column']     = ''
+        self.frame.data['from-index'] = 0
+        self.frame.data['n-chars']    = 1
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+        self._add_from_index()
+        self._add_n_chars()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column']     = args[0]
+        self.frame.data['from-index'] = args[1]
+        self.frame.data['n-chars']    = args[2]
+
+        widget = self.frame.contents[3].Widget
+        widget.set_data(args[1])
+
+        widget = self.frame.contents[4].Widget
+        widget.set_data(args[2])
+
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from polars import col
+            column = self.frame.data['column']
+            offset = self.frame.data['from-index']
+            length = self.frame.data['n-chars']
+            table = table.with_columns(col(column).str.slice(offset, length))
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> dict:
+        """"""
+        return {
+            'column':     self.frame.data['column'],
+            'from-index': self.frame.data['from-index'],
+            'n-chars':    self.frame.data['n-chars'],
+        }
+
+    def do_restore(self,
+                   value: dict,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value['column'],
+                          value['from-index'],
+                          value['n-chars'])
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.string()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
+
+        combo.set_sensitive(False)
+
+    def _add_from_index(self) -> None:
+        """"""
+        def get_data() -> int:
+            """"""
+            return self.frame.data['from-index']
+
+        def set_data(value: int) -> None:
+            """"""
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['from-index'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        widget = NodeSpinButton(title    = _('No. Characters'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                lower    = 1,
+                                digits   = 0)
+        self.frame.add_content(widget   = widget,
+                               get_data = get_data,
+                               set_data = set_data)
+
+    def _add_n_chars(self) -> None:
+        """"""
+        def get_data() -> int:
+            """"""
+            return self.frame.data['n-chars']
+
+        def set_data(value: int) -> None:
+            """"""
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['n-chars'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        widget = NodeSpinButton(title    = _('No. Characters'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                lower    = 1,
+                                digits   = 0)
+        self.frame.add_content(widget   = widget,
+                               get_data = get_data,
+                               set_data = set_data)
+
+
+
+class NodeExtractTextBeforeDelimiter(NodeTemplate):
+
+    ndname = _('Extract Text Before Delimiter')
+
+    action = 'extract-text-before-delimiter'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeExtractTextBeforeDelimiter(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns'] = []
+        self.frame.data['column']  = ''
+        self.frame.data['delimiter']  = ''
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+        self._add_delimiter()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column'] = args[0]
+        self.frame.data['delimiter'] = args[1]
+
+        widget = self.frame.contents[3].Widget
+        widget.set_data(args[1])
+
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from polars import col
+
+            column = self.frame.data['column']
+            delimiter = self.frame.data['delimiter']
+
+            expr = col(column).str.splitn(delimiter, 2).struct.field('field_0').fill_null('')
+            table = table.with_columns(expr.alias(column))
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> dict:
+        """"""
+        return {
+            'column': self.frame.data['column'],
+            'delimiter': self.frame.data['delimiter'],
+        }
+
+    def do_restore(self,
+                   value: dict,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value['column'],
+                          value['delimiter'])
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.string()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
+
+        combo.set_sensitive(False)
+
+    def _add_delimiter(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['delimiter']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['delimiter'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        entry = NodeEntry(get_data, set_data, _('Delimiter'))
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = entry,
+                                         socket_type = socket_type,
+                                         data_type   = str,
+                                         get_data    = get_data,
+                                         set_data    = set_data)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            content.Widget.set_visible(False)
+
+            label = NodeLabel(_('Delimiter'), can_link = True)
+            label.insert_after(content.Container, content.Socket)
+
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.data['bk.delimiter'] = content.get_data()
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            content.Widget.set_visible(True)
+
+            label = content.Socket.get_next_sibling()
+            label.unparent()
+
+            content.set_data(self.frame.data['bk.delimiter'])
+
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+
+
+class NodeExtractTextAfterDelimiter(NodeTemplate):
+
+    ndname = _('Extract Text After Delimiter')
+
+    action = 'extract-text-after-delimiter'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeExtractTextAfterDelimiter(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns'] = []
+        self.frame.data['column']  = ''
+        self.frame.data['delimiter']  = ''
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+        self._add_delimiter()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column'] = args[0]
+        self.frame.data['delimiter'] = args[1]
+
+        widget = self.frame.contents[3].Widget
+        widget.set_data(args[1])
+
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from polars import col
+
+            column = self.frame.data['column']
+            delimiter = self.frame.data['delimiter']
+
+            expr = col(column).str.splitn(delimiter, 2).struct.field('field_1').fill_null('')
+            table = table.with_columns(expr.alias(column))
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> dict:
+        """"""
+        return {
+            'column': self.frame.data['column'],
+            'delimiter': self.frame.data['delimiter'],
+        }
+
+    def do_restore(self,
+                   value: dict,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value['column'],
+                          value['delimiter'])
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.string()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
+
+        combo.set_sensitive(False)
+
+    def _add_delimiter(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['delimiter']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['delimiter'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        entry = NodeEntry(get_data, set_data, _('Delimiter'))
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = entry,
+                                         socket_type = socket_type,
+                                         data_type   = str,
+                                         get_data    = get_data,
+                                         set_data    = set_data)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            content.Widget.set_visible(False)
+
+            label = NodeLabel(_('Delimiter'), can_link = True)
+            label.insert_after(content.Container, content.Socket)
+
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.data['bk.delimiter'] = content.get_data()
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            content.Widget.set_visible(True)
+
+            label = content.Socket.get_next_sibling()
+            label.unparent()
+
+            content.set_data(self.frame.data['bk.delimiter'])
+
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+
+
+class NodeExtractTextBetweenDelimiters(NodeTemplate):
+
+    ndname = _('Extract Text Between Delimiters')
+
+    action = 'extract-text-between-delimiters'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeExtractTextBetweenDelimiters(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns'] = []
+        self.frame.data['column']  = ''
+        self.frame.data['start']   = ''
+        self.frame.data['end']     = ''
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+        self._add_start()
+        self._add_end()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column'] = args[0]
+        self.frame.data['start']  = args[1]
+        self.frame.data['end']    = args[2]
+
+        widget = self.frame.contents[3].Widget
+        widget.set_data(args[1])
+
+        widget = self.frame.contents[4].Widget
+        widget.set_data(args[2])
+
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from polars import col
+            from re import escape
+
+            column = self.frame.data['column']
+            start  = self.frame.data['start']
+            end    = self.frame.data['end']
+
+            start = escape(start)
+            end   = escape(end)
+
+            pattern = fr'{start}(.*?){end}'
+            expr = col(column).str.extract(pattern, 1).fill_null('')
+
+            table = table.with_columns(expr.alias(column))
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> dict:
+        """"""
+        return {
+            'column': self.frame.data['column'],
+            'start':  self.frame.data['start'],
+            'end':    self.frame.data['end'],
+        }
+
+    def do_restore(self,
+                   value: dict,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value['column'],
+                          value['start'],
+                          value['end'])
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.string()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
+
+        combo.set_sensitive(False)
+
+    def _add_start(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['start']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['start'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        entry = NodeEntry(get_data, set_data, _('Start Delimiter'))
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = entry,
+                                         socket_type = socket_type,
+                                         data_type   = str,
+                                         get_data    = get_data,
+                                         set_data    = set_data)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            content.Widget.set_visible(False)
+
+            label = NodeLabel(_('Start Delimiter'), can_link = True)
+            label.insert_after(content.Container, content.Socket)
+
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.data['bk.start'] = content.get_data()
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            content.Widget.set_visible(True)
+
+            label = content.Socket.get_next_sibling()
+            label.unparent()
+
+            content.set_data(self.frame.data['bk.start'])
+
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _add_end(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['end']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['end'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        entry = NodeEntry(get_data, set_data, _('End Delimiter'))
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = entry,
+                                         socket_type = socket_type,
+                                         data_type   = str,
+                                         get_data    = get_data,
+                                         set_data    = set_data)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            content.Widget.set_visible(False)
+
+            label = NodeLabel(_('End Delimiter'), can_link = True)
+            label.insert_after(content.Container, content.Socket)
+
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.data['bk.end'] = content.get_data()
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            content.Widget.set_visible(True)
+
+            label = content.Socket.get_next_sibling()
+            label.unparent()
+
+            content.set_data(self.frame.data['bk.end'])
+
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+
+
 _registered_nodes = [
     NodeBoolean(),
     NodeDecimal(),
@@ -9562,6 +10577,10 @@ _registered_nodes = [
     NodeExtractTextLength(),
     NodeExtractFirstCharacters(),
     NodeExtractLastCharacters(),
+    NodeExtractTextInRange(),
+    NodeExtractTextBeforeDelimiter(),
+    NodeExtractTextAfterDelimiter(),
+    NodeExtractTextBetweenDelimiters(),
 ]
 
 

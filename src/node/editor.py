@@ -463,7 +463,7 @@ class NodeEditor(Gtk.Overlay):
                        'characters',            f"{_('Column')}: {_('Extract First Characters')}")
         create_command('extract-last-'
                        'characters',            f"{_('Column')}: {_('Extract Last Characters')}")
-        create_command('extract-text-in-range', f"{_('Column')}: {_('Extract Text In Range')}")
+        create_command('extract-text-in-range', f"{_('Column')}: {_('Extract Text in Range')}")
         create_command('extract-text-before-'
                        'delimiter',             f"{_('Column')}: {_('Extract Text Before Delimiter')}")
         create_command('extract-text-after-'

@@ -622,13 +622,15 @@ def get_layout(action_name: str) -> tuple[str, list]:
 
         case 'extract-text-in-range':
             return (
-                _('Text In Range'),
+                _('Text in Range'),
                 [
                     (
                         _('Column'),
                         'combo',
                         '$string-columns:use-column',
                     ),
+                    (_('Starting Index'), 'spin', (0, None)),
+                    (_('No. Characters'), 'spin', (1, None)),
                 ],
             )
 
@@ -641,6 +643,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                         'combo',
                         '$string-columns:use-column',
                     ),
+                    (_('Delimiter'), 'entry'),
                 ],
             )
 
@@ -653,6 +656,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                         'combo',
                         '$string-columns:use-column',
                     ),
+                    (_('Delimiter'), 'entry'),
                 ],
             )
 
@@ -665,6 +669,8 @@ def get_layout(action_name: str) -> tuple[str, list]:
                         'combo',
                         '$string-columns:use-column',
                     ),
+                    (_('Start Delimiter'), 'entry'),
+                    (_('End Delimiter'), 'entry'),
                 ],
             )
 
