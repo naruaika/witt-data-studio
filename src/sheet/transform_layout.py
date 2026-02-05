@@ -582,4 +582,90 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
+        case 'extract-text-length':
+            return (
+                _('Extract Text Length'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-first-characters':
+            return (
+                _('First Characters'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                    (_('No. Characters'), 'spin', (1, None)),
+                ],
+            )
+
+        case 'extract-last-characters':
+            return (
+                _('Last Characters'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                    (_('No. Characters'), 'spin', (1, None)),
+                ],
+            )
+
+        case 'extract-text-in-range':
+            return (
+                _('Text In Range'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-text-before-delimiter':
+            return (
+                _('Text Before Delimiter'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-text-after-delimiter':
+            return (
+                _('Text After Delimiter'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-text-between-delimiters':
+            return (
+                _('Text Between Delimiters'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
     raise KeyError()

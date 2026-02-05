@@ -149,9 +149,12 @@ class NodeEditor(Gtk.Overlay):
         """"""
         pass
 
-    def queue_draw(self) -> None:
+    def queue_draw(self,
+                   refresh: bool = True,
+                   ) ->     None:
         """"""
-        self.Canvas.queue_draw()
+        if refresh:
+            self.Canvas.queue_draw()
         if self.Minimap.get_visible():
             self.Minimap.queue_draw()
 
@@ -331,6 +334,19 @@ class NodeEditor(Gtk.Overlay):
 
         create_action('merge-columns',          lambda *_: create_node('merge-columns'))
 
+        create_action('extract-text-length',    lambda *_: create_node('extract-text-length'))
+        create_action('extract-first-'
+                      'characters',             lambda *_: create_node('extract-first-characters'))
+        create_action('extract-last-'
+                      'characters',             lambda *_: create_node('extract-last-characters'))
+        create_action('extract-text-in-range',  lambda *_: create_node('extract-text-in-range'))
+        create_action('extract-text-before-'
+                      'delimiter',              lambda *_: create_node('extract-text-before-delimiter'))
+        create_action('extract-text-after-'
+                      'delimiter',              lambda *_: create_node('extract-text-after-delimiter'))
+        create_action('extract-text-between-'
+                      'delimiters',             lambda *_: create_node('extract-text-between-delimiters'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -441,6 +457,20 @@ class NodeEditor(Gtk.Overlay):
 
         create_command('merge-columns',         f"{_('Column')}: {_('Merge Columns')}")
 
+        create_command('extract-column',        '$placeholder')
+        create_command('extract-text-length',   f"{_('Column')}: {_('Extract Text Length')}")
+        create_command('extract-first-'
+                       'characters',            f"{_('Column')}: {_('Extract First Characters')}")
+        create_command('extract-last-'
+                       'characters',            f"{_('Column')}: {_('Extract Last Characters')}")
+        create_command('extract-text-in-range', f"{_('Column')}: {_('Extract Text In Range')}")
+        create_command('extract-text-before-'
+                       'delimiter',             f"{_('Column')}: {_('Extract Text Before Delimiter')}")
+        create_command('extract-text-after-'
+                       'delimiter',             f"{_('Column')}: {_('Extract Text After Delimiter')}")
+        create_command('extract-text-between-'
+                       'delimiters',            f"{_('Column')}: {_('Extract Text Between Delimiters')}")
+
     def _setup_controllers(self) -> None:
         """"""
         controller = Gtk.EventControllerMotion()
@@ -449,8 +479,8 @@ class NodeEditor(Gtk.Overlay):
 
         vadjustment = self.ScrolledWindow.get_vadjustment()
         hadjustment = self.ScrolledWindow.get_hadjustment()
-        hadjustment.connect('value-changed', lambda *_: self.queue_draw())
-        vadjustment.connect('value-changed', lambda *_: self.queue_draw())
+        hadjustment.connect('value-changed', lambda *_: self.queue_draw(refresh = False))
+        vadjustment.connect('value-changed', lambda *_: self.queue_draw(refresh = False))
 
         controller = Gtk.GestureDrag.new()
         controller.set_button(Gdk.BUTTON_MIDDLE)
@@ -876,8 +906,8 @@ class NodeEditor(Gtk.Overlay):
             if is_linked := len(self._target_socket.links) > 0:
                 from .action import ActionEditNode
                 frame = self._target_socket.Frame
-                value = frame.do_save()
-                values = (value, value)
+                old_value = frame.do_save()
+                values = (old_value, old_value)
                 action = ActionEditNode(self, frame, values)
                 window.do(action, add_only = True)
 
@@ -886,10 +916,10 @@ class NodeEditor(Gtk.Overlay):
             # Revert if the target node is unchanged
             if is_linked:
                 new_value = frame.do_save()
-                if value == new_value:
+                if old_value == new_value:
                     window.history.undo_stack.remove(action)
                 else:
-                    action.values = (value, new_value)
+                    action.values = (old_value, new_value)
 
             if self._target_socket == self.removed_socket:
                 self.removed_link   = None

@@ -329,6 +329,19 @@ class SheetEditor(Gtk.Box):
 
         create_action('merge-columns',          lambda *_: self._transform_table('merge-columns'))
 
+        create_action('extract-text-length',    lambda *_: self._transform_table('extract-text-length'))
+        create_action('extract-first-'
+                      'characters',             lambda *_: self._transform_table('extract-first-characters'))
+        create_action('extract-last-'
+                      'characters',             lambda *_: self._transform_table('extract-last-characters'))
+        create_action('extract-text-in-range',  lambda *_: self._transform_table('extract-text-in-range'))
+        create_action('extract-text-before-'
+                      'delimiter',              lambda *_: self._transform_table('extract-text-before-delimiter'))
+        create_action('extract-text-after-'
+                      'delimiter',              lambda *_: self._transform_table('extract-text-after-delimiter'))
+        create_action('extract-text-between-'
+                      'delimiters',             lambda *_: self._transform_table('extract-text-between-delimiters'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -443,6 +456,28 @@ class SheetEditor(Gtk.Box):
                                                 context = 'table_focus and string_focus')
 
         create_command('merge-columns',         f"{_('Column')}: {get_title_from_layout('merge-columns')}...")
+
+        create_command('extract-column',        '$placeholder',
+                                                context = 'table_focus and string_focus')
+        create_command('extract-text-length',   f"{_('Column')}: {get_title_from_layout('extract-text-length')}...",
+                                                context = 'table_focus and string_focus')
+        create_command('extract-first-'
+                       'characters',            f"{_('Column')}: {get_title_from_layout('extract-first-characters')}...",
+                                                context = 'table_focus and string_focus')
+        create_command('extract-last-'
+                       'characters',            f"{_('Column')}: {get_title_from_layout('extract-last-characters')}...",
+                                                context = 'table_focus and string_focus')
+        create_command('extract-text-in-range', f"{_('Column')}: {get_title_from_layout('extract-text-in-range')}...",
+                                                context = 'table_focus and string_focus')
+        create_command('extract-text-before-'
+                       'delimiter',             f"{_('Column')}: {get_title_from_layout('extract-text-before-delimiter')}...",
+                                                context = 'table_focus and string_focus')
+        create_command('extract-text-after-'
+                       'delimiter',             f"{_('Column')}: {get_title_from_layout('extract-text-after-delimiter')}...",
+                                                context = 'table_focus and string_focus')
+        create_command('extract-text-between-'
+                       'delimiters',            f"{_('Column')}: {get_title_from_layout('extract-text-between-delimiters')}...",
+                                                context = 'table_focus and string_focus')
 
     def set_data(self,
                  tables: Tables = [],

@@ -1613,12 +1613,12 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="ArrangeColumnsButton">
-                                    <property name="name">arrange-columns</property>
+                                  <object class="GtkButton" id="MoveColumnsButton">
+                                    <property name="name">move-columns</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Arrange</property>
+                                    <property name="tooltip-text" translatable="yes">Move</property>
                                     <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'arrange-columns'</property>
+                                    <property name="action-target">'move-columns'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -1630,7 +1630,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Arrange</property>
+                                            <property name="label" translatable="yes">Move</property>
                                             <property name="vexpand">true</property>
                                           </object>
                                         </child>
@@ -1784,12 +1784,11 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="ExtractColumnButton">
+                                  <object class="GtkMenuButton" id="ExtractColumnButton">
                                     <property name="name">extract-column</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Extract</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'extract-column'</property>
+                                    <property name="menu-model">extract_column_menu</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -2902,6 +2901,50 @@
         <attribute name="label" translatable="yes">Add Suffix</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">add-suffix</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <menu id="extract_column_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Length</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-text-length</attribute>
+      </item>
+      </section>
+      <section>
+      <item>
+        <attribute name="label" translatable="yes">First Characters</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-first-characters</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Last Characters</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-last-characters</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">In Range</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-text-in-range</attribute>
+      </item>
+      </section>
+      <section>
+      <item>
+        <attribute name="label" translatable="yes">Before Delimiter</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-text-before-delimiter</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">After Delimiter</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-text-after-delimiter</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Between Delimiters</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-text-between-delimiters</attribute>
       </item>
     </section>
   </menu>
