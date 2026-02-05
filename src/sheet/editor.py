@@ -300,6 +300,9 @@ class SheetEditor(Gtk.Box):
         create_action('trim-contents',          lambda *_: self._transform_table('trim-contents'))
         create_action('clean-contents',         lambda *_: self._transform_table('clean-contents'))
 
+        create_action('add-prefix',             lambda *_: self._transform_table('add-prefix'))
+        create_action('add-suffix',             lambda *_: self._transform_table('add-suffix'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -406,6 +409,11 @@ class SheetEditor(Gtk.Box):
         create_command('trim-contents',         f"{_('Column')}: {get_title_from_layout('trim-contents')}...",
                                                 context = 'table_focus and column_string_focus')
         create_command('clean-contents',        f"{_('Column')}: {get_title_from_layout('clean-contents')}...",
+                                                context = 'table_focus and column_string_focus')
+
+        create_command('add-prefix',            f"{_('Column')}: {get_title_from_layout('add-prefix')}...",
+                                                context = 'table_focus and column_string_focus')
+        create_command('add-suffix',            f"{_('Column')}: {get_title_from_layout('add-suffix')}...",
                                                 context = 'table_focus and column_string_focus')
 
     def set_data(self,

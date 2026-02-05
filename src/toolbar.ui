@@ -2892,17 +2892,17 @@
         <attribute name="target">clean-contents</attribute>
       </item>
     </section>
-    <!-- <section>
+    <section>
       <item>
         <attribute name="label" translatable="yes">Add Prefix</attribute>
         <attribute name="action">win.toolbar</attribute>
-        <attribute name="target">add-column-prefix</attribute>
+        <attribute name="target">add-prefix</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">Add Suffix</attribute>
         <attribute name="action">win.toolbar</attribute>
-        <attribute name="target">add-column-suffix</attribute>
+        <attribute name="target">add-suffix</attribute>
       </item>
-    </section> -->
+    </section>
   </menu>
 </interface>

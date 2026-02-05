@@ -322,8 +322,12 @@ class NodeEditor(Gtk.Overlay):
                       'uppercase',              lambda *_: create_node('change-case-to-uppercase'))
         create_action('change-case-to-'
                       'titlecase',              lambda *_: create_node('change-case-to-titlecase'))
+
         create_action('trim-contents',          lambda *_: create_node('trim-contents'))
         create_action('clean-contents',         lambda *_: create_node('clean-contents'))
+
+        create_action('add-prefix',             lambda *_: create_node('add-prefix'))
+        create_action('add-suffix',             lambda *_: create_node('add-suffix'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -429,6 +433,9 @@ class NodeEditor(Gtk.Overlay):
 
         create_command('trim-contents',         f"{_('Column')}: {_('Trim Contents')}")
         create_command('clean-contents',        f"{_('Column')}: {_('Clean Contents')}")
+
+        create_command('add-prefix',            f"{_('Column')}: {_('Add Prefix')}")
+        create_command('add-suffix',            f"{_('Column')}: {_('Add Suffix')}")
 
     def _setup_controllers(self) -> None:
         """"""

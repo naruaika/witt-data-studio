@@ -3785,9 +3785,9 @@ class NodeRemoveDuplicateRows(NodeTemplate):
                                 get_data = get_data,
                                 set_data = set_data,
                                 options  = self.frame.data['all-keeps'])
-        self.frame.add_content(widget    = combo,
-                               get_data  = get_data,
-                               set_data  = set_data)
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
 
     def _add_keep_order(self) -> None:
         """"""
@@ -5486,9 +5486,9 @@ class NodeFillBlankCells(NodeTemplate):
                                 get_data = get_data,
                                 set_data = set_data,
                                 options  = self.frame.data['options'])
-        self.frame.add_content(widget    = combo,
-                               get_data  = get_data,
-                               set_data  = set_data)
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
 
     def _refresh_selector(self) -> None:
         """"""
@@ -5785,9 +5785,9 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
                                 get_data = get_data,
                                 set_data = set_data,
                                 options  = self.frame.data['columns'])
-        self.frame.add_content(widget    = combo,
-                               get_data  = get_data,
-                               set_data  = set_data)
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
 
         combo.set_sensitive(False)
 
@@ -6106,9 +6106,9 @@ class NodeSplitColumnByNumberOfCharacters(NodeTemplate):
                                 get_data = get_data,
                                 set_data = set_data,
                                 options  = self.frame.data['columns'])
-        self.frame.add_content(widget    = combo,
-                               get_data  = get_data,
-                               set_data  = set_data)
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
 
         combo.set_sensitive(False)
 
@@ -6364,9 +6364,9 @@ class NodeSplitColumnByPositions(NodeTemplate):
                                 get_data = get_data,
                                 set_data = set_data,
                                 options  = self.frame.data['columns'])
-        self.frame.add_content(widget    = combo,
-                               get_data  = get_data,
-                               set_data  = set_data)
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
 
         combo.set_sensitive(False)
 
@@ -6578,9 +6578,9 @@ class NodeSplitColumnByLowercaseToUppercase(NodeTemplate):
                                 get_data = get_data,
                                 set_data = set_data,
                                 options  = self.frame.data['columns'])
-        self.frame.add_content(widget    = combo,
-                               get_data  = get_data,
-                               set_data  = set_data)
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
 
         combo.set_sensitive(False)
 
@@ -6759,9 +6759,9 @@ class NodeSplitColumnByUppercaseToLowercase(NodeTemplate):
                                 get_data = get_data,
                                 set_data = set_data,
                                 options  = self.frame.data['columns'])
-        self.frame.add_content(widget    = combo,
-                               get_data  = get_data,
-                               set_data  = set_data)
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
 
         combo.set_sensitive(False)
 
@@ -6940,9 +6940,9 @@ class NodeSplitColumnByDigitToNonDigit(NodeTemplate):
                                 get_data = get_data,
                                 set_data = set_data,
                                 options  = self.frame.data['columns'])
-        self.frame.add_content(widget    = combo,
-                               get_data  = get_data,
-                               set_data  = set_data)
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
 
         combo.set_sensitive(False)
 
@@ -7121,9 +7121,9 @@ class NodeSplitColumnByNonDigitToDigit(NodeTemplate):
                                 get_data = get_data,
                                 set_data = set_data,
                                 options  = self.frame.data['columns'])
-        self.frame.add_content(widget    = combo,
-                               get_data  = get_data,
-                               set_data  = set_data)
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
 
         combo.set_sensitive(False)
 
@@ -7287,9 +7287,9 @@ class NodeChangeCaseToLowercase(NodeTemplate):
 
         combo = NodeComboButton(title    = _('Column'),
                                 get_data = get_data,
-                                set_data = set_data,
-                                options  = self.frame.data['columns'])
-        self.frame.add_content(widget    = combo,
+                                set_dat = set_data,
+                                options = self.frame.data['columns'])
+        self.frame.add_content(widget   = combo,
                                get_data  = get_data,
                                set_data  = set_data)
 
@@ -7455,9 +7455,9 @@ class NodeChangeCaseToUppercase(NodeTemplate):
 
         combo = NodeComboButton(title    = _('Column'),
                                 get_data = get_data,
-                                set_data = set_data,
-                                options  = self.frame.data['columns'])
-        self.frame.add_content(widget    = combo,
+                                set_dat = set_data,
+                                options = self.frame.data['columns'])
+        self.frame.add_content(widget   = combo,
                                get_data  = get_data,
                                set_data  = set_data)
 
@@ -7625,9 +7625,9 @@ class NodeChangeCaseToTitleCase(NodeTemplate):
                                 get_data = get_data,
                                 set_data = set_data,
                                 options  = self.frame.data['columns'])
-        self.frame.add_content(widget    = combo,
-                               get_data  = get_data,
-                               set_data  = set_data)
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
 
         combo.set_sensitive(False)
 
@@ -7823,9 +7823,9 @@ class NodeTrimContents(NodeTemplate):
                                 get_data = get_data,
                                 set_data = set_data,
                                 options  = self.frame.data['columns'])
-        self.frame.add_content(widget    = combo,
-                               get_data  = get_data,
-                               set_data  = set_data)
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
 
         combo.set_sensitive(False)
 
@@ -8088,9 +8088,9 @@ class NodeCleanContents(NodeTemplate):
                                 get_data = get_data,
                                 set_data = set_data,
                                 options  = self.frame.data['columns'])
-        self.frame.add_content(widget    = combo,
-                               get_data  = get_data,
-                               set_data  = set_data)
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
 
         combo.set_sensitive(False)
 
@@ -8154,6 +8154,474 @@ class NodeCleanContents(NodeTemplate):
 
 
 
+class NodeAddPrefix(NodeTemplate):
+
+    ndname = _('Add Prefix')
+
+    action = 'add-prefix'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeAddPrefix(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns'] = []
+        self.frame.data['column']  = ''
+        self.frame.data['prefix']  = ''
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+        self._add_prefix()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column'] = args[0]
+        self.frame.data['prefix'] = args[1]
+
+        widget = self.frame.contents[3].Widget
+        widget.set_data(args[1])
+
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from polars import col
+            column = self.frame.data['column']
+            prefix = self.frame.data['prefix']
+            table = table.with_columns((prefix + col(column)).alias(column))
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> dict:
+        """"""
+        return {
+            'column': self.frame.data['column'],
+            'prefix': self.frame.data['prefix'],
+        }
+
+    def do_restore(self,
+                   value: dict,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value['column'],
+                          value['prefix'])
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.string()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
+
+        combo.set_sensitive(False)
+
+    def _add_prefix(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['prefix']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['prefix'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        entry = NodeEntry(get_data, set_data, _('Prefix'))
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = entry,
+                                         socket_type = socket_type,
+                                         data_type   = str,
+                                         get_data    = get_data,
+                                         set_data    = set_data)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            content.Widget.set_visible(False)
+
+            label = NodeLabel(_('Prefix'), can_link = True)
+            label.insert_after(content.Container, content.Socket)
+
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.data['bk.prefix'] = content.get_data()
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            content.Widget.set_visible(True)
+
+            label = content.Socket.get_next_sibling()
+            label.unparent()
+
+            content.set_data(self.frame.data['bk.prefix'])
+
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+
+
+class NodeAddSuffix(NodeTemplate):
+
+    ndname = _('Add Suffix')
+
+    action = 'add-suffix'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeAddSuffix(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns'] = []
+        self.frame.data['column']  = ''
+        self.frame.data['suffix']  = ''
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+        self._add_suffix()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column'] = args[0]
+        self.frame.data['suffix'] = args[1]
+
+        widget = self.frame.contents[3].Widget
+        widget.set_data(args[1])
+
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from polars import col
+            column = self.frame.data['column']
+            suffix = self.frame.data['suffix']
+            table = table.with_columns((col(column) + suffix).alias(column))
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> dict:
+        """"""
+        return {
+            'column': self.frame.data['column'],
+            'suffix': self.frame.data['suffix'],
+        }
+
+    def do_restore(self,
+                   value: dict,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value['column'],
+                          value['suffix'])
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.string()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
+
+        combo.set_sensitive(False)
+
+    def _add_suffix(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['suffix']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: int) -> None:
+                """"""
+                self.frame.data['suffix'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        entry = NodeEntry(get_data, set_data, _('Suffix'))
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = entry,
+                                         socket_type = socket_type,
+                                         data_type   = str,
+                                         get_data    = get_data,
+                                         set_data    = set_data)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            content.Widget.set_visible(False)
+
+            label = NodeLabel(_('Suffix'), can_link = True)
+            label.insert_after(content.Container, content.Socket)
+
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.data['bk.suffix'] = content.get_data()
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            content.Widget.set_visible(True)
+
+            label = content.Socket.get_next_sibling()
+            label.unparent()
+
+            content.set_data(self.frame.data['bk.suffix'])
+
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+
+
 _registered_nodes = [
     NodeBoolean(),
     NodeDecimal(),
@@ -8205,6 +8673,9 @@ _registered_nodes = [
 
     NodeTrimContents(),
     NodeCleanContents(),
+
+    NodeAddPrefix(),
+    NodeAddSuffix(),
 ]
 
 

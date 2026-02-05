@@ -527,4 +527,30 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
+        case 'add-prefix':
+            return (
+                _('Add Prefix'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                    (_('Prefix'), 'entry'),
+                ],
+            )
+
+        case 'add-suffix':
+            return (
+                _('Add Suffix'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                    (_('Suffix'), 'entry'),
+                ],
+            )
+
     raise KeyError()
