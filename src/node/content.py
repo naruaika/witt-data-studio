@@ -55,8 +55,8 @@ class NodeContent(Gtk.Widget):
         self.is_freezing = False
 
         # For external usage
-        self.get_data = get_data or (lambda *args: None)
-        self.set_data = set_data or (lambda *args: None)
+        self.get_data = get_data or (lambda *_: None)
+        self.set_data = set_data or (lambda *_: None)
         self.Page     = None
         self.node_uid = None # pair node cache
 

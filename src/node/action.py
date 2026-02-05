@@ -350,6 +350,7 @@ class ActionAddLink(Action):
 
         self.new_link = None
         self.old_link = None
+        self.old_data = None
 
     def do(self,
            undoable: bool = True,
@@ -360,6 +361,11 @@ class ActionAddLink(Action):
             if link.in_socket == self.socket1 and link.out_socket == self.socket2:
                 return False
 
+        # Keep track of the state of the target node
+        # TODO: we should also track downstream nodes
+        if self.socket2.links:
+            self.old_data = self.frame2.do_save()
+
         # Unlink the target socket from a linkage if there is any
         # because it does not make sense to have multiple inputs.
         # Meanwhile, it makes sense to have multiple outputs from
@@ -368,6 +374,14 @@ class ActionAddLink(Action):
             link = self.socket2.links[0]
             self.old_link = link.unlink()
             self.editor.links.remove(self.old_link)
+
+        # We flag the target content as frozen so that
+        # it can be properly handled when doing a link
+        # for instance to prevent from auto generation
+        # of the socket label like in NodeSheet.
+        if self.old_link:
+            content = self.old_link.out_socket.Content
+            content.is_freezing = True
 
         # After undoing, a content that feature auto removal
         # will no longer available anywhere. Thus we need to
@@ -379,6 +393,10 @@ class ActionAddLink(Action):
 
         self.new_link = NodeLink(self.socket1, self.socket2).link()
         self.editor.links.append(self.new_link)
+
+        if self.old_link:
+            content = self.old_link.out_socket.Content
+            content.is_freezing = False
 
         nodes = [self.socket1.Frame, self.socket2.Frame]
         GLib.timeout_add(50, self.editor.do_collect_points, nodes)
@@ -392,8 +410,17 @@ class ActionAddLink(Action):
         window.history.freezing = True
 
         if self.old_link:
+            content = self.old_link.out_socket.Content
+            content.is_freezing = True
+
             self.editor.links.remove(self.new_link.unlink())
+
+            self.frame2.do_restore(self.old_data)
+
             self.editor.links.append(self.old_link.link())
+
+            content.is_freezing = False
+
         else:
             ActionDeleteLink(self.editor, self.new_link).do()
 

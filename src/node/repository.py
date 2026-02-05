@@ -1175,12 +1175,8 @@ class NodeSheet(NodeTemplate):
             old_title = label.get_label()
             new_title = old_title
 
-            if self_content.is_freezing:
-                position = self_content.get_data()
-                self.frame.data[new_title] = position
-
             # Auto-generate the socket label if needed
-            else:
+            if not self_content.is_freezing:
                 titles = [
                     content.Widget.get_first_child().get_label()
                     for content in self.frame.contents[1:-1]
@@ -1223,8 +1219,6 @@ class NodeSheet(NodeTemplate):
             """"""
             title = label.get_label()
             if title in self.frame.data:
-                value = self.frame.data[title]
-                content.get_data = lambda *_: value
                 del self.frame.data[title]
 
             content.node_uid = None
@@ -7287,11 +7281,11 @@ class NodeChangeCaseToLowercase(NodeTemplate):
 
         combo = NodeComboButton(title    = _('Column'),
                                 get_data = get_data,
-                                set_dat = set_data,
-                                options = self.frame.data['columns'])
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
         self.frame.add_content(widget   = combo,
-                               get_data  = get_data,
-                               set_data  = set_data)
+                               get_data = get_data,
+                               set_data = set_data)
 
         combo.set_sensitive(False)
 
@@ -7455,11 +7449,11 @@ class NodeChangeCaseToUppercase(NodeTemplate):
 
         combo = NodeComboButton(title    = _('Column'),
                                 get_data = get_data,
-                                set_dat = set_data,
-                                options = self.frame.data['columns'])
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
         self.frame.add_content(widget   = combo,
-                               get_data  = get_data,
-                               set_data  = set_data)
+                               get_data = get_data,
+                               set_data = set_data)
 
         combo.set_sensitive(False)
 
