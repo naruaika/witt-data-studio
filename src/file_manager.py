@@ -94,22 +94,7 @@ class FileManager():
             file_path = file.get_path()
 
             application = window.get_application()
-
-            from .core.utils import get_file_format
-            file_format = get_file_format(file_path)
-
-            if file_format == 'wibook':
-                from .core.file_manager import FileManager
-                content = FileManager.read_file(file_path)
-                application.load(file_path, content)
-
-            else:
-                from .file_import_window import FileImportWindow
-                import_window = FileImportWindow(file_path,
-                                                 callback,
-                                                 transient_for = window,
-                                                 application   = application)
-                import_window.present()
+            application.load(file_path, callback)
 
         dialog.open(window, None, on_dialog_dismissed)
 

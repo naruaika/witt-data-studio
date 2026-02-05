@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Witt Data Studio
-Exec=witt-data-studio
+Exec=witt-data-studio %U
 Icon=@APP_ID@
 Terminal=false
 Type=Application

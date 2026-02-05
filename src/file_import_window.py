@@ -92,7 +92,7 @@ class FileImportWindow(Adw.Window):
 
     def __init__(self,
                  file_path: str,
-                 callback:  callable,
+                 callback:  callable = None,
                  **kwargs:  dict,
                  ) ->       None:
         """"""

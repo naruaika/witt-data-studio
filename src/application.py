@@ -17,6 +17,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+from argparse import ArgumentParser
 from gi.repository import Adw
 from gi.repository import Gio
 from gi.repository import GLib
@@ -39,8 +40,9 @@ class Application(Adw.Application):
         self.APP_ID  = app_id
         self.VERSION = version
 
+        flags = Gio.ApplicationFlags.HANDLES_COMMAND_LINE | Gio.ApplicationFlags.HANDLES_OPEN
         super().__init__(application_id     = self.APP_ID,
-                         flags              = Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
+                         flags              = flags,
                          resource_base_path = '/com/macipra/witt')
 
         self._setup_actions()
@@ -49,7 +51,7 @@ class Application(Adw.Application):
 
     def do_activate(self) -> None:
         """"""
-        window = self.get_active_window()
+        window = self.get_active_main_window()
 
         if not window:
             window = Window(application = self)
@@ -60,9 +62,33 @@ class Application(Adw.Application):
                         command_line: Gio.ApplicationCommandLine,
                         ) ->          int:
         """"""
+        parser = ArgumentParser(prog        = 'witt-data-studio',
+                                usage       = '%(prog)s [options] [paths...]',
+                                description = _('A powerful, user-friendly, and integrated data platform'))
+        parser.add_argument('paths',
+                            nargs = '*',
+                            help  = _('path to supported files'))
+
+        args = parser.parse_args(command_line.get_arguments()[1:])
+
+        for file_path in args.paths:
+            self.load(file_path, on_startup = True)
+
         self.activate()
 
         return 0
+
+    def do_open(self,
+                files:   list[Gio.File],
+                n_files: int,
+                hint:    str,
+                ) ->     None:
+        """"""
+        for file in files:
+            if file_path := file.get_path():
+                self.load(file_path, on_startup = True)
+
+        self.activate()
 
     def create_action(self,
                       name:       str,
@@ -181,7 +207,8 @@ class Application(Adw.Application):
         Config.set_tbl_width_chars(-1)
         Config.set_fmt_str_lengths(20)
 
-        from .core import plugin_repository
+        from .core import plugins
+        plugins.initialize()
 
         def do_preload() -> None:
             """"""
@@ -194,12 +221,45 @@ class Application(Adw.Application):
         Thread(target = do_preload, daemon = False).start()
 
     def load(self,
-             file_path: str,
-             content:   dict,
-             ) ->       None:
+             file_path:  str,
+             callback:   callable = None,
+             on_startup: bool     = False,
+             ) ->        None:
         """"""
+        from .core.utils import get_file_format
+
+        file_format = get_file_format(file_path)
+
+        if file_format not in {'wibook'}:
+            from .file_import_window import FileImportWindow
+
+            if on_startup:
+                window = Window(application = self)
+            else:
+                window = self.get_active_main_window()
+
+            def do_launch() -> None:
+                """"""
+                import_window = FileImportWindow(file_path,
+                                                 callback      = callback,
+                                                 transient_for = window,
+                                                 application   = self)
+                import_window.present()
+
+            if on_startup:
+                GLib.idle_add(do_launch)
+            else:
+                do_launch()
+
+            window.present()
+
+            return
+
+        from .core.file_manager import FileManager
         from .node.link import NodeLink
         from .node.repository import create_new_node
+
+        content = FileManager.read_file(file_path)
 
         nodes = []
         nodes_map = {}
@@ -237,9 +297,9 @@ class Application(Adw.Application):
                 except:
                     pass # TODO: show errors to user
 
-        # Close the default blank window from startup
-        if len(windows := self.get_windows()) == 1:
-            window = windows[0]
+        # Close the current blank window
+        if not on_startup:
+            window = self.get_active_main_window()
             if not window.file_path and \
                     not window.history.undo_stack and \
                     not window.history.redo_stack:
@@ -319,6 +379,8 @@ class Application(Adw.Application):
     def get_active_main_window(self) -> Window:
         """"""
         window = self.get_active_window()
+        if not window:
+            window = Window(application = self)
         while not isinstance(window, Window):
             window = window.get_transient_for()
         return window

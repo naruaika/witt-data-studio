@@ -1,4 +1,4 @@
-# plugin_repository.py
+# plugins.py
 #
 # Copyright (c) 2025 Naufan Rusyda Faikar
 #
@@ -73,4 +73,10 @@ try:
             return strx.to_sponge_case(self._expr)
 
 except ModuleNotFoundError:
+    pass
+
+
+
+def initialize() -> None:
+    """"""
     pass

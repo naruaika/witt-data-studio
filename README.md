@@ -82,7 +82,7 @@ To override some environment variables or to add command-line arguments to the a
 
 ```txt
 #!/bin/bash
-GOBJECT_DEBUG= GTK_DEBUG= WDS_DEBUG= POLARS_VERBOSE= witt-data-studio "$@"
+G_MESSAGES_DEBUG= GOBJECT_DEBUG= GTK_DEBUG= POLARS_VERBOSE= WDS_DEBUG= witt-data-studio "$@"
 ```
 
 With `debugpy` in Visual Studio Code, you'll need to setup `.vscode/launch.json` for example:
@@ -137,6 +137,20 @@ On the release cycle:
 1. Update the `requirements*.txt` and `python3-witt*.json` files.
 
 Do not forget to run `Run Flatpak: Update Dependencies` in the command palette before exporting the application.
+
+We can use `journalctl` to debug the release version of the application, for example by running:
+
+```sh
+journalctl --user -f | grep -E "flatpak|portal|gnome|com.macipra.witt"
+```
+
+Open and interact with the application to trigger the error and watch the console for the messages.
+
+We also can benefit from `busctl` when debugging the D-Bus connections, for instance:
+
+```sh
+busctl --user monitor com.macipra.witt
+```
 
 ## Licenses
 
