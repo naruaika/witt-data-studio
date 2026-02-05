@@ -136,9 +136,9 @@ On the release cycle:
 1. Publish to the [PyPI](https://pypi.org/): `python -m twine upload <target-file>`.
 1. Update the `requirements*.txt` and `python3-witt*.json` files.
 
-Do not forget to run `Run Flatpak: Update Dependencies` in the command palette before exporting the application.
+Do not forget to run `Run Flatpak: Update Dependencies` in the command palette before creating a single-file flatpak bundle. Note that at the moment, I have no clue as to how to create a bundle within VSCode. So, instead I need to open the project with GNOME Builder and click on the "Export" button. Or just run a command line, whatever you prefer :)
 
-We can use `journalctl` to debug the release version of the application, for example by running:
+We can use `journalctl` to debug the release version of the application, for example:
 
 ```sh
 journalctl --user -f | grep -E "flatpak|portal|gnome|com.macipra.witt"
