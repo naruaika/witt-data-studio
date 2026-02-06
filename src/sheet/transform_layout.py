@@ -596,7 +596,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
 
         case 'extract-first-characters':
             return (
-                _('First Characters'),
+                _('Extract First Characters'),
                 [
                     (
                         _('Column'),
@@ -609,7 +609,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
 
         case 'extract-last-characters':
             return (
-                _('Last Characters'),
+                _('Extract Last Characters'),
                 [
                     (
                         _('Column'),
@@ -622,7 +622,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
 
         case 'extract-text-in-range':
             return (
-                _('Text in Range'),
+                _('Extract Text in Range'),
                 [
                     (
                         _('Column'),
@@ -636,7 +636,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
 
         case 'extract-text-before-delimiter':
             return (
-                _('Text Before Delimiter'),
+                _('Extract Text Before Delimiter'),
                 [
                     (
                         _('Column'),
@@ -649,7 +649,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
 
         case 'extract-text-after-delimiter':
             return (
-                _('Text After Delimiter'),
+                _('Extract Text After Delimiter'),
                 [
                     (
                         _('Column'),
@@ -662,7 +662,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
 
         case 'extract-text-between-delimiters':
             return (
-                _('Text Between Delimiters'),
+                _('Extract Text Between Delimiters'),
                 [
                     (
                         _('Column'),
@@ -671,6 +671,102 @@ def get_layout(action_name: str) -> tuple[str, list]:
                     ),
                     (_('Start Delimiter'), 'entry'),
                     (_('End Delimiter'), 'entry'),
+                ],
+            )
+
+        case 'calculate-minimum':
+            return (
+                _('Calculate Minimum'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-maximum':
+            return (
+                _('Calculate Maximum'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-summation':
+            return (
+                _('Calculate Summation'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-median':
+            return (
+                _('Calculate Median'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-average':
+            return (
+                _('Calculate Average'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-standard-deviation':
+            return (
+                _('Calculate Standard Deviation'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'count-values':
+            return (
+                _('Count Values'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$all-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'count-distinct-values':
+            return (
+                _('Count Distinct Values'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$all-columns:use-column',
+                    ),
                 ],
             )
 

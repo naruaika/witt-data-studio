@@ -17,6 +17,8 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+from gi.repository import Gio
+from gi.repository import GLib
 from gi.repository import Gtk
 
 from .node.editor import NodeEditor
@@ -760,6 +762,53 @@ class Toolbar(Gtk.Box):
                         continue
                     widget.set_sensitive(widget.get_name() in names)
                     widget.set_visible(True)
+
+        menu = self.ColumnStatisticsButton.get_menu_model()
+        self._update_menu(menu, names)
+
+    def _update_menu(self,
+                     menu:    Gio.MenuModel,
+                     targets: list[str],
+                     ) ->     None:
+        """"""
+        BASE_ACTION = 'win.toolbar'
+        INSENSITIVE = f'{BASE_ACTION}.disabled'
+
+        def do_update(menu:    Gio.MenuModel,
+                      index:   int,
+                      targets: list[str],
+                      ) ->     None:
+            """"""
+            action = menu.get_item_attribute_value(index, 'action', None)
+
+            if not action:
+                return
+
+            action = action.get_string()
+            action = action.removesuffix('.disabled')
+
+            if action != BASE_ACTION:
+                return
+
+            target = menu.get_item_attribute_value(index, 'target', None)
+            target = target.get_string()
+
+            if target not in targets:
+                action = INSENSITIVE
+
+            item = Gio.MenuItem.new_from_model(menu, index)
+            item.set_attribute_value('action', GLib.Variant.new_string(action))
+
+            menu.remove(index)
+            menu.insert_item(index, item)
+
+        for i in range(menu.get_n_items()):
+            do_update(menu, i, targets)
+
+            for link in {Gio.MENU_LINK_SECTION,
+                         Gio.MENU_LINK_SUBMENU}:
+                if link := menu.get_item_link(i, link):
+                    self._update_menu(link, targets)
 
 #   @Gtk.Template.Callback()
 #   def _on_auto_run_toggled(self,

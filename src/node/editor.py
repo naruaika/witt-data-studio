@@ -347,6 +347,16 @@ class NodeEditor(Gtk.Overlay):
         create_action('extract-text-between-'
                       'delimiters',             lambda *_: create_node('extract-text-between-delimiters'))
 
+        create_action('calculate-summation',    lambda *_: create_node('calculate-summation'))
+        create_action('calculate-minimum',      lambda *_: create_node('calculate-minimum'))
+        create_action('calculate-maximum',      lambda *_: create_node('calculate-maximum'))
+        create_action('calculate-median',       lambda *_: create_node('calculate-median'))
+        create_action('calculate-average',      lambda *_: create_node('calculate-average'))
+        create_action('calculate-standard-'
+                      'deviation',              lambda *_: create_node('calculate-standard-deviation'))
+        create_action('count-values',           lambda *_: create_node('count-values'))
+        create_action('count-distinct-values',  lambda *_: create_node('count-distinct-values'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -470,6 +480,17 @@ class NodeEditor(Gtk.Overlay):
                        'delimiter',             f"{_('Column')}: {_('Extract Text After Delimiter')}")
         create_command('extract-text-between-'
                        'delimiters',            f"{_('Column')}: {_('Extract Text Between Delimiters')}")
+
+        create_command('column-statistics',     '$placeholder')
+        create_command('calculate-summation',   f"{_('Column')}: {_('Calculate Summation')}")
+        create_command('calculate-minimum',     f"{_('Column')}: {_('Calculate Minimum')}")
+        create_command('calculate-maximum',     f"{_('Column')}: {_('Calculate Maximum')}")
+        create_command('calculate-median',      f"{_('Column')}: {_('Calculate Median')}")
+        create_command('calculate-average',     f"{_('Column')}: {_('Calculate Average')}")
+        create_command('calculate-standard-'
+                       'deviation',             f"{_('Column')}: {_('Calculate Standard Deviation')}")
+        create_command('count-values',          f"{_('Column')}: {_('Count Values')}")
+        create_command('count-distinct-values', f"{_('Column')}: {_('Count Distinct Values')}")
 
     def _setup_controllers(self) -> None:
         """"""

@@ -1884,12 +1884,11 @@
                               <object class="GtkGrid">
                                 <property name="vexpand">true</property>
                                 <child>
-                                  <object class="GtkButton" id="ColumnStatisticsButton">
+                                  <object class="GtkMenuButton" id="ColumnStatisticsButton">
                                     <property name="name">column-statistics</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Statistics</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'column-statistics'</property>
+                                    <property name="menu-model">column_statistics_menu</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">vertical</property>
@@ -1923,12 +1922,10 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="ColumnStandardButton">
+                                  <object class="GtkMenuButton" id="ColumnStandardButton">
                                     <property name="name">column-standard</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Standard</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'column-standard'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">vertical</property>
@@ -1962,12 +1959,10 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="ColumnScientificButton">
+                                  <object class="GtkMenuButton" id="ColumnScientificButton">
                                     <property name="name">column-scientific</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Scientific</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'column-scientific'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -1995,12 +1990,10 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="ColumnTrigonometryButton">
+                                  <object class="GtkMenuButton" id="ColumnTrigonometryButton">
                                     <property name="name">column-trigonometry</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Trigonometry</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'column-trigonometry'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -2028,12 +2021,10 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="ColumnRoundingButton">
+                                  <object class="GtkMenuButton" id="ColumnRoundingButton">
                                     <property name="name">column-rounding</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Rounding</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'column-rounding'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -2061,12 +2052,10 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="ColumnInformationButton">
+                                  <object class="GtkMenuButton" id="ColumnInformationButton">
                                     <property name="name">column-information</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Information</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'column-information'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -2129,12 +2118,10 @@
                               <object class="GtkGrid">
                                 <property name="vexpand">true</property>
                                 <child>
-                                  <object class="GtkButton" id="DateColumnButton">
+                                  <object class="GtkMenuButton" id="DateColumnButton">
                                     <property name="name">date-column</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Date</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'date-column'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">vertical</property>
@@ -2168,12 +2155,10 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="TimeColumnButton">
+                                  <object class="GtkMenuButton" id="TimeColumnButton">
                                     <property name="name">time-column</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Time</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'time-column'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">vertical</property>
@@ -2210,12 +2195,10 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="DurationColumnButton">
+                                  <object class="GtkMenuButton" id="DurationColumnButton">
                                     <property name="name">duration-column</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Duration</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'duration-column'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">vertical</property>
@@ -2912,8 +2895,8 @@
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">extract-text-length</attribute>
       </item>
-      </section>
-      <section>
+    </section>
+    <section>
       <item>
         <attribute name="label" translatable="yes">First Characters</attribute>
         <attribute name="action">win.toolbar</attribute>
@@ -2929,8 +2912,8 @@
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">extract-text-in-range</attribute>
       </item>
-      </section>
-      <section>
+    </section>
+    <section>
       <item>
         <attribute name="label" translatable="yes">Before Delimiter</attribute>
         <attribute name="action">win.toolbar</attribute>
@@ -2945,6 +2928,55 @@
         <attribute name="label" translatable="yes">Between Delimiters</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">extract-text-between-delimiters</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <menu id="column_statistics_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Minimum</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-minimum</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Maximum</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-maximum</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Summation</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-summation</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Median</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-median</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Average</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-average</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Standard Deviation</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-standard-deviation</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Count Values</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">count-values</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Count Distinct Values</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">count-distinct-values</attribute>
       </item>
     </section>
   </menu>

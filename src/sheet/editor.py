@@ -342,6 +342,16 @@ class SheetEditor(Gtk.Box):
         create_action('extract-text-between-'
                       'delimiters',             lambda *_: self._transform_table('extract-text-between-delimiters'))
 
+        create_action('calculate-summation',    lambda *_: self._transform_table('calculate-summation'))
+        create_action('calculate-minimum',      lambda *_: self._transform_table('calculate-minimum'))
+        create_action('calculate-maximum',      lambda *_: self._transform_table('calculate-maximum'))
+        create_action('calculate-median',       lambda *_: self._transform_table('calculate-median'))
+        create_action('calculate-average',      lambda *_: self._transform_table('calculate-average'))
+        create_action('calculate-standard-'
+                      'deviation',              lambda *_: self._transform_table('calculate-standard-deviation'))
+        create_action('count-values',           lambda *_: self._transform_table('count-values'))
+        create_action('count-distinct-values',  lambda *_: self._transform_table('count-distinct-values'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -478,6 +488,23 @@ class SheetEditor(Gtk.Box):
         create_command('extract-text-between-'
                        'delimiters',            f"{_('Column')}: {get_title_from_layout('extract-text-between-delimiters')}...",
                                                 context = 'table_focus and string_focus')
+
+        create_command('column-statistics',     '$placeholder')
+        create_command('calculate-summation',   f"{_('Column')}: {get_title_from_layout('calculate-summation')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-minimum',     f"{_('Column')}: {get_title_from_layout('calculate-minimum')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-maximum',     f"{_('Column')}: {get_title_from_layout('calculate-maximum')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-median',      f"{_('Column')}: {get_title_from_layout('calculate-median')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-average',     f"{_('Column')}: {get_title_from_layout('calculate-average')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-standard-'
+                       'deviation',             f"{_('Column')}: {get_title_from_layout('calculate-standard-deviation')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('count-values',          f"{_('Column')}: {get_title_from_layout('count-values')}...")
+        create_command('count-distinct-values', f"{_('Column')}: {get_title_from_layout('count-distinct-values')}...")
 
     def set_data(self,
                  tables: Tables = [],
@@ -859,6 +886,7 @@ class SheetEditor(Gtk.Box):
         column_strings  = [col for col in table.columns if table[col].dtype == String]
         column_floats   = [col for col in table.columns if table[col].dtype in FLOAT_TYPES]
         column_integers = [col for col in table.columns if table[col].dtype in INTEGER_TYPES]
+        column_numerics = column_floats + column_integers
 
         def do_evaluate(ridx: int,
                         rows: list[Any],
@@ -892,6 +920,8 @@ class SheetEditor(Gtk.Box):
                         rows[ridx][-1] = column_floats
                     if var == '$integer-columns':
                         rows[ridx][-1] = column_integers
+                    if var == '$numeric-columns':
+                        rows[ridx][-1] = column_numerics
 
                     if check_all:
                         defaults = deepcopy(rows[ridx][-1])

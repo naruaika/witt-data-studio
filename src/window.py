@@ -167,6 +167,13 @@ class Window(Adw.ApplicationWindow):
         create_action('save-as',            self._on_save_as,
                                             ['<Shift><Primary>s'])
 
+        # Just want to make it explicit that I'm using this
+        # action to trick the application' action lookup so
+        # that the target menu items become insensitive >_<
+        disabled = Gio.SimpleAction.new('toolbar.disabled')
+        disabled.set_enabled(False)
+        self.add_action(disabled)
+
     def _setup_commands(self) -> None:
         """"""
         def create_command(action_name: str,
