@@ -128,6 +128,9 @@ class CommandPalette(Adw.Bin):
         """"""
         self.set_visible(False)
 
+        window = self.get_root()
+        window.activate_action('win.focus-editor')
+
     def _setup_factory(self,
                        list_item_factory: Gtk.SignalListItemFactory,
                        list_item:         Gtk.ListItem,
@@ -316,6 +319,10 @@ class CommandPalette(Adw.Bin):
                         state:   Gdk.ModifierType,
                         ) ->     bool:
         """"""
+        if keyval == Gdk.KEY_Escape:
+            self.popdown()
+            return True
+
         # Map tab keys to arrow keys
         if keyval in {Gdk.KEY_Tab, Gdk.KEY_ISO_Left_Tab}:
             keyval = Gdk.KEY_Down

@@ -202,7 +202,7 @@ class Window(Adw.ApplicationWindow):
         create_command('win.close-window',  _('Close Window'),
                                             shortcuts = ['<Alt>F4'])
         create_command('win.focus-editor',  _('Focus Editor'),
-                                            shortcuts = ['Escape'])
+                                            shortcuts = ['<Primary>Escape'])
 
         # TODO: add context for undo and redo command
 
@@ -271,18 +271,12 @@ class Window(Adw.ApplicationWindow):
                                 parameter: GLib.Variant,
                                 ) ->       None:
         """"""
-        # Prevent from colliding with the undo action of editable widgets
-        focused_widget = self.get_focus()
-        if isinstance(focused_widget, (Gtk.Text, Gtk.TextView)):
-            focused_widget.activate_action('text.undo', None)
-            return
+        if self.CommandPalette.get_visible():
+            self.CommandPalette.popdown()
 
         if editor := self.get_selected_editor():
             editor.refresh_ui()
             editor.grab_focus()
-
-        if self.CommandPalette.get_visible():
-            self.CommandPalette.popdown()
 
     def _on_save(self,
                  action:    Gio.SimpleAction,

@@ -52,6 +52,22 @@
                 </child>
               </object>
             </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="margin-top">6</property>
+                <property name="margin-start">10</property>
+                <property name="margin-end">10</property>
+                <property name="label">Press &lt;b&gt;Up/Down&lt;/b&gt; to navigate, &lt;b&gt;Enter&lt;/b&gt; to select, or &lt;b&gt;Escape&lt;/b&gt; to cancel</property>
+                <property name="xalign">0.0</property>
+                <property name="wrap">true</property>
+                <property name="wrap-mode">word-char</property>
+                <property name="use-markup">true</property>
+                <style>
+                  <class name="caption"/>
+                  <class name="dimmed"/>
+                </style>
+              </object>
+            </child>
             <style>
               <class name="command-palette"/>
             </style>

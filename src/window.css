@@ -16,4 +16,6 @@
 }
 .mwindow .mtabview:focus-visible {
     outline: 2px solid var(--accent-bg-color);
+    transition: outline;
+    transition-duration: 0.2s;
 }
