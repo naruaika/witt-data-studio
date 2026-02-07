@@ -1064,9 +1064,9 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
-        case 'check-is-even':
+        case 'calculate-is-even':
             return (
-                _('Check Is Even'),
+                _('Calculate Is Even'),
                 [
                     (
                         _('Column'),
@@ -1076,9 +1076,9 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
-        case 'check-is-odd':
+        case 'calculate-is-odd':
             return (
-                _('Check Is Odd'),
+                _('Calculate Is Odd'),
                 [
                     (
                         _('Column'),
@@ -1088,9 +1088,9 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
-        case 'get-value-sign':
+        case 'extract-value-sign':
             return (
-                _('Get Value Sign'),
+                _('Extract Value Sign'),
                 [
                     (
                         _('Column'),

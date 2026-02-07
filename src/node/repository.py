@@ -16609,18 +16609,18 @@ class NodeRoundValue(NodeTemplate):
 
 
 
-class NodeCheckIsEven(NodeTemplate):
+class NodeCalculateIsEven(NodeTemplate):
 
-    ndname = _('Check Is Even')
+    ndname = _('Calculate Is Even')
 
-    action = 'check-is-even'
+    action = 'calculate-is-even'
 
     @staticmethod
     def new(x:   int = 0,
             y:   int = 0,
             ) -> NodeFrame:
         """"""
-        self = NodeCheckIsEven(x, y)
+        self = NodeCalculateIsEven(x, y)
 
         self.frame.set_data   = self.set_data
         self.frame.do_process = self.do_process
@@ -16777,18 +16777,18 @@ class NodeCheckIsEven(NodeTemplate):
 
 
 
-class NodeCheckIsOdd(NodeTemplate):
+class NodeCalculateIsOdd(NodeTemplate):
 
-    ndname = _('Check Is Odd')
+    ndname = _('Calculate Is Odd')
 
-    action = 'check-is-odd'
+    action = 'calculate-is-odd'
 
     @staticmethod
     def new(x:   int = 0,
             y:   int = 0,
             ) -> NodeFrame:
         """"""
-        self = NodeCheckIsOdd(x, y)
+        self = NodeCalculateIsOdd(x, y)
 
         self.frame.set_data   = self.set_data
         self.frame.do_process = self.do_process
@@ -16945,18 +16945,18 @@ class NodeCheckIsOdd(NodeTemplate):
 
 
 
-class NodeGetValueSign(NodeTemplate):
+class NodeExtractValueSign(NodeTemplate):
 
-    ndname = _('Get Value Sign')
+    ndname = _('Extract Value Sign')
 
-    action = 'get-value-sign'
+    action = 'extract-value-sign'
 
     @staticmethod
     def new(x:   int = 0,
             y:   int = 0,
             ) -> NodeFrame:
         """"""
-        self = NodeGetValueSign(x, y)
+        self = NodeExtractValueSign(x, y)
 
         self.frame.set_data   = self.set_data
         self.frame.do_process = self.do_process
@@ -17214,9 +17214,9 @@ _registered_nodes = [
 
     NodeRoundValue(),
 
-    NodeCheckIsEven(),
-    NodeCheckIsOdd(),
-    NodeGetValueSign(),
+    NodeCalculateIsEven(),
+    NodeCalculateIsOdd(),
+    NodeExtractValueSign(),
 ]
 
 

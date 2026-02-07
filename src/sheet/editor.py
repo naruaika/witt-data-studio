@@ -381,9 +381,9 @@ class SheetEditor(Gtk.Box):
 
         create_action('round-value',            lambda *_: self._transform_table('round-value'))
 
-        create_action('check-is-even',          lambda *_: self._transform_table('check-is-even'))
-        create_action('check-is-odd',           lambda *_: self._transform_table('check-is-odd'))
-        create_action('get-value-sign',         lambda *_: self._transform_table('get-value-sign'))
+        create_action('calculate-is-even',      lambda *_: self._transform_table('calculate-is-even'))
+        create_action('calculate-is-odd',       lambda *_: self._transform_table('calculate-is-odd'))
+        create_action('extract-value-sign',     lambda *_: self._transform_table('extract-value-sign'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -599,11 +599,11 @@ class SheetEditor(Gtk.Box):
 
         create_command('column-information',   '$placeholder',
                                                 context = 'table_focus and numeric_focus')
-        create_command('check-is-even',         f"{_('Column')}: {get_title_from_layout('check-is-even')}...",
+        create_command('calculate-is-even',     f"{_('Column')}: {get_title_from_layout('calculate-is-even')}...",
                                                 context = 'table_focus and numeric_focus')
-        create_command('check-is-odd',          f"{_('Column')}: {get_title_from_layout('check-is-odd')}...",
+        create_command('calculate-is-odd',      f"{_('Column')}: {get_title_from_layout('calculate-is-odd')}...",
                                                 context = 'table_focus and numeric_focus')
-        create_command('get-value-sign',        f"{_('Column')}: {get_title_from_layout('get-value-sign')}...",
+        create_command('extract-value-sign',    f"{_('Column')}: {get_title_from_layout('extract-value-sign')}...",
                                                 context = 'table_focus and numeric_focus')
 
     def set_data(self,

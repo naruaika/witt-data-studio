@@ -386,9 +386,9 @@ class NodeEditor(Gtk.Overlay):
 
         create_action('round-value',            lambda *_: create_node('round-value'))
 
-        create_action('check-is-even',          lambda *_: create_node('check-is-even'))
-        create_action('check-is-odd',           lambda *_: create_node('check-is-odd'))
-        create_action('get-value-sign',         lambda *_: create_node('get-value-sign'))
+        create_action('calculate-is-even',      lambda *_: create_node('calculate-is-even'))
+        create_action('calculate-is-odd',       lambda *_: create_node('calculate-is-odd'))
+        create_action('extract-value-sign',     lambda *_: create_node('extract-value-sign'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -558,9 +558,9 @@ class NodeEditor(Gtk.Overlay):
         create_command('round-value',           f"{_('Column')}: {_('Round Value')}")
 
         create_command('column-information',    '$placeholder')
-        create_command('check-is-even',         f"{_('Column')}: {_('Check Is Even')}")
-        create_command('check-is-odd',          f"{_('Column')}: {_('Check Is Odd')}")
-        create_command('get-value-sign',        f"{_('Column')}: {_('Get Value Sign')}")
+        create_command('calculate-is-even',     f"{_('Column')}: {_('Calculate Is Even')}")
+        create_command('calculate-is-odd',      f"{_('Column')}: {_('Calculate Is Odd')}")
+        create_command('extract-value-sign',    f"{_('Column')}: {_('Extract Value Sign')}")
 
     def _setup_controllers(self) -> None:
         """"""

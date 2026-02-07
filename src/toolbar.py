@@ -51,9 +51,13 @@ class Toolbar(Gtk.Box):
     RemoveRowsButton         = Gtk.Template.Child()
 
     SortSection              = Gtk.Template.Child()
-#   AscendingButton          = Gtk.Template.Child()
-#   DescendingButton         = Gtk.Template.Child()
     SortRowsButton           = Gtk.Template.Child()
+
+    TransformSection         = Gtk.Template.Child()
+    SplitColumnQButton       = Gtk.Template.Child()
+    GroupByQButton           = Gtk.Template.Child()
+    ChangeDataTypeQButton    = Gtk.Template.Child()
+    ReplaceValuesQButton     = Gtk.Template.Child()
 
     WorkflowSection          = Gtk.Template.Child()
     NewSheetButton           = Gtk.Template.Child()
@@ -242,20 +246,46 @@ class Toolbar(Gtk.Box):
                             SheetEditor,
                         ),
                         [
-#                           (
-#                               self.AscendingButton,
-#                               (
-#                                   SheetEditor,
-#                               ),
-#                           ),
-#                           (
-#                               self.DescendingButton,
-#                               (
-#                                   SheetEditor,
-#                               ),
-#                           ),
                             (
                                 self.SortRowsButton,
+                                (
+                                    NodeEditor,
+                                    SheetEditor,
+                                ),
+                            ),
+                        ],
+                    ),
+
+                    (
+                        self.TransformSection,
+                        (
+                            NodeEditor,
+                            SheetEditor,
+                        ),
+                        [
+                            (
+                                self.SplitColumnQButton,
+                                (
+                                    NodeEditor,
+                                    SheetEditor,
+                                ),
+                            ),
+                            (
+                                self.GroupByQButton,
+                                (
+                                    NodeEditor,
+                                    SheetEditor,
+                                ),
+                            ),
+                            (
+                                self.ChangeDataTypeQButton,
+                                (
+                                    NodeEditor,
+                                    SheetEditor,
+                                ),
+                            ),
+                            (
+                                self.ReplaceValuesQButton,
                                 (
                                     NodeEditor,
                                     SheetEditor,

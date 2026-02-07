@@ -694,74 +694,6 @@
                             <child>
                               <object class="GtkGrid">
                                 <property name="vexpand">true</property>
-                                <!--
-                                <child>
-                                  <object class="GtkButton" id="AscendingButton">
-                                    <property name="name">ascending</property>
-                                    <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Ascending</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'ascending'</property>
-                                    <child>
-                                      <object class="GtkBox">
-                                        <property name="orientation">horizontal</property>
-                                        <property name="spacing">6</property>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="icon-name">xxx-sort-ascending-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="label" translatable="yes">A-Z</property>
-                                            <property name="vexpand">true</property>
-                                          </object>
-                                        </child>
-                                      </object>
-                                    </child>
-                                    <layout>
-                                      <property name="column">0</property>
-                                      <property name="row">0</property>
-                                    </layout>
-                                    <style>
-                                      <class name="flat"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkButton" id="DescendingButton">
-                                    <property name="name">descending</property>
-                                    <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Descending</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'descending'</property>
-                                    <child>
-                                      <object class="GtkBox">
-                                        <property name="orientation">horizontal</property>
-                                        <property name="spacing">6</property>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="icon-name">xxx-sort-descending-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Z-A</property>
-                                            <property name="vexpand">true</property>
-                                          </object>
-                                        </child>
-                                      </object>
-                                    </child>
-                                    <layout>
-                                      <property name="column">0</property>
-                                      <property name="row">1</property>
-                                    </layout>
-                                    <style>
-                                      <class name="flat"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                -->
                                 <child>
                                   <object class="GtkButton" id="SortRowsButton">
                                     <property name="name">sort-rows</property>
@@ -806,6 +738,184 @@
                             <child>
                               <object class="GtkLabel">
                                 <property name="label" translatable="yes">Sort</property>
+                                <style>
+                                  <class name="caption"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSeparator">
+                            <property name="orientation">vertical</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <!-- Transform Section -->
+                    <child>
+                      <object class="GtkBox" id="TransformSection">
+                        <property name="name">sort</property>
+                        <property name="orientation">horizontal</property>
+                        <property name="spacing">6</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <property name="vexpand">false</property>
+                            <property name="halign">start</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkGrid">
+                                <property name="vexpand">true</property>
+                                <child>
+                                  <object class="GtkMenuButton" id="SplitColumnQButton">
+                                    <property name="name">split-column</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Split Column</property>
+                                    <property name="menu-model">split_column_menu</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">vertical</property>
+                                        <property name="homogeneous">true</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-split-screen-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Split Column&#x00A0;&#x2060;&#x2335;</property>
+                                            <property name="vexpand">true</property>
+                                            <property name="valign">start</property>
+                                            <property name="lines">2</property>
+                                            <property name="wrap">true</property>
+                                            <property name="justify">center</property>
+                                            <property name="max-width-chars">0</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">0</property>
+                                      <property name="row">0</property>
+                                      <property name="row-span">2</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkButton" id="GroupByQButton">
+                                    <property name="name">group-by</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Group By</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'group-by'</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">vertical</property>
+                                        <property name="homogeneous">true</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-group-resource-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Group By</property>
+                                            <property name="vexpand">true</property>
+                                            <property name="valign">start</property>
+                                            <property name="lines">2</property>
+                                            <property name="wrap">true</property>
+                                            <property name="justify">center</property>
+                                            <property name="max-width-chars">0</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">1</property>
+                                      <property name="row">0</property>
+                                      <property name="row-span">2</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkButton" id="ChangeDataTypeQButton">
+                                    <property name="name">change-data-type</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Data Type</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'change-data-type'</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">horizontal</property>
+                                        <property name="spacing">6</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-types-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Data Type</property>
+                                            <property name="vexpand">true</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">2</property>
+                                      <property name="row">0</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkButton" id="ReplaceValuesQButton">
+                                    <property name="name">replace-values</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Replace Values</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'replace-values'</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">horizontal</property>
+                                        <property name="spacing">6</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-parameter-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Replace Values</property>
+                                            <property name="vexpand">true</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">2</property>
+                                      <property name="row">1</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Transform</property>
                                 <style>
                                   <class name="caption"/>
                                 </style>
@@ -2128,6 +2238,7 @@
                                     <property name="name">date-column</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Date</property>
+                                    <property name="menu-model">date_column_menu</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">vertical</property>
@@ -2165,6 +2276,7 @@
                                     <property name="name">time-column</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Time</property>
+                                    <property name="menu-model">time_column_menu</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">vertical</property>
@@ -2205,6 +2317,7 @@
                                     <property name="name">duration-column</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Duration</property>
+                                    <property name="menu-model">duration_column_menu</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">vertical</property>
@@ -3125,17 +3238,262 @@
       <item>
         <attribute name="label" translatable="yes">Is Even</attribute>
         <attribute name="action">win.toolbar</attribute>
-        <attribute name="target">check-is-even</attribute>
+        <attribute name="target">calculate-is-even</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">Is Odd</attribute>
         <attribute name="action">win.toolbar</attribute>
-        <attribute name="target">check-is-odd</attribute>
+        <attribute name="target">calculate-is-odd</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">Sign</attribute>
         <attribute name="action">win.toolbar</attribute>
-        <attribute name="target">get-value-sign</attribute>
+        <attribute name="target">extract-value-sign</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <menu id="date_column_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Age</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-age</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Date Only</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-date-only</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Year</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-year</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Start of Year</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-start-of-year</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">End of Year</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-end-of-year</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Month</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-month</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Start of Month</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-start-of-month</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">End of Month</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-end-of-month</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Days in Month</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-days-in-month</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Name of Month</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-name-of-month</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Quarter of Year</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-quarter-of-year</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Start of Quarter</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-start-of-quarter</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">End of Quarter</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-end-of-quarter</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Week of Year</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-week-of-year</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Week of Month</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-week-of-month</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Start of Week</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-start-of-week</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">End of Week</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-end-of-week</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Day</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-day</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Day of Week</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-day-of-week</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Day of Year</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-day-of-year</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Start of Day</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-start-of-day</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">End of Day</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-end-of-day</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Name of Day</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-name-of-day</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <menu id="time_column_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Time Only</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-time-only</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Local Time</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-local-time</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Hour</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-hour</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Minute</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-minute</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Second</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-second</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Subtract</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-time-subtraction</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Earliest</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-time-earliest</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Latest</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-time-latest</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <menu id="duration_column_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Days</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-days</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Hours</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-hours</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Minutes</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-minutes</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Seconds</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-seconds</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Total Years</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-total-years</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Total Days</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-total-days</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Total Hours</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-total-hours</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Total Minutes</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-total-minutes</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Total Seconds</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">extract-total-seconds</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Multiply</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-duration-multiplication</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Divide</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-duration-division</attribute>
       </item>
     </section>
   </menu>
