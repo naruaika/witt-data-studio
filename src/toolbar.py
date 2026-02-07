@@ -104,7 +104,7 @@ class Toolbar(Gtk.Box):
     ColumnStandardButton     = Gtk.Template.Child()
     ColumnScientificButton   = Gtk.Template.Child()
     ColumnTrigonometryButton = Gtk.Template.Child()
-    ColumnRoundingButton     = Gtk.Template.Child()
+    RoundValueButton         = Gtk.Template.Child()
     ColumnInformationButton  = Gtk.Template.Child()
 
     DateTimeColumnSection    = Gtk.Template.Child()
@@ -574,7 +574,7 @@ class Toolbar(Gtk.Box):
                                 ),
                             ),
                             (
-                                self.ColumnRoundingButton,
+                                self.RoundValueButton,
                                 (
                                     NodeEditor,
                                     SheetEditor,

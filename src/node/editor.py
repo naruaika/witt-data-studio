@@ -372,7 +372,7 @@ class NodeEditor(Gtk.Overlay):
         create_action('calculate-square-root',  lambda *_: create_node('calculate-square-root'))
         create_action('calculate-square',       lambda *_: create_node('calculate-square'))
         create_action('calculate-cube',         lambda *_: create_node('calculate-cube'))
-        create_action('calculate-power',        lambda *_: create_node('calculate-power'))
+        create_action('calculate-power-k',      lambda *_: create_node('calculate-power-k'))
         create_action('calculate-exponent',     lambda *_: create_node('calculate-exponent'))
         create_action('calculate-base-10',      lambda *_: create_node('calculate-base-10'))
         create_action('calculate-natural',      lambda *_: create_node('calculate-natural'))
@@ -383,6 +383,8 @@ class NodeEditor(Gtk.Overlay):
         create_action('calculate-arcsine',      lambda *_: create_node('calculate-arcsine'))
         create_action('calculate-arccosine',    lambda *_: create_node('calculate-arccosine'))
         create_action('calculate-arctangent',   lambda *_: create_node('calculate-arctangent'))
+
+        create_action('round-value',            lambda *_: create_node('round-value'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -536,7 +538,7 @@ class NodeEditor(Gtk.Overlay):
         create_command('calculate-square-root', f"{_('Column')}: {_('Calculate Square Root')}")
         create_command('calculate-square',      f"{_('Column')}: {_('Calculate Square')}")
         create_command('calculate-cube',        f"{_('Column')}: {_('Calculate Cube')}")
-        create_command('calculate-power',       f"{_('Column')}: {_('Calculate Power')}")
+        create_command('calculate-power-k',     f"{_('Column')}: {_('Calculate Power K')}")
         create_command('calculate-exponent',    f"{_('Column')}: {_('Calculate Exponent')}")
         create_command('calculate-base-10',     f"{_('Column')}: {_('Calculate Base-10')}")
         create_command('calculate-natural',     f"{_('Column')}: {_('Calculate Natural')}")
@@ -548,6 +550,8 @@ class NodeEditor(Gtk.Overlay):
         create_command('calculate-arcsine',     f"{_('Column')}: {_('Calculate Arcsine')}")
         create_command('calculate-arccosine',   f"{_('Column')}: {_('Calculate Arccosine')}")
         create_command('calculate-arctangent',  f"{_('Column')}: {_('Calculate Arctangent')}")
+
+        create_command('round-value',           f"{_('Column')}: {_('Round Value')}")
 
     def _setup_controllers(self) -> None:
         """"""

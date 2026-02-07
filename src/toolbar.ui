@@ -2024,10 +2024,12 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkMenuButton" id="ColumnRoundingButton">
-                                    <property name="name">column-rounding</property>
+                                  <object class="GtkButton" id="RoundValueButton">
+                                    <property name="name">round-value</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Rounding</property>
+                                    <property name="tooltip-text" translatable="yes">Round Value</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'round-value'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -2039,7 +2041,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Rounding&#x00A0;&#x2060;&#x2335;</property>
+                                            <property name="label" translatable="yes">Round Value</property>
                                             <property name="vexpand">true</property>
                                           </object>
                                         </child>
@@ -3058,9 +3060,9 @@
         <attribute name="target">calculate-cube</attribute>
       </item>
       <item>
-        <attribute name="label" translatable="yes">Power</attribute>
+        <attribute name="label" translatable="yes">Power K</attribute>
         <attribute name="action">win.toolbar</attribute>
-        <attribute name="target">calculate-power</attribute>
+        <attribute name="target">calculate-power-k</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">Exponent</attribute>

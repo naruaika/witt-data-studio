@@ -115,6 +115,8 @@ class NodeComboButton(Gtk.Button):
                  options:  dict,
                  ) ->      None:
         """"""
+        self.icon = Gtk.Image(icon_name = 'pan-down-symbolic')
+
         self.set_options(options)
 
         box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
@@ -136,10 +138,9 @@ class NodeComboButton(Gtk.Button):
                           xalign       = 1.0,
                           ellipsize    = Pango.EllipsizeMode.END,
                           tooltip_text = label)
-        subbox.append(label)
 
-        icon = Gtk.Image(icon_name = 'pan-down-symbolic')
-        subbox.append(icon)
+        subbox.append(label)
+        subbox.append(self.icon)
 
         super().__init__(child = box)
 
@@ -147,6 +148,9 @@ class NodeComboButton(Gtk.Button):
                        label:  Gtk.Label,
                        ) ->    None:
             """"""
+            if len(self.options) < 2:
+                return
+
             def setup_factory(list_item_factory: Gtk.SignalListItemFactory,
                               list_item:         Gtk.ListItem,
                               ) ->               None:
@@ -261,6 +265,16 @@ class NodeComboButton(Gtk.Button):
         self.options = options
         if isinstance(options, list):
             self.options = {o: o for o in options}
+
+        if len(options) == 1:
+            self.icon.set_visible(False)
+        else:
+            self.icon.set_visible(True)
+
+        if len(options) == 0:
+            self.icon.set_from_icon_name('exclamation-mark-symbolic')
+        else:
+            self.icon.set_from_icon_name('pan-down-symbolic')
 
 
 

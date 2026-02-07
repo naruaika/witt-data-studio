@@ -922,9 +922,9 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
-        case 'calculate-power':
+        case 'calculate-power-k':
             return (
-                _('Calculate Power'),
+                _('Calculate Power K'),
                 [
                     (
                         _('Column'),
@@ -1039,6 +1039,27 @@ def get_layout(action_name: str) -> tuple[str, list]:
                         _('Column'),
                         'combo',
                         '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'round-value':
+            return (
+                _('Round Value'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                    (_('Decimals'), 'spin', (0, None, 0)),
+                    (
+                        _('Mode'),
+                        'combo',
+                        {
+                            'bankers':    _('Banker\'s'),
+                            'commercial': _('Commercial'),
+                        },
                     ),
                 ],
             )

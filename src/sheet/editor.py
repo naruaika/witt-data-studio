@@ -367,7 +367,7 @@ class SheetEditor(Gtk.Box):
         create_action('calculate-square-root',  lambda *_: self._transform_table('calculate-square-root'))
         create_action('calculate-square',       lambda *_: self._transform_table('calculate-square'))
         create_action('calculate-cube',         lambda *_: self._transform_table('calculate-cube'))
-        create_action('calculate-power',        lambda *_: self._transform_table('calculate-power'))
+        create_action('calculate-power-k',      lambda *_: self._transform_table('calculate-power-k'))
         create_action('calculate-exponent',     lambda *_: self._transform_table('calculate-exponent'))
         create_action('calculate-base-10',      lambda *_: self._transform_table('calculate-base-10'))
         create_action('calculate-natural',      lambda *_: self._transform_table('calculate-natural'))
@@ -378,6 +378,8 @@ class SheetEditor(Gtk.Box):
         create_action('calculate-arcsine',      lambda *_: self._transform_table('calculate-arcsine'))
         create_action('calculate-arccosine',    lambda *_: self._transform_table('calculate-arccosine'))
         create_action('calculate-arctangent',   lambda *_: self._transform_table('calculate-arctangent'))
+
+        create_action('round-value',            lambda *_: self._transform_table('round-value'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -564,7 +566,7 @@ class SheetEditor(Gtk.Box):
                                                 context = 'table_focus and numeric_focus')
         create_command('calculate-cube',        f"{_('Column')}: {get_title_from_layout('calculate-cube')}...",
                                                 context = 'table_focus and numeric_focus')
-        create_command('calculate-power',       f"{_('Column')}: {get_title_from_layout('calculate-power')}...",
+        create_command('calculate-power-k',     f"{_('Column')}: {get_title_from_layout('calculate-power-k')}...",
                                                 context = 'table_focus and numeric_focus')
         create_command('calculate-exponent',    f"{_('Column')}: {get_title_from_layout('calculate-exponent')}...",
                                                 context = 'table_focus and numeric_focus')
@@ -586,6 +588,9 @@ class SheetEditor(Gtk.Box):
         create_command('calculate-arccosine',   f"{_('Column')}: {get_title_from_layout('calculate-arccosine')}...",
                                                 context = 'table_focus and numeric_focus')
         create_command('calculate-arctangent',  f"{_('Column')}: {get_title_from_layout('calculate-arctangent')}...",
+                                                context = 'table_focus and numeric_focus')
+
+        create_command('round-value',           f"{_('Column')}: {get_title_from_layout('round-value')}...",
                                                 context = 'table_focus and numeric_focus')
 
     def set_data(self,
