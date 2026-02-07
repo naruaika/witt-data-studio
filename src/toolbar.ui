@@ -1964,6 +1964,7 @@
                                     <property name="name">column-scientific</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Scientific</property>
+                                    <property name="menu-model">column_scientific_menu</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -3027,6 +3028,55 @@
         <attribute name="label" translatable="yes">Percent Of</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">calculate-percent-of</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <menu id="column_scientific_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Absolute</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-absolute</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Square Root</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-square-root</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Square</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-square</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Cube</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-cube</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Power</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-power</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Exponent</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-exponent</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Base-10</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-base-10</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Natural</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-natural</attribute>
       </item>
     </section>
   </menu>

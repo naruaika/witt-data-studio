@@ -363,6 +363,15 @@ class SheetEditor(Gtk.Box):
         create_action('calculate-percentage',   lambda *_: self._transform_table('calculate-percentage'))
         create_action('calculate-percent-of',   lambda *_: self._transform_table('calculate-percent-of'))
 
+        create_action('calculate-absolute',     lambda *_: self._transform_table('calculate-absolute'))
+        create_action('calculate-square-root',  lambda *_: self._transform_table('calculate-square-root'))
+        create_action('calculate-square',       lambda *_: self._transform_table('calculate-square'))
+        create_action('calculate-cube',         lambda *_: self._transform_table('calculate-cube'))
+        create_action('calculate-power',        lambda *_: self._transform_table('calculate-power'))
+        create_action('calculate-exponent',     lambda *_: self._transform_table('calculate-exponent'))
+        create_action('calculate-base-10',      lambda *_: self._transform_table('calculate-base-10'))
+        create_action('calculate-natural',      lambda *_: self._transform_table('calculate-natural'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -536,6 +545,25 @@ class SheetEditor(Gtk.Box):
         create_command('calculate-percentage',  f"{_('Column')}: {get_title_from_layout('calculate-percentage')}...",
                                                 context = 'table_focus and numeric_focus')
         create_command('calculate-percent-of',  f"{_('Column')}: {get_title_from_layout('calculate-percent-of')}...",
+                                                context = 'table_focus and numeric_focus')
+
+        create_command('column-scientific',     '$placeholder',
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-absolute',    f"{_('Column')}: {get_title_from_layout('calculate-absolute')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-square-root', f"{_('Column')}: {get_title_from_layout('calculate-square-root')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-square',      f"{_('Column')}: {get_title_from_layout('calculate-square')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-cube',        f"{_('Column')}: {get_title_from_layout('calculate-cube')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-power',       f"{_('Column')}: {get_title_from_layout('calculate-power')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-exponent',    f"{_('Column')}: {get_title_from_layout('calculate-exponent')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-base-10',     f"{_('Column')}: {get_title_from_layout('calculate-base-10')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-natural',     f"{_('Column')}: {get_title_from_layout('calculate-natural')}...",
                                                 context = 'table_focus and numeric_focus')
 
     def set_data(self,

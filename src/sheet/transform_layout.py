@@ -874,4 +874,101 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
+        case 'calculate-absolute':
+            return (
+                _('Calculate Absolute'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-square-root':
+            return (
+                _('Calculate Square Root'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-square':
+            return (
+                _('Calculate Square'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-cube':
+            return (
+                _('Calculate Cube'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-power':
+            return (
+                _('Calculate Power'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                    (_('Value'), 'entry', 1.0),
+                ],
+            )
+
+        case 'calculate-exponent':
+            return (
+                _('Calculate Exponent'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-base-10':
+            return (
+                _('Calculate Base-10'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-natural':
+            return (
+                _('Calculate Natural'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
     raise KeyError()

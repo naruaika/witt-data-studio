@@ -368,6 +368,15 @@ class NodeEditor(Gtk.Overlay):
         create_action('calculate-percentage',   lambda *_: create_node('calculate-percentage'))
         create_action('calculate-percent-of',   lambda *_: create_node('calculate-percent-of'))
 
+        create_action('calculate-absolute',     lambda *_: create_node('calculate-absolute'))
+        create_action('calculate-square-root',  lambda *_: create_node('calculate-square-root'))
+        create_action('calculate-square',       lambda *_: create_node('calculate-square'))
+        create_action('calculate-cube',         lambda *_: create_node('calculate-cube'))
+        create_action('calculate-power',        lambda *_: create_node('calculate-power'))
+        create_action('calculate-exponent',     lambda *_: create_node('calculate-exponent'))
+        create_action('calculate-base-10',      lambda *_: create_node('calculate-base-10'))
+        create_action('calculate-natural',      lambda *_: create_node('calculate-natural'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -411,7 +420,7 @@ class NodeEditor(Gtk.Overlay):
         create_command('choose-columns',        f"{_('Table')}: {_('Choose Columns')}")
         create_command('remove-columns',        f"{_('Table')}: {_('Remove Columns')}")
 
-        create_command('keep-rows',             '$placeholder') # TODO: find a better way?
+        create_command('keep-rows',             '$placeholder')
         create_command('keep-top-k-rows',       f"{_('Table')}: {_('Keep Top K Rows')}")
         create_command('keep-bottom-k-rows',    f"{_('Table')}: {_('Keep Bottom K Rows')}")
         create_command('keep-first-k-rows',     f"{_('Table')}: {_('Keep First K Rows')}")
@@ -514,6 +523,16 @@ class NodeEditor(Gtk.Overlay):
         create_command('calculate-modulo',      f"{_('Column')}: {_('Calculate Modulo')}")
         create_command('calculate-percentage',  f"{_('Column')}: {_('Calculate Percentage')}")
         create_command('calculate-percent-of',  f"{_('Column')}: {_('Calculate Percent Of')}")
+
+        create_command('column-scientific',     '$placeholder')
+        create_command('calculate-absolute',    f"{_('Column')}: {_('Calculate Absolute')}")
+        create_command('calculate-square-root', f"{_('Column')}: {_('Calculate Square Root')}")
+        create_command('calculate-square',      f"{_('Column')}: {_('Calculate Square')}")
+        create_command('calculate-cube',        f"{_('Column')}: {_('Calculate Cube')}")
+        create_command('calculate-power',       f"{_('Column')}: {_('Calculate Power')}")
+        create_command('calculate-exponent',    f"{_('Column')}: {_('Calculate Exponent')}")
+        create_command('calculate-base-10',     f"{_('Column')}: {_('Calculate Base-10')}")
+        create_command('calculate-natural',     f"{_('Column')}: {_('Calculate Natural')}")
 
     def _setup_controllers(self) -> None:
         """"""
