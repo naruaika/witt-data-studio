@@ -541,6 +541,7 @@ class NodeEditor(Gtk.Overlay):
         create_command('calculate-base-10',     f"{_('Column')}: {_('Calculate Base-10')}")
         create_command('calculate-natural',     f"{_('Column')}: {_('Calculate Natural')}")
 
+        create_command('column-trigonometry',   '$placeholder')
         create_command('calculate-sine',        f"{_('Column')}: {_('Calculate Sine')}")
         create_command('calculate-cosine',      f"{_('Column')}: {_('Calculate Cosine')}")
         create_command('calculate-tangent',     f"{_('Column')}: {_('Calculate Tangent')}")
