@@ -1926,6 +1926,7 @@
                                     <property name="name">column-standard</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Standard</property>
+                                    <property name="menu-model">column_standard_menu</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">vertical</property>
@@ -2947,7 +2948,7 @@
     </section>
     <section>
       <item>
-        <attribute name="label" translatable="yes">Summation</attribute>
+        <attribute name="label" translatable="yes">Sum</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">calculate-summation</attribute>
       </item>
@@ -2977,6 +2978,55 @@
         <attribute name="label" translatable="yes">Count Distinct Values</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">count-distinct-values</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <menu id="column_standard_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Add</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-addition</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Multiply</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-multiplication</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Subtract</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-subtraction</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Divide</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-division</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Integer-Divide</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-integer-division</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Modulo</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-modulo</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Percentage</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-percentage</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Percent Of</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-percent-of</attribute>
       </item>
     </section>
   </menu>

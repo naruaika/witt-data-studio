@@ -352,6 +352,17 @@ class SheetEditor(Gtk.Box):
         create_action('count-values',           lambda *_: self._transform_table('count-values'))
         create_action('count-distinct-values',  lambda *_: self._transform_table('count-distinct-values'))
 
+        create_action('calculate-addition',     lambda *_: self._transform_table('calculate-addition'))
+        create_action('calculate-'
+                      'multiplication',         lambda *_: self._transform_table('calculate-multiplication'))
+        create_action('calculate-subtraction',  lambda *_: self._transform_table('calculate-subtraction'))
+        create_action('calculate-division',     lambda *_: self._transform_table('calculate-division'))
+        create_action('calculate-integer-'
+                      'division',               lambda *_: self._transform_table('calculate-integer-division'))
+        create_action('calculate-modulo',       lambda *_: self._transform_table('calculate-modulo'))
+        create_action('calculate-percentage',   lambda *_: self._transform_table('calculate-percentage'))
+        create_action('calculate-percent-of',   lambda *_: self._transform_table('calculate-percent-of'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -505,6 +516,27 @@ class SheetEditor(Gtk.Box):
                                                 context = 'table_focus and numeric_focus')
         create_command('count-values',          f"{_('Column')}: {get_title_from_layout('count-values')}...")
         create_command('count-distinct-values', f"{_('Column')}: {get_title_from_layout('count-distinct-values')}...")
+
+        create_command('column-standard',       '$placeholder',
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-addition',    f"{_('Column')}: {get_title_from_layout('calculate-addition')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-'
+                       'multiplication',        f"{_('Column')}: {get_title_from_layout('calculate-multiplication')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-subtraction', f"{_('Column')}: {get_title_from_layout('calculate-subtraction')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-division',    f"{_('Column')}: {get_title_from_layout('calculate-division')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-integer-'
+                       'division',              f"{_('Column')}: {get_title_from_layout('calculate-integer-division')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-modulo',      f"{_('Column')}: {get_title_from_layout('calculate-modulo')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-percentage',  f"{_('Column')}: {get_title_from_layout('calculate-percentage')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-percent-of',  f"{_('Column')}: {get_title_from_layout('calculate-percent-of')}...",
+                                                context = 'table_focus and numeric_focus')
 
     def set_data(self,
                  tables: Tables = [],

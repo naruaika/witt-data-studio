@@ -357,6 +357,17 @@ class NodeEditor(Gtk.Overlay):
         create_action('count-values',           lambda *_: create_node('count-values'))
         create_action('count-distinct-values',  lambda *_: create_node('count-distinct-values'))
 
+        create_action('calculate-addition',     lambda *_: create_node('calculate-addition'))
+        create_action('calculate-'
+                      'multiplication',         lambda *_: create_node('calculate-multiplication'))
+        create_action('calculate-subtraction',  lambda *_: create_node('calculate-subtraction'))
+        create_action('calculate-division',     lambda *_: create_node('calculate-division'))
+        create_action('calculate-integer-'
+                      'division',               lambda *_: create_node('calculate-integer-division'))
+        create_action('calculate-modulo',       lambda *_: create_node('calculate-modulo'))
+        create_action('calculate-percentage',   lambda *_: create_node('calculate-percentage'))
+        create_action('calculate-percent-of',   lambda *_: create_node('calculate-percent-of'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -491,6 +502,18 @@ class NodeEditor(Gtk.Overlay):
                        'deviation',             f"{_('Column')}: {_('Calculate Standard Deviation')}")
         create_command('count-values',          f"{_('Column')}: {_('Count Values')}")
         create_command('count-distinct-values', f"{_('Column')}: {_('Count Distinct Values')}")
+
+        create_command('column-standard',       '$placeholder')
+        create_command('calculate-addition',    f"{_('Column')}: {_('Calculate Addition')}")
+        create_command('calculate-'
+                       'multiplication',        f"{_('Column')}: {_('Calculate Multiplication')}")
+        create_command('calculate-subtraction', f"{_('Column')}: {_('Calculate Subtraction')}")
+        create_command('calculate-division',    f"{_('Column')}: {_('Calculate Division')}")
+        create_command('calculate-integer-'
+                       'division',              f"{_('Column')}: {_('Calculate Integer-Division')}")
+        create_command('calculate-modulo',      f"{_('Column')}: {_('Calculate Modulo')}")
+        create_command('calculate-percentage',  f"{_('Column')}: {_('Calculate Percentage')}")
+        create_command('calculate-percent-of',  f"{_('Column')}: {_('Calculate Percent Of')}")
 
     def _setup_controllers(self) -> None:
         """"""

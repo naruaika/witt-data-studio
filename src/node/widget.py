@@ -24,7 +24,6 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import Gtk
 from gi.repository import Pango
-from sys import float_info
 from typing import Any
 
 from ..core.utils import isiterable
@@ -373,10 +372,11 @@ class NodeEntry(Gtk.Entry):
                  placeholder: str = _('Value'),
                  ) ->         None:
         """"""
-        super().__init__(text             = get_data(),
+        default = get_data()
+
+        super().__init__(text             = default,
                          placeholder_text = placeholder,
-                         tooltip_text     = placeholder,
-                         show_emoji_icon  = True)
+                         tooltip_text     = placeholder)
 
         def on_activated(entry: Gtk.Entry) -> None:
             """"""
@@ -384,6 +384,24 @@ class NodeEntry(Gtk.Entry):
             self.grab_focus()
 
         self.connect('activate', on_activated)
+
+        if isinstance(default, (int, float)):
+            self.set_input_purpose(Gtk.InputPurpose.NUMBER)
+
+            def on_changed(entry: Adw.EntryRow) -> None:
+                """"""
+                text = entry.get_text()
+                try:
+                    if isinstance(default, int):
+                        int(text)
+                    if isinstance(default, float):
+                        float(text)
+                except:
+                    entry.add_css_class('warning')
+                else:
+                    entry.remove_css_class('warning')
+
+            self.connect('changed', on_changed)
 
     def set_data(self,
                  value: str,
@@ -615,8 +633,8 @@ class NodeSpinButton(Gtk.Button):
             """"""
             value = label.get_label()
             value = int(value) if digits == 0 else float(value)
-            lower = lower if lower is not None else float_info.min
-            upper = upper if upper is not None else float_info.max
+            lower = -GLib.MAXDOUBLE if lower is None else lower
+            upper = +GLib.MAXDOUBLE if upper is None else upper
 
             adjustment = Gtk.Adjustment(value          = value,
                                         lower          = lower,

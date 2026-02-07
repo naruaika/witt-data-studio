@@ -55,7 +55,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
             return (
                 _('Keep Top K Rows'),
                 [
-                    (_('No. Rows'), 'spin', (1, None)),
+                    (_('No. Rows'), 'spin', (1, None, 0)),
                     (
                         [
                             _('Based On'),
@@ -71,7 +71,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
             return (
                 _('Keep Bottom K Rows'),
                 [
-                    (_('No. Rows'), 'spin', (1, None)),
+                    (_('No. Rows'), 'spin', (1, None, 0)),
                     (
                         [
                             _('Based On'),
@@ -87,7 +87,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
             return (
                 _('Keep First K Rows'),
                 [
-                    (_('No. Rows'), 'spin', (1, None)),
+                    (_('No. Rows'), 'spin', (1, None, 0)),
                 ],
             )
 
@@ -95,7 +95,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
             return (
                 _('Keep Last K Rows'),
                 [
-                    (_('No. Rows'), 'spin', (1, None)),
+                    (_('No. Rows'), 'spin', (1, None, 0)),
                 ],
             )
 
@@ -104,7 +104,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 _('Keep Range of Rows'),
                 [
                     (_('From Row'), 'spin'),
-                    (_('No. Rows'), 'spin', (1, None)),
+                    (_('No. Rows'), 'spin', (1, None, 0)),
                 ],
             )
 
@@ -112,7 +112,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
             return (
                 _('Keep Every nth Rows'),
                 [
-                    (_('Nth Row'), 'spin', (1, None)),
+                    (_('Nth Row'), 'spin', (1, None, 0)),
                     (_('From Row'), 'spin'),
                 ],
             )
@@ -136,7 +136,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
             return (
                 _('Remove First K Rows'),
                 [
-                    (_('No. Rows'), 'spin', (1, None)),
+                    (_('No. Rows'), 'spin', (1, None, 0)),
                 ],
             )
 
@@ -144,7 +144,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
             return (
                 _('Remove Last K Rows'),
                 [
-                    (_('No. Rows'), 'spin', (1, None)),
+                    (_('No. Rows'), 'spin', (1, None, 0)),
                 ],
             )
 
@@ -153,7 +153,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 _('Remove Range of Rows'),
                 [
                     (_('From Row'), 'spin'),
-                    (_('No. Rows'), 'spin', (1, None)),
+                    (_('No. Rows'), 'spin', (1, None, 0)),
                 ],
             )
 
@@ -350,7 +350,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                         None,
                         'group',
                         [
-                            (_('No. Columns'), 'spin'),
+                            (_('No. Columns'), 'spin', (1, None, 0)),
                             (
                                 _('At Delimiter'),
                                 'combo',
@@ -373,7 +373,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                         'combo',
                         '$string-columns:use-column',
                     ),
-                    (_('No. Characters'), 'spin', (1, None)),
+                    (_('No. Characters'), 'spin', (1, None, 0)),
                     (
                         _('Strategy'),
                         'combo',
@@ -603,7 +603,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                         'combo',
                         '$string-columns:use-column',
                     ),
-                    (_('No. Characters'), 'spin', (1, None)),
+                    (_('No. Characters'), 'spin', (1, None, 0)),
                 ],
             )
 
@@ -616,7 +616,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                         'combo',
                         '$string-columns:use-column',
                     ),
-                    (_('No. Characters'), 'spin', (1, None)),
+                    (_('No. Characters'), 'spin', (1, None, 0)),
                 ],
             )
 
@@ -629,8 +629,8 @@ def get_layout(action_name: str) -> tuple[str, list]:
                         'combo',
                         '$string-columns:use-column',
                     ),
-                    (_('Starting Index'), 'spin', (0, None)),
-                    (_('No. Characters'), 'spin', (1, None)),
+                    (_('Starting Index'), 'spin', (0, None, 0)),
+                    (_('No. Characters'), 'spin', (1, None, 0)),
                 ],
             )
 
@@ -767,6 +767,110 @@ def get_layout(action_name: str) -> tuple[str, list]:
                         'combo',
                         '$all-columns:use-column',
                     ),
+                ],
+            )
+
+        case 'calculate-addition':
+            return (
+                _('Calculate Addition'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                    (_('Value'), 'entry', 0.0),
+                ],
+            )
+
+        case 'calculate-multiplication':
+            return (
+                _('Calculate Multiplication'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                    (_('Value'), 'entry', 0.0),
+                ],
+            )
+
+        case 'calculate-subtraction':
+            return (
+                _('Calculate Subtraction'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                    (_('Value'), 'entry', 0.0),
+                ],
+            )
+
+        case 'calculate-division':
+            return (
+                _('Calculate Division'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                    (_('Value'), 'entry', 0.0),
+                ],
+            )
+
+        case 'calculate-integer-division':
+            return (
+                _('Calculate Integer-Division'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                    (_('Value'), 'entry', 0.0),
+                ],
+            )
+
+        case 'calculate-modulo':
+            return (
+                _('Calculate Modulo'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                    (_('Value'), 'entry', 0.0),
+                ],
+            )
+
+        case 'calculate-percentage':
+            return (
+                _('Calculate Percentage'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                    (_('Value'), 'entry', 0.0),
+                ],
+            )
+
+        case 'calculate-percent-of':
+            return (
+                _('Calculate Percent Of'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                    (_('Value'), 'entry', 0.0),
                 ],
             )
 

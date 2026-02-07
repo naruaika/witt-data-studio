@@ -23,7 +23,6 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Pango
-from sys import float_info
 from typing import Any
 import json
 
@@ -171,13 +170,13 @@ class SheetTransformWindow(Adw.Window):
                 self.n_content += 1
 
             case 'entry':
-                default = contents or None
+                default = contents if contents != [] else None
                 self._create_entry_row(title, default, ops_arg)
                 self.n_content += 1
 
             case 'spin':
-                lower, upper = contents if contents else (None, None)
-                self._create_spin_row(title, description, lower, upper, ops_arg)
+                lower, upper, digits = contents if contents else (None, None, 0)
+                self._create_spin_row(title, description, lower, upper, digits, ops_arg)
                 self.n_content += 1
 
             case 'switch':
@@ -281,25 +280,45 @@ class SheetTransformWindow(Adw.Window):
         if default is not None:
             entry.set_text(str(default))
 
+        if isinstance(default, (int, float)):
+            entry.set_input_purpose(Gtk.InputPurpose.NUMBER)
+
+            def on_changed(entry: Adw.EntryRow) -> None:
+                """"""
+                text = entry.get_text()
+                try:
+                    if isinstance(default, int):
+                        int(text)
+                    if isinstance(default, float):
+                        float(text)
+                except:
+                    entry.add_css_class('warning')
+                else:
+                    entry.remove_css_class('warning')
+
+            entry.connect('changed', on_changed)
+
     def _create_spin_row(self,
                          title:       str,
                          description: str,
                          lower:       int,
                          upper:       int,
+                         digits:      int,
                          ops_arg:     SheetOperationArg,
                          ) ->         None:
         """"""
-        spin = Adw.SpinRow(title = title)
+        spin = Adw.SpinRow(title  = title,
+                           digits = digits)
         if description not in {'', None}:
             spin.set_subtitle(description)
-        lower = float_info.min if lower is None else lower
-        upper = float_info.max if upper is None else upper
+        lower = -GLib.MAXDOUBLE if lower is None else lower
+        upper = +GLib.MAXDOUBLE if upper is None else upper
         spin.set_range(lower, upper)
         spin.get_adjustment().set_page_increment(5)
         spin.get_adjustment().set_step_increment(1)
         spin.bind_property('text', ops_arg, 'value', GObject.BindingFlags.SYNC_CREATE)
         self.ContentContainer.add(spin)
-        ops_arg.stype = 'int'
+        ops_arg.stype = 'int' if digits == 0 else 'float'
 
     def _create_switch_row(self,
                            title:       str,
@@ -717,6 +736,8 @@ class SheetTransformWindow(Adw.Window):
             # Cast the argument value if needed
             if operation_arg.stype == 'int':
                 arg = int(arg if arg.isnumeric() else 0)
+            if operation_arg.stype == 'float':
+                arg = float(arg if arg.isnumeric() else 0)
             if operation_arg.stype == 'bool':
                 arg = toboolean(arg)
             if operation_arg.stype == 'strv':

@@ -18,10 +18,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from gi.repository import Adw
+from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Pango
-from sys import float_info
 
 SEPARATOR_OPTS = {'\t': _('Tab'),
                   ';':  _('Semicolon'),
@@ -130,7 +130,7 @@ class FileImportCsvView(GObject.Object):
 
         adjustment = Gtk.Adjustment(value          = 0,
                                     lower          = 0,
-                                    upper          = float_info.max,
+                                    upper          = GLib.MAXDOUBLE,
                                     step_increment = 1,
                                     page_increment = 10,
                                     page_size      = 10)
@@ -140,7 +140,7 @@ class FileImportCsvView(GObject.Object):
 
         adjustment = Gtk.Adjustment(value          = 1,
                                     lower          = 1,
-                                    upper          = float_info.max,
+                                    upper          = GLib.MAXDOUBLE,
                                     step_increment = 1,
                                     page_increment = 10,
                                     page_size      = 10)
