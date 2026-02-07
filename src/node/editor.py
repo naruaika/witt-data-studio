@@ -557,6 +557,7 @@ class NodeEditor(Gtk.Overlay):
 
         create_command('round-value',           f"{_('Column')}: {_('Round Value')}")
 
+        create_command('column-information',    '$placeholder')
         create_command('check-is-even',         f"{_('Column')}: {_('Check Is Even')}")
         create_command('check-is-odd',          f"{_('Column')}: {_('Check Is Odd')}")
         create_command('get-value-sign',        f"{_('Column')}: {_('Get Value Sign')}")
