@@ -155,7 +155,7 @@ class Window(Adw.ApplicationWindow):
         create_action('close-window',       self._on_close_window_action,
                                             ['<Alt>F4'])
         create_action('focus-editor',       self._on_focus_editor_action,
-                                            ['Escape'])
+                                            ['<Primary>Escape'])
 
         create_action('undo',               lambda *_: self.undo(),
                                             ['<Primary>z'])
@@ -271,6 +271,12 @@ class Window(Adw.ApplicationWindow):
                                 parameter: GLib.Variant,
                                 ) ->       None:
         """"""
+        # Prevent from colliding with the undo action of editable widgets
+        focused_widget = self.get_focus()
+        if isinstance(focused_widget, (Gtk.Text, Gtk.TextView)):
+            focused_widget.activate_action('text.undo', None)
+            return
+
         if editor := self.get_selected_editor():
             editor.refresh_ui()
             editor.grab_focus()
@@ -382,6 +388,12 @@ class Window(Adw.ApplicationWindow):
 
     def undo(self) -> bool:
         """"""
+        # Prevent from colliding with the undo action of editable widgets
+        focused_widget = self.get_focus()
+        if isinstance(focused_widget, (Gtk.Text, Gtk.TextView)):
+            focused_widget.activate_action('text.undo', None)
+            return True
+
         (success, actions) = self.history.undo()
 
         if actions:
@@ -400,6 +412,12 @@ class Window(Adw.ApplicationWindow):
 
     def redo(self) -> bool:
         """"""
+        # Prevent from colliding with the undo action of editable widgets
+        focused_widget = self.get_focus()
+        if isinstance(focused_widget, (Gtk.Text, Gtk.TextView)):
+            focused_widget.activate_action('text.redo', None)
+            return True
+
         (success, actions) = self.history.redo()
 
         if actions:

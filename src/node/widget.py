@@ -362,52 +362,138 @@ class NodeDropdown(Gtk.DropDown):
 
 
 
-class NodeEntry(Gtk.Entry):
+class NodeEntry(Gtk.Button):
 
     __gtype_name__ = 'NodeEntry'
 
     def __init__(self,
-                 get_data:    callable,
-                 set_data:    callable,
-                 placeholder: str = _('Value'),
-                 ) ->         None:
+                 title:    str,
+                 get_data: callable,
+                 set_data: callable,
+                 ) ->      None:
         """"""
         default = get_data()
 
-        super().__init__(text             = default,
-                         placeholder_text = placeholder,
-                         tooltip_text     = placeholder)
+        box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
+                      spacing     = 6)
 
-        def on_activated(entry: Gtk.Entry) -> None:
+        label = Gtk.Label(label        = title,
+                          xalign       = 0.0,
+                          hexpand      = True,
+                          ellipsize    = Pango.EllipsizeMode.END,
+                          tooltip_text = title)
+
+        label = Gtk.Label(label        = title,
+                          xalign       = 0.0,
+                          hexpand      = True,
+                          ellipsize    = Pango.EllipsizeMode.END,
+                          tooltip_text = title)
+        box.append(label)
+
+        label = Gtk.Label(label  = default,
+                          xalign = 1.0)
+        box.append(label)
+
+        super().__init__(child = box)
+
+        def on_clicked(button: Gtk.Button,
+                       label:  Gtk.Label,
+                       ) ->    None:
             """"""
-            set_data(entry.get_text())
-            self.grab_focus()
+            value = label.get_label()
+            entry = Gtk.Entry(text             = value,
+                              placeholder_text = title)
 
-        self.connect('activate', on_activated)
+            if isinstance(default, (int, float)):
+                entry.set_input_purpose(Gtk.InputPurpose.NUMBER)
 
-        if isinstance(default, (int, float)):
-            self.set_input_purpose(Gtk.InputPurpose.NUMBER)
+            entry.add_css_class('node-widget')
+            if button.has_css_class('before-socket'):
+                entry.add_css_class('before-socket')
+            if button.has_css_class('after-socket'):
+                entry.add_css_class('after-socket')
 
-            def on_changed(entry: Adw.EntryRow) -> None:
+            container = button.get_parent()
+            container.insert_child_after(entry, button)
+            button.unparent()
+
+            args = (container, button, label, entry)
+
+            def do_apply(args: list[Any]) -> None:
                 """"""
+                container, button, label, entry = args
                 text = entry.get_text()
-                try:
-                    if isinstance(default, int):
-                        int(text)
-                    if isinstance(default, float):
-                        float(text)
-                except:
-                    entry.add_css_class('warning')
-                else:
-                    entry.remove_css_class('warning')
 
-            self.connect('changed', on_changed)
+                if isinstance(default, (int, float)):
+                    try:
+                        if isinstance(default, int):
+                            text = int(text)
+                        if isinstance(default, float):
+                            text = float(text)
+                    except:
+                        return
+
+                label.set_label(str(text))
+                container.insert_child_after(button, entry)
+                entry.unparent()
+                set_data(text)
+
+            def on_activated(spin: Gtk.SpinButton,
+                             args: list[Any],
+                             ) ->  None:
+                """"""
+                do_apply(args)
+
+            entry.connect('activate', on_activated, args)
+
+            def on_key_pressed(event:   Gtk.EventControllerKey,
+                               keyval:  int,
+                               keycode: int,
+                               state:   Gdk.ModifierType,
+                               args:    list[Any],
+                               ) ->     bool:
+                """"""
+                if keyval == Gdk.KEY_Escape:
+                    do_apply(args)
+                    return Gdk.EVENT_STOP
+                return Gdk.EVENT_PROPAGATE
+
+            controller = Gtk.EventControllerKey()
+            controller.connect('key-pressed', on_key_pressed, args)
+            entry.add_controller(controller)
+
+            if isinstance(default, (int, float)):
+                def on_changed(entry: Adw.EntryRow) -> None:
+                    """"""
+                    text = entry.get_text()
+                    try:
+                        if isinstance(default, int):
+                            int(text)
+                        if isinstance(default, float):
+                            float(text)
+                    except:
+                        entry.add_css_class('warning')
+                    else:
+                        entry.remove_css_class('warning')
+
+                entry.connect('changed', on_changed)
+
+            def do_focus() -> bool:
+                """"""
+                entry.grab_focus()
+                return Gdk.EVENT_PROPAGATE
+
+            GLib.timeout_add(50, do_focus)
+
+        self.connect('clicked', on_clicked, label)
 
     def set_data(self,
                  value: str,
                  ) ->   None:
         """"""
-        self.set_text(str(value))
+        box = self.get_child()
+        label = box.get_last_child()
+        label.set_label(str(value))
 
 
 

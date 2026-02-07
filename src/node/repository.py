@@ -407,7 +407,9 @@ class NodeString(NodeTemplate):
             """"""
             _take_snapshot(self, self.set_data, value)
 
-        entry = NodeEntry(get_data, set_data)
+        entry = NodeEntry(title    = _('Value'),
+                          get_data = get_data,
+                          set_data = set_data)
         socket_type = NodeSocketType.OUTPUT
         self.frame.add_content(widget      = entry,
                                socket_type = socket_type,
@@ -5070,7 +5072,9 @@ class NodeReplaceValues(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        entry = NodeEntry(get_data, set_data, _('Search'))
+        entry = NodeEntry(title    = _('Search'),
+                          get_data = get_data,
+                          set_data = set_data)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = entry,
                                          socket_type = socket_type,
@@ -5124,7 +5128,9 @@ class NodeReplaceValues(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        entry = NodeEntry(get_data, set_data, _('Replace'))
+        entry = NodeEntry(title    = _('Replace'),
+                          get_data = get_data,
+                          set_data = set_data)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = entry,
                                          socket_type = socket_type,
@@ -5803,7 +5809,9 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        entry = NodeEntry(get_custom, set_custom, _('Custom'))
+        entry = NodeEntry(title    = _('Custom'),
+                          get_data = get_custom,
+                          set_data = set_custom)
         entry.set_visible(False)
 
         def get_data() -> str:
@@ -6386,9 +6394,9 @@ class NodeSplitColumnByPositions(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        widget = NodeEntry(get_data    = get_data,
-                           set_data    = set_data,
-                           placeholder = '0, 1')
+        widget = NodeEntry(title    = _('Positions'),
+                           get_data = get_data,
+                           set_data = set_data)
         self.frame.add_content(widget   = widget,
                                get_data = get_data,
                                set_data = set_data)
@@ -7841,7 +7849,9 @@ class NodeTrimContents(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        entry = NodeEntry(get_custom, set_custom, _('Custom'))
+        entry = NodeEntry(title    = _('Custom'),
+                          get_data = get_custom,
+                          set_data = set_custom)
         entry.set_visible(False)
 
         def get_data() -> str:
@@ -8340,7 +8350,9 @@ class NodeAddPrefix(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        entry = NodeEntry(get_data, set_data, _('Prefix'))
+        entry = NodeEntry(title    = _('Prefix'),
+                          get_data = get_data,
+                          set_data = set_data)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = entry,
                                          socket_type = socket_type,
@@ -8574,7 +8586,9 @@ class NodeAddSuffix(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        entry = NodeEntry(get_data, set_data, _('Suffix'))
+        entry = NodeEntry(title    = _('Suffix'),
+                          get_data = get_data,
+                          set_data = set_data)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = entry,
                                          socket_type = socket_type,
@@ -8807,7 +8821,9 @@ class NodeMergeColumns(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        entry = NodeEntry(get_custom, set_custom, _('Custom'))
+        entry = NodeEntry(title    = _('Custom'),
+                          get_data = get_custom,
+                          set_data = set_custom)
         entry.set_visible(False)
 
         def get_data() -> str:
@@ -8856,9 +8872,9 @@ class NodeMergeColumns(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        widget = NodeEntry(get_data    = get_data,
-                           set_data    = set_data,
-                           placeholder = f'{_('Alias')} ({_('Optional')})')
+        widget = NodeEntry(title    = _('Alias') + '?',
+                           get_data = get_data,
+                           set_data = set_data)
         self.frame.add_content(widget   = widget,
                                get_data = get_data,
                                set_data = set_data)
@@ -9932,7 +9948,9 @@ class NodeExtractTextBeforeDelimiter(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        entry = NodeEntry(get_data, set_data, _('Delimiter'))
+        entry = NodeEntry(title    = _('Delimiter'),
+                          get_data = get_data,
+                          set_data = set_data)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = entry,
                                          socket_type = socket_type,
@@ -10169,7 +10187,9 @@ class NodeExtractTextAfterDelimiter(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        entry = NodeEntry(get_data, set_data, _('Delimiter'))
+        entry = NodeEntry(title    = _('Delimiter'),
+                          get_data = get_data,
+                          set_data = set_data)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = entry,
                                          socket_type = socket_type,
@@ -10421,7 +10441,9 @@ class NodeExtractTextBetweenDelimiters(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        entry = NodeEntry(get_data, set_data, _('Start Delimiter'))
+        entry = NodeEntry(title    = _('Start'),
+                          get_data = get_data,
+                          set_data = set_data)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = entry,
                                          socket_type = socket_type,
@@ -10435,7 +10457,7 @@ class NodeExtractTextBetweenDelimiters(NodeTemplate):
             """"""
             content.Widget.set_visible(False)
 
-            label = NodeLabel(_('Start Delimiter'), can_link = True)
+            label = NodeLabel(_('Start'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
             if not _iscompatible(pair_socket, self_content):
@@ -10475,7 +10497,9 @@ class NodeExtractTextBetweenDelimiters(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        entry = NodeEntry(get_data, set_data, _('End Delimiter'))
+        entry = NodeEntry(title    = _('End'),
+                          get_data = get_data,
+                          set_data = set_data)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = entry,
                                          socket_type = socket_type,
@@ -10489,7 +10513,7 @@ class NodeExtractTextBetweenDelimiters(NodeTemplate):
             """"""
             content.Widget.set_visible(False)
 
-            label = NodeLabel(_('End Delimiter'), can_link = True)
+            label = NodeLabel(_('End'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
             if not _iscompatible(pair_socket, self_content):
@@ -12209,9 +12233,9 @@ class NodeCalculateAddition(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        widget = NodeEntry(get_data    = get_data,
-                           set_data    = set_data,
-                           placeholder = _('Value'))
+        widget = NodeEntry(title    = _('Value'),
+                           get_data = get_data,
+                           set_data = set_data)
         content = self.frame.add_content(widget   = widget,
                                          get_data = get_data,
                                          set_data = set_data)
@@ -12447,9 +12471,9 @@ class NodeCalculateMultiplication(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        widget = NodeEntry(get_data    = get_data,
-                           set_data    = set_data,
-                           placeholder = _('Value'))
+        widget = NodeEntry(title    = _('Value'),
+                           get_data = get_data,
+                           set_data = set_data)
         content = self.frame.add_content(widget   = widget,
                                          get_data = get_data,
                                          set_data = set_data)
@@ -12685,9 +12709,9 @@ class NodeCalculateSubtraction(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        widget = NodeEntry(get_data    = get_data,
-                           set_data    = set_data,
-                           placeholder = _('Value'))
+        widget = NodeEntry(title    = _('Value'),
+                           get_data = get_data,
+                           set_data = set_data)
         content = self.frame.add_content(widget   = widget,
                                          get_data = get_data,
                                          set_data = set_data)
@@ -12923,9 +12947,9 @@ class NodeCalculateDivision(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        widget = NodeEntry(get_data    = get_data,
-                           set_data    = set_data,
-                           placeholder = _('Value'))
+        widget = NodeEntry(title    = _('Value'),
+                           get_data = get_data,
+                           set_data = set_data)
         content = self.frame.add_content(widget   = widget,
                                          get_data = get_data,
                                          set_data = set_data)
@@ -13161,9 +13185,9 @@ class NodeCalculateIntegerDivision(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        widget = NodeEntry(get_data    = get_data,
-                           set_data    = set_data,
-                           placeholder = _('Value'))
+        widget = NodeEntry(title    = _('Value'),
+                           get_data = get_data,
+                           set_data = set_data)
         content = self.frame.add_content(widget   = widget,
                                          get_data = get_data,
                                          set_data = set_data)
@@ -13399,9 +13423,9 @@ class NodeCalculateModulo(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        widget = NodeEntry(get_data    = get_data,
-                           set_data    = set_data,
-                           placeholder = _('Value'))
+        widget = NodeEntry(title    = _('Value'),
+                           get_data = get_data,
+                           set_data = set_data)
         content = self.frame.add_content(widget   = widget,
                                          get_data = get_data,
                                          set_data = set_data)
@@ -13637,9 +13661,9 @@ class NodeCalculatePercentage(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        widget = NodeEntry(get_data    = get_data,
-                           set_data    = set_data,
-                           placeholder = _('Value'))
+        widget = NodeEntry(title    = _('Value'),
+                           get_data = get_data,
+                           set_data = set_data)
         content = self.frame.add_content(widget   = widget,
                                          get_data = get_data,
                                          set_data = set_data)
@@ -13875,9 +13899,9 @@ class NodeCalculatePercentOf(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        widget = NodeEntry(get_data    = get_data,
-                           set_data    = set_data,
-                           placeholder = _('Value'))
+        widget = NodeEntry(title    = _('Value'),
+                           get_data = get_data,
+                           set_data = set_data)
         content = self.frame.add_content(widget   = widget,
                                          get_data = get_data,
                                          set_data = set_data)

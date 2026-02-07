@@ -578,7 +578,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                             '\t': _('Tab'),
                         },
                     ),
-                    (f'{_('Alias')} ({_('Optional')})', 'entry'),
+                    (_('Alias') + '?', 'entry'),
                 ],
             )
 
