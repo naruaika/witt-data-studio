@@ -372,6 +372,13 @@ class SheetEditor(Gtk.Box):
         create_action('calculate-base-10',      lambda *_: self._transform_table('calculate-base-10'))
         create_action('calculate-natural',      lambda *_: self._transform_table('calculate-natural'))
 
+        create_action('calculate-sine',         lambda *_: self._transform_table('calculate-sine'))
+        create_action('calculate-cosine',       lambda *_: self._transform_table('calculate-cosine'))
+        create_action('calculate-tangent',      lambda *_: self._transform_table('calculate-tangent'))
+        create_action('calculate-arcsine',      lambda *_: self._transform_table('calculate-arcsine'))
+        create_action('calculate-arccosine',    lambda *_: self._transform_table('calculate-arccosine'))
+        create_action('calculate-arctangent',   lambda *_: self._transform_table('calculate-arctangent'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -564,6 +571,21 @@ class SheetEditor(Gtk.Box):
         create_command('calculate-base-10',     f"{_('Column')}: {get_title_from_layout('calculate-base-10')}...",
                                                 context = 'table_focus and numeric_focus')
         create_command('calculate-natural',     f"{_('Column')}: {get_title_from_layout('calculate-natural')}...",
+                                                context = 'table_focus and numeric_focus')
+
+        create_command('column-trigonometry',   '$placeholder',
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-sine',        f"{_('Column')}: {get_title_from_layout('calculate-sine')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-cosine',      f"{_('Column')}: {get_title_from_layout('calculate-cosine')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-tangent',     f"{_('Column')}: {get_title_from_layout('calculate-tangent')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-arcsine',     f"{_('Column')}: {get_title_from_layout('calculate-arcsine')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-arccosine',   f"{_('Column')}: {get_title_from_layout('calculate-arccosine')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('calculate-arctangent',  f"{_('Column')}: {get_title_from_layout('calculate-arctangent')}...",
                                                 context = 'table_focus and numeric_focus')
 
     def set_data(self,

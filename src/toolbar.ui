@@ -1996,6 +1996,7 @@
                                     <property name="name">column-trigonometry</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Trigonometry</property>
+                                    <property name="menu-model">column_trigonometry_menu</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -3077,6 +3078,41 @@
         <attribute name="label" translatable="yes">Natural</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">calculate-natural</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <menu id="column_trigonometry_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Sine</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-sine</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Cosine</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-cosine</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Tangent</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-tangent</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Arcsine</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-arcsine</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Arccosine</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-arccosine</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Arctangent</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-arctangent</attribute>
       </item>
     </section>
   </menu>

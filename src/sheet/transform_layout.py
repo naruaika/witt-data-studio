@@ -971,4 +971,76 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
+        case 'calculate-sine':
+            return (
+                _('Calculate Sine'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-cosine':
+            return (
+                _('Calculate Cosine'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-tangent':
+            return (
+                _('Calculate Tangent'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-arcsine':
+            return (
+                _('Calculate Arcsine'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-arccosine':
+            return (
+                _('Calculate Arccosine'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-arctangent':
+            return (
+                _('Calculate Arctangent'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
     raise KeyError()
