@@ -386,6 +386,10 @@ class NodeEditor(Gtk.Overlay):
 
         create_action('round-value',            lambda *_: create_node('round-value'))
 
+        create_action('check-is-even',          lambda *_: create_node('check-is-even'))
+        create_action('check-is-odd',           lambda *_: create_node('check-is-odd'))
+        create_action('get-value-sign',         lambda *_: create_node('get-value-sign'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -552,6 +556,10 @@ class NodeEditor(Gtk.Overlay):
         create_command('calculate-arctangent',  f"{_('Column')}: {_('Calculate Arctangent')}")
 
         create_command('round-value',           f"{_('Column')}: {_('Round Value')}")
+
+        create_command('check-is-even',         f"{_('Column')}: {_('Check Is Even')}")
+        create_command('check-is-odd',          f"{_('Column')}: {_('Check Is Odd')}")
+        create_command('get-value-sign',        f"{_('Column')}: {_('Get Value Sign')}")
 
     def _setup_controllers(self) -> None:
         """"""

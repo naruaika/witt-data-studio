@@ -381,6 +381,10 @@ class SheetEditor(Gtk.Box):
 
         create_action('round-value',            lambda *_: self._transform_table('round-value'))
 
+        create_action('check-is-even',          lambda *_: self._transform_table('check-is-even'))
+        create_action('check-is-odd',           lambda *_: self._transform_table('check-is-odd'))
+        create_action('get-value-sign',         lambda *_: self._transform_table('get-value-sign'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -591,6 +595,15 @@ class SheetEditor(Gtk.Box):
                                                 context = 'table_focus and numeric_focus')
 
         create_command('round-value',           f"{_('Column')}: {get_title_from_layout('round-value')}...",
+                                                context = 'table_focus and numeric_focus')
+
+        create_command('column-information',   '$placeholder',
+                                                context = 'table_focus and numeric_focus')
+        create_command('check-is-even',         f"{_('Column')}: {get_title_from_layout('check-is-even')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('check-is-odd',          f"{_('Column')}: {get_title_from_layout('check-is-odd')}...",
+                                                context = 'table_focus and numeric_focus')
+        create_command('get-value-sign',        f"{_('Column')}: {get_title_from_layout('get-value-sign')}...",
                                                 context = 'table_focus and numeric_focus')
 
     def set_data(self,

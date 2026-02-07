@@ -13993,7 +13993,7 @@ class NodeCalculateAbsolute(NodeTemplate):
         if self.frame.data['columns']:
             from polars import col
             column = self.frame.data['column']
-            table = table.select(col(column).abs())
+            table = table.with_columns(col(column).abs())
 
         self.frame.data['table'] = table
 
@@ -14161,7 +14161,7 @@ class NodeCalculateSquareRoot(NodeTemplate):
         if self.frame.data['columns']:
             from polars import col
             column = self.frame.data['column']
-            table = table.select(col(column).sqrt())
+            table = table.with_columns(col(column).sqrt())
 
         self.frame.data['table'] = table
 
@@ -14329,7 +14329,7 @@ class NodeCalculateSquare(NodeTemplate):
         if self.frame.data['columns']:
             from polars import col
             column = self.frame.data['column']
-            table = table.select(col(column) ** 2)
+            table = table.with_columns(col(column) ** 2)
 
         self.frame.data['table'] = table
 
@@ -14497,7 +14497,7 @@ class NodeCalculateCube(NodeTemplate):
         if self.frame.data['columns']:
             from polars import col
             column = self.frame.data['column']
-            table = table.select(col(column) ** 3)
+            table = table.with_columns(col(column) ** 3)
 
         self.frame.data['table'] = table
 
@@ -14903,7 +14903,7 @@ class NodeCalculateExponent(NodeTemplate):
         if self.frame.data['columns']:
             from polars import col
             column = self.frame.data['column']
-            table = table.select(col(column).exp())
+            table = table.with_columns(col(column).exp())
 
         self.frame.data['table'] = table
 
@@ -15071,7 +15071,7 @@ class NodeCalculateBase10(NodeTemplate):
         if self.frame.data['columns']:
             from polars import col
             column = self.frame.data['column']
-            table = table.select(col(column).log10())
+            table = table.with_columns(col(column).log10())
 
         self.frame.data['table'] = table
 
@@ -15239,7 +15239,7 @@ class NodeCalculateNatural(NodeTemplate):
         if self.frame.data['columns']:
             from polars import col
             column = self.frame.data['column']
-            table = table.select(col(column).log())
+            table = table.with_columns(col(column).log())
 
         self.frame.data['table'] = table
 
@@ -15407,7 +15407,7 @@ class NodeCalculateSine(NodeTemplate):
         if self.frame.data['columns']:
             from polars import col
             column = self.frame.data['column']
-            table = table.select(col(column).sin())
+            table = table.with_columns(col(column).sin())
 
         self.frame.data['table'] = table
 
@@ -15575,7 +15575,7 @@ class NodeCalculateCosine(NodeTemplate):
         if self.frame.data['columns']:
             from polars import col
             column = self.frame.data['column']
-            table = table.select(col(column).cos())
+            table = table.with_columns(col(column).cos())
 
         self.frame.data['table'] = table
 
@@ -15743,7 +15743,7 @@ class NodeCalculateTangent(NodeTemplate):
         if self.frame.data['columns']:
             from polars import col
             column = self.frame.data['column']
-            table = table.select(col(column).tan())
+            table = table.with_columns(col(column).tan())
 
         self.frame.data['table'] = table
 
@@ -15911,7 +15911,7 @@ class NodeCalculateArcsine(NodeTemplate):
         if self.frame.data['columns']:
             from polars import col
             column = self.frame.data['column']
-            table = table.select(col(column).arcsin())
+            table = table.with_columns(col(column).arcsin())
 
         self.frame.data['table'] = table
 
@@ -16079,7 +16079,7 @@ class NodeCalculateArccosine(NodeTemplate):
         if self.frame.data['columns']:
             from polars import col
             column = self.frame.data['column']
-            table = table.select(col(column).arccos())
+            table = table.with_columns(col(column).arccos())
 
         self.frame.data['table'] = table
 
@@ -16247,7 +16247,7 @@ class NodeCalculateArctangent(NodeTemplate):
         if self.frame.data['columns']:
             from polars import col
             column = self.frame.data['column']
-            table = table.select(col(column).arctan())
+            table = table.with_columns(col(column).arctan())
 
         self.frame.data['table'] = table
 
@@ -16443,7 +16443,7 @@ class NodeRoundValue(NodeTemplate):
             else:
                 mode = 'half_away_from_zero'
 
-            table = table.select(col(column).round(decimals, mode))
+            table = table.with_columns(col(column).round(decimals, mode))
 
         self.frame.data['table'] = table
 
@@ -16609,6 +16609,510 @@ class NodeRoundValue(NodeTemplate):
 
 
 
+class NodeCheckIsEven(NodeTemplate):
+
+    ndname = _('Check Is Even')
+
+    action = 'check-is-even'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeCheckIsEven(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns'] = []
+        self.frame.data['column']  = ''
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column'] = args[0]
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from polars import col
+            column = self.frame.data['column']
+            table = table.with_columns(col(column) % 2 == 0)
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> str:
+        """"""
+        return self.frame.data['column']
+
+    def do_restore(self,
+                   value: str,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value)
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.numeric()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
+
+        combo.set_sensitive(False)
+
+
+
+class NodeCheckIsOdd(NodeTemplate):
+
+    ndname = _('Check Is Odd')
+
+    action = 'check-is-odd'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeCheckIsOdd(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns'] = []
+        self.frame.data['column']  = ''
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column'] = args[0]
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from polars import col
+            column = self.frame.data['column']
+            table = table.with_columns(col(column) % 2 == 1)
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> str:
+        """"""
+        return self.frame.data['column']
+
+    def do_restore(self,
+                   value: str,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value)
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.numeric()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
+
+        combo.set_sensitive(False)
+
+
+
+class NodeGetValueSign(NodeTemplate):
+
+    ndname = _('Get Value Sign')
+
+    action = 'get-value-sign'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeGetValueSign(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['columns'] = []
+        self.frame.data['column']  = ''
+
+        self._add_output()
+        self._add_input()
+        self._add_column()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['column'] = args[0]
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_column()
+
+        if self.frame.data['columns']:
+            from polars import col
+            column = self.frame.data['column']
+            table = table.with_columns(col(column).sign())
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> str:
+        """"""
+        return self.frame.data['column']
+
+    def do_restore(self,
+                   value: str,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value)
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_column(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        import polars.selectors as cs
+        table_columns = table.select(cs.numeric()) \
+                             .collect_schema() \
+                             .names()
+
+        self.frame.data['columns'] = table_columns
+
+        widget = self.frame.contents[2].Widget
+
+        if not table_columns:
+            widget.set_sensitive(False)
+            return
+
+        if self.frame.data['column'] not in table_columns:
+            self.frame.data['column'] = table_columns[0]
+
+        widget.set_options(self.frame.data['columns'])
+        widget.set_data(self.frame.data['column'])
+        widget.set_sensitive(True)
+
+    def _add_column(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['column']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['column'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        combo = NodeComboButton(title    = _('Column'),
+                                get_data = get_data,
+                                set_data = set_data,
+                                options  = self.frame.data['columns'])
+        self.frame.add_content(widget   = combo,
+                               get_data = get_data,
+                               set_data = set_data)
+
+        combo.set_sensitive(False)
+
+
+
 _registered_nodes = [
     NodeBoolean(),
     NodeDecimal(),
@@ -16709,6 +17213,10 @@ _registered_nodes = [
     NodeCalculateArctangent(),
 
     NodeRoundValue(),
+
+    NodeCheckIsEven(),
+    NodeCheckIsOdd(),
+    NodeGetValueSign(),
 ]
 
 

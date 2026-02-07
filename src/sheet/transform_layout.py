@@ -1064,4 +1064,40 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
+        case 'check-is-even':
+            return (
+                _('Check Is Even'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'check-is-odd':
+            return (
+                _('Check Is Odd'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'get-value-sign':
+            return (
+                _('Get Value Sign'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$numeric-columns:use-column',
+                    ),
+                ],
+            )
+
     raise KeyError()

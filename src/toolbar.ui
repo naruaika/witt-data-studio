@@ -2061,6 +2061,7 @@
                                     <property name="name">column-information</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Information</property>
+                                    <property name="menu-model">column_information_menu</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -3115,6 +3116,26 @@
         <attribute name="label" translatable="yes">Arctangent</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">calculate-arctangent</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <menu id="column_information_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Is Even</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">check-is-even</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Is Odd</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">check-is-odd</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Sign</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">get-value-sign</attribute>
       </item>
     </section>
   </menu>
