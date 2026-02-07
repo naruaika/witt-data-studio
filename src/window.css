@@ -10,7 +10,6 @@
     margin-right: 6px;
 }
 
-/*
 .mwindow .mtabview {
     margin: 0 2px;
     transition-duration: 0.2s;
@@ -18,4 +17,3 @@
 .mwindow .mtabview:focus-visible {
     outline: 2px solid var(--accent-bg-color);
 }
-*/
