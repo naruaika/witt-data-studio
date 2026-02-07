@@ -48,6 +48,10 @@
                         <signal name="activate" handler="_on_list_view_activated" swapped="no"/>
                       </object>
                     </child>
+                    <style>
+                      <class name="undershoot-top"/>
+                      <class name="undershoot-bottom"/>
+                    </style>
                   </object>
                 </child>
               </object>
