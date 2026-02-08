@@ -185,8 +185,10 @@ class CommandPalette(Adw.Bin):
         list_item.label.set_label(item_data.label)
         list_item.shortcut.set_visible(False)
 
-        list_item.highlight = item_data.bind_property('label', list_item.label, 'label',
-                                                      GObject.BindingFlags.SYNC_CREATE)
+        list_item.highlight = item_data.bind_property(source_property = 'label',
+                                                      target          = list_item.label,
+                                                      target_property = 'label',
+                                                      flags           = GObject.BindingFlags.SYNC_CREATE)
 
         def on_click(gesture: Gtk.GestureClick,
                      n_press: int,

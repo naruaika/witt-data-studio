@@ -51,8 +51,8 @@ class SheetRenderer():
         self.prefers_dark = self.style_manager.get_dark()
         self.render_cache = {}
 
-        self.prev_width  = 0
-        self.prev_height = 0
+        self._prev_width  = 0
+        self._prev_height = 0
 
     def render(self,
                canvas:    'SheetCanvas',
@@ -95,8 +95,8 @@ class SheetRenderer():
         self.color_accent = self.style_manager.get_accent_color_rgba()
 
         if (
-            self.prev_width  == new_width and
-            self.prev_height == new_height
+            self._prev_width  == new_width and
+            self._prev_height == new_height
         ):
             return
 
@@ -120,8 +120,8 @@ class SheetRenderer():
                                           new_width  > cached_width
 
             if new_area_bigger_than_cached:
-                x_offset = new_width  - self.prev_width
-                y_offset = new_height - self.prev_height
+                x_offset = new_width  - self._prev_width
+                y_offset = new_height - self._prev_height
 
                 if x_offset != 0:
                     self.render_cache['content']['x_pos']  -= x_offset
@@ -131,8 +131,8 @@ class SheetRenderer():
                     self.render_cache['content']['y_pos']  -= y_offset
                     self.render_cache['content']['y_trans'] = y_offset
 
-        self.prev_width  = new_width
-        self.prev_height = new_height
+        self._prev_width  = new_width
+        self._prev_height = new_height
 
     def _setup_cairo_context(self,
                              context: Context,

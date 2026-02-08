@@ -169,6 +169,13 @@ class NodeCanvas(Gtk.Fixed):
         self._drag_handler.connect('drag-end', self._on_drag_end)
         self.add_controller(self._drag_handler)
 
+        self._pan_handler = Gtk.GestureDrag.new()
+        self._pan_handler.set_button(Gdk.BUTTON_MIDDLE)
+        self._pan_handler.connect('drag-begin', self._on_pan_begin)
+        self._pan_handler.connect('drag-update', self._on_pan_update)
+        self._pan_handler.connect('drag-end', self._on_pan_end)
+        self.add_controller(self._pan_handler)
+
     def _on_lmb_released(self,
                          gesture: Gtk.GestureClick,
                          n_press: int,
@@ -242,6 +249,40 @@ class NodeCanvas(Gtk.Fixed):
         combo = state & Gdk.ModifierType.SHIFT_MASK != 0
         editor.select_by_rubberband(combo)
         self.queue_draw()
+
+    def _on_pan_begin(self,
+                      gesture: Gtk.GestureDrag,
+                      start_x: float,
+                      start_y: float,
+                      ) ->     None:
+        """"""
+        self.set_cursor(Gdk.Cursor.new_from_name('grabbing', None))
+
+    def _on_pan_update(self,
+                       gesture:  Gtk.GestureDrag,
+                       offset_x: float,
+                       offset_y: float,
+                       ) ->      None:
+        """"""
+        editor = self.get_editor()
+        window = editor.ScrolledWindow
+
+        vadjustment = window.get_vadjustment()
+        hadjustment = window.get_hadjustment()
+
+        scroll_y_position = vadjustment.get_value()
+        scroll_x_position = hadjustment.get_value()
+
+        vadjustment.set_value(scroll_y_position - offset_y)
+        hadjustment.set_value(scroll_x_position - offset_x)
+
+    def _on_pan_end(self,
+                    gesture:  Gtk.GestureDrag,
+                    offset_x: float,
+                    offset_y: float,
+                    ) ->      None:
+        """"""
+        self.set_cursor(None)
 
     def get_editor(self) -> 'NodeEditor':
         """"""

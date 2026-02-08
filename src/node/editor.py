@@ -122,6 +122,8 @@ class NodeEditor(Gtk.Overlay):
         self._editor_init_setup = False
         self._should_init_nodes = len(nodes) > 0
 
+        self._scroll_restore_id = None
+
         self._setup_data(nodes, links)
         self._setup_actions()
         self._setup_commands()
@@ -570,17 +572,13 @@ class NodeEditor(Gtk.Overlay):
 
         vadjustment = self.ScrolledWindow.get_vadjustment()
         hadjustment = self.ScrolledWindow.get_hadjustment()
-        hadjustment.connect('value-changed', lambda *_: self.queue_draw(refresh = False))
-        vadjustment.connect('value-changed', lambda *_: self.queue_draw(refresh = False))
+        hadjustment.connect('value-changed', self._on_scrolled)
+        vadjustment.connect('value-changed', self._on_scrolled)
 
-        controller = Gtk.GestureDrag.new()
-        controller.set_button(Gdk.BUTTON_MIDDLE)
-        controller.connect('drag-begin', self._on_pan_begin)
-        controller.connect('drag-update', self._on_pan_update)
-        controller.connect('drag-end', self._on_pan_end)
-        self.Canvas.add_controller(controller)
-
-        self.MinimapToggle.bind_property('active', self.Minimap, 'visible', GObject.BindingFlags.SYNC_CREATE)
+        self.MinimapToggle.bind_property(source_property = 'active',
+                                         target          = self.Minimap,
+                                         target_property = 'visible',
+                                         flags           = GObject.BindingFlags.SYNC_CREATE)
 
     def _on_motion(self,
                    motion: Gtk.EventControllerMotion,
@@ -596,35 +594,24 @@ class NodeEditor(Gtk.Overlay):
         self._cursor_x_position = x + scroll_x_position
         self._cursor_y_position = y + scroll_y_position
 
-    def _on_pan_begin(self,
-                      gesture: Gtk.GestureDrag,
-                      start_x: float,
-                      start_y: float,
-                      ) ->     None:
+    def _on_scrolled(self,
+                     adjustment: Gtk.Adjustment,
+                     ) ->        None:
         """"""
-        self.Canvas.set_cursor(Gdk.Cursor.new_from_name('grabbing', None))
+        def do_restore() -> None:
+            """"""
+            self.Canvas.set_can_target(True)
+            self._scroll_restore_id = None
 
-    def _on_pan_update(self,
-                       gesture:  Gtk.GestureDrag,
-                       offset_x: float,
-                       offset_y: float,
-                       ) ->      None:
-        """"""
-        vadjustment = self.ScrolledWindow.get_vadjustment()
-        hadjustment = self.ScrolledWindow.get_hadjustment()
-        scroll_y_position = vadjustment.get_value()
-        scroll_x_position = hadjustment.get_value()
+        if self._scroll_restore_id:
+            GLib.source_remove(self._scroll_restore_id)
+            self._scroll_restore_id = None
 
-        vadjustment.set_value(scroll_y_position - offset_y)
-        hadjustment.set_value(scroll_x_position - offset_x)
+        self.Canvas.set_can_target(False)
 
-    def _on_pan_end(self,
-                    gesture:  Gtk.GestureDrag,
-                    offset_x: float,
-                    offset_y: float,
-                    ) ->      None:
-        """"""
-        self.Canvas.set_cursor(None)
+        self._scroll_restore_id = GLib.timeout_add(50, do_restore)
+
+        self.queue_draw(refresh = False)
 
     def _setup_default_nodes(self) -> None:
         """"""
