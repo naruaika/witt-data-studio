@@ -72,15 +72,25 @@ class NodeCanvas(Gtk.Fixed):
             *_, point_1 = link.in_socket.compute_point(self, point)
             *_, point_2 = link.out_socket.compute_point(self, point)
 
-            point_1 = (point_1.x + radius - 2, point_1.y + radius)
-            point_2 = (point_2.x + radius - 2, point_2.y + radius)
+            x1 = point_1.x + radius - 2
+            y1 = point_1.y + radius
+            x2 = point_2.x + radius - 2
+            y2 = point_2.y + radius
 
-            if link.compatible:
-                builder_success.move_to(*point_1)
-                builder_success.line_to(*point_2)
-            else:
-                builder_warning.move_to(*point_1)
-                builder_warning.line_to(*point_2)
+            dx = abs(x2 - x1)
+
+            control_dx = min(120,max(8, dx * 0.35))
+
+            c1x, c1y = x1 + control_dx, y1
+            c2x, c2y = x2 - control_dx, y2
+
+            builder = builder_success if link.compatible \
+                                      else builder_warning
+
+            builder.move_to(x1, y1)
+            builder.cubic_to(c1x, c1y,
+                             c2x, c2y,
+                             x2,  y2)
 
         if self._prefers_dark:
             color = Gdk.RGBA(0.8706, 0.8667, 0.8549, 1.0) # equivalent to --light-3
@@ -105,6 +115,7 @@ class NodeCanvas(Gtk.Fixed):
                           ) ->      None:
         """"""
         stroke = Gsk.Stroke(3.0)
+        stroke.set_dash([4, 4])
 
         if self._prefers_dark:
             color = Gdk.RGBA(0.8706, 0.8667, 0.8549, 1.0) # equivalent to --light-3
@@ -115,9 +126,23 @@ class NodeCanvas(Gtk.Fixed):
         point_1 = editor.future_link[0]
         point_2 = editor.future_link[1]
 
+        x1 = point_1[0]
+        y1 = point_1[1]
+        x2 = point_2[0]
+        y2 = point_2[1]
+
+        dx = abs(x2 - x1)
+
+        control_dx = min(120, max(8, dx * 0.35))
+
+        c1x, c1y = x1 + control_dx, y1
+        c2x, c2y = x2 - control_dx, y2
+
         builder = Gsk.PathBuilder()
-        builder.move_to(point_1[0], point_1[1])
-        builder.line_to(point_2[0], point_2[1])
+        builder.move_to(x1, y1)
+        builder.cubic_to(c1x, c1y,
+                         c2x, c2y,
+                         x2,  y2)
 
         path = builder.to_path()
         snapshot.append_stroke(path, stroke, color)
