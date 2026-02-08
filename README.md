@@ -82,7 +82,7 @@ To override some environment variables or to add command-line arguments to the a
 
 ```txt
 #!/bin/bash
-G_MESSAGES_DEBUG= GOBJECT_DEBUG= GTK_DEBUG= POLARS_VERBOSE= WDS_DEBUG= witt-data-studio "$@"
+GTK_DEBUG=interactive RUST_BACKTRACE=full POLARS_VERBOSE=1 WDS_DEBUG=1 witt-data-studio "$@"
 ```
 
 With `debugpy` in Visual Studio Code, you'll need to setup `.vscode/launch.json` for example:
@@ -110,6 +110,8 @@ With `debugpy` in Visual Studio Code, you'll need to setup `.vscode/launch.json`
 ```
 
 Set the environment variable to `WDS_DEBUG=2` to wait for the debugger after running the application. Press <kbd>F5</kbd> to launch it and you're ready to debug.
+
+GTK has a variety of [environment variables](https://docs.gtk.org/gtk4/running.html) we can set to help with debugging GTK application.
 
 If you're using a Python language server, you may want to install the requirements. For better dependency management, it's recommended to create a virtual environment rather than installing packages globally:
 

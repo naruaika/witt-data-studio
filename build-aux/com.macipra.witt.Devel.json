@@ -11,14 +11,9 @@
         "--socket=fallback-x11",
         "--socket=wayland",
         "--filesystem=host",
-        "--verbose",
-        "--env=G_MESSAGES_DEBUG=all",
-        "--env=GOBJECT_DEBUG=instance-count",
         "--env=GSK_RENDERER=gl",
-        "--env=GTK_DEBUG=interactive",
-        "--env=RUST_BACKTRACE=full",
-        "--env=POLARS_VERBOSE=1",
-        "--env=WDS_DEBUG=2"
+        "--env=WDS_DEBUG=2",
+        "--verbose"
     ],
     "cleanup" : [
         "/include",
