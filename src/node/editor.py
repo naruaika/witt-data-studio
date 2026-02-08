@@ -27,7 +27,7 @@ from gi.repository import GObject
 from gi.repository import Graphene
 from gi.repository import Gtk
 from numpy import array as narray
-from scipy import spatial
+from pykdtree.kdtree import KDTree
 from typing import TypeAlias
 import cairo
 import gc
@@ -1048,7 +1048,7 @@ class NodeEditor(Gtk.Overlay):
         if socket_type == NodeSocketType.OUTPUT:
             points = narray(self.in_points)
 
-        self._snap_points = spatial.KDTree(points)
+        self._snap_points = KDTree(points)
         self._socket_type = socket_type
 
     def _snap_future_link(self) -> None:

@@ -823,7 +823,8 @@ class NodeReadFile(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.n_rows'])
+            if 'bk.n_rows' in self.frame.data:
+                content.set_data(self.frame.data['bk.n_rows'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -881,7 +882,8 @@ class NodeReadFile(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.skip_rows'])
+            if 'bk.skip_rows' in self.frame.data:
+                content.set_data(self.frame.data['bk.skip_rows'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -939,7 +941,8 @@ class NodeReadFile(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.has_header'])
+            if 'bk.has_header' in self.frame.data:
+                content.set_data(self.frame.data['bk.has_header'])
 
             self.frame.data['kwargs']['columns'] = []
 
@@ -5107,7 +5110,8 @@ class NodeReplaceValues(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.search'])
+            if 'bk.search' in self.frame.data:
+                content.set_data(self.frame.data['bk.search'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -5163,7 +5167,8 @@ class NodeReplaceValues(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.replace'])
+            if 'bk.replace' in self.frame.data:
+                content.set_data(self.frame.data['bk.replace'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -8385,7 +8390,8 @@ class NodeAddPrefix(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.prefix'])
+            if 'bk.prefix' in self.frame.data:
+                content.set_data(self.frame.data['bk.prefix'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -8621,7 +8627,8 @@ class NodeAddSuffix(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.suffix'])
+            if 'bk.suffix' in self.frame.data:
+                content.set_data(self.frame.data['bk.suffix'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -9983,7 +9990,8 @@ class NodeExtractTextBeforeDelimiter(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.delimiter'])
+            if 'bk.delimiter' in self.frame.data:
+                content.set_data(self.frame.data['bk.delimiter'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -10222,7 +10230,8 @@ class NodeExtractTextAfterDelimiter(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.delimiter'])
+            if 'bk.delimiter' in self.frame.data:
+                content.set_data(self.frame.data['bk.delimiter'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -10476,7 +10485,8 @@ class NodeExtractTextBetweenDelimiters(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.start'])
+            if 'bk.start' in self.frame.data:
+                content.set_data(self.frame.data['bk.start'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -10532,7 +10542,8 @@ class NodeExtractTextBetweenDelimiters(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.end'])
+            if 'bk.end' in self.frame.data:
+                content.set_data(self.frame.data['bk.end'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -12265,7 +12276,8 @@ class NodeCalculateAddition(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.value'])
+            if 'bk.value' in self.frame.data:
+                content.set_data(self.frame.data['bk.value'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -12503,7 +12515,8 @@ class NodeCalculateMultiplication(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.value'])
+            if 'bk.value' in self.frame.data:
+                content.set_data(self.frame.data['bk.value'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -12741,7 +12754,8 @@ class NodeCalculateSubtraction(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.value'])
+            if 'bk.value' in self.frame.data:
+                content.set_data(self.frame.data['bk.value'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -12979,7 +12993,8 @@ class NodeCalculateDivision(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.value'])
+            if 'bk.value' in self.frame.data:
+                content.set_data(self.frame.data['bk.value'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -13217,7 +13232,8 @@ class NodeCalculateIntegerDivision(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.value'])
+            if 'bk.value' in self.frame.data:
+                content.set_data(self.frame.data['bk.value'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -13455,7 +13471,8 @@ class NodeCalculateModulo(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.value'])
+            if 'bk.value' in self.frame.data:
+                content.set_data(self.frame.data['bk.value'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -13693,7 +13710,8 @@ class NodeCalculatePercentage(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.value'])
+            if 'bk.value' in self.frame.data:
+                content.set_data(self.frame.data['bk.value'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -13931,7 +13949,8 @@ class NodeCalculatePercentOf(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.value'])
+            if 'bk.value' in self.frame.data:
+                content.set_data(self.frame.data['bk.value'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -14841,7 +14860,8 @@ class NodeCalculatePowerK(NodeTemplate):
             label = content.Socket.get_next_sibling()
             label.unparent()
 
-            content.set_data(self.frame.data['bk.value'])
+            if 'bk.value' in self.frame.data:
+                content.set_data(self.frame.data['bk.value'])
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
