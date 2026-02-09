@@ -802,21 +802,24 @@ class NodeEditor(Gtk.Overlay):
 
         # Find and unlink the related nodes
         for node in self.nodes:
-            if isinstance(node.parent, NodeViewer):
-                for content in node.contents:
-                    if content.Page == tab_page:
-                        if links := content.Socket.links:
-                            link = links[0]
-                            if link not in self.links:
-                                break
-                            self.links.remove(link)
-                            link.unlink()
-                        if content in node.contents:
-                            node.remove_content(content)
-                        break
-                else:
-                    continue
-                break
+            if not isinstance(node.parent, NodeViewer):
+                continue
+            if not node.is_active():
+                continue
+            for content in node.contents:
+                if content.Page == tab_page:
+                    if links := content.Socket.links:
+                        link = links[0]
+                        if link not in self.links:
+                            break
+                        self.links.remove(link)
+                        link.unlink()
+                    if content in node.contents:
+                        node.remove_content(content)
+                    break
+            else:
+                continue
+            break
 
         gc.collect()
 
@@ -899,9 +902,6 @@ class NodeEditor(Gtk.Overlay):
 
         for node in self.nodes:
             self.select_by_click(node, True)
-
-            if isinstance(node.parent, NodeViewer):
-                self.select_viewer(node)
 
         window.history.grouping = False
 

@@ -40,9 +40,10 @@ class NodeFrame(Adw.Bin):
 
     __gtype_name__ = 'NodeFrame'
 
-    Head  = Gtk.Template.Child()
-    Title = Gtk.Template.Child()
-    Body  = Gtk.Template.Child()
+    Head         = Gtk.Template.Child()
+    Title        = Gtk.Template.Child()
+    Body         = Gtk.Template.Child()
+    ActiveToggle = Gtk.Template.Child()
 
     def __init__(self,
                  title:     'str',
@@ -70,6 +71,7 @@ class NodeFrame(Adw.Bin):
 
         self.is_selected = False
         self.is_dragging = False
+        self.is_clicking = False
 
         self.is_processing = False
 
@@ -95,6 +97,8 @@ class NodeFrame(Adw.Bin):
                         y:       float,
                         ) ->     None:
         """"""
+        self.is_clicking = False
+
         state = gesture.get_current_event_state()
         combo = state & Gdk.ModifierType.SHIFT_MASK != 0
 
@@ -114,9 +118,6 @@ class NodeFrame(Adw.Bin):
             editor.select_by_click(self, combo)
 
         # Raise the widget to the top
-        # FIXME: sometimes I experience a crash with this log: /frame.py:108: Warning: g_object_ref:
-        # assertion 'G_IS_OBJECT (object)' failed Bail out! Gtk:ERROR:../gtk/gtktreelistmodel.c:375:
-        # gtk_tree_list_model_items_changed_cb: assertion failed: (child->item)
         top_widget = editor.Canvas.get_last_child()
         if top_widget != self:
             self.insert_after(editor.Canvas, top_widget)
@@ -137,7 +138,7 @@ class NodeFrame(Adw.Bin):
         self._old_y = self.y
 
         # Prevent from triggering the released event
-        gesture.set_state(Gtk.EventSequenceState.DENIED)
+        self.is_clicking = True
 
     def _on_lmb_released(self,
                          gesture: Gtk.GestureClick,
@@ -146,10 +147,15 @@ class NodeFrame(Adw.Bin):
                          y:       float,
                          ) ->     None:
         """"""
+        if self.is_clicking:
+            self.is_clicking = False
+            return
+
         editor = self.get_editor()
         state = gesture.get_current_event_state()
         combo = state & Gdk.ModifierType.SHIFT_MASK != 0
         editor.select_by_click(self, combo)
+
         self.grab_focus()
 
         # Raise the widget to the top

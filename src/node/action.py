@@ -67,10 +67,6 @@ class ActionAddNode(Action):
             if node.is_selected:
                 self.editor.selected_nodes.append(node)
 
-            from .repository import NodeViewer
-            if isinstance(node.parent, NodeViewer):
-                ActionSelectViewer(self.editor, node).do()
-
         # TODO: scroll to the newly added node
         # if the editor is in view, especially
         # if that node is automatically linked
@@ -498,19 +494,54 @@ class ActionSelectViewer(Action):
            undoable: bool = True,
            ) ->      bool:
         """"""
+        from .data_type import Sheet
         from .repository import NodeViewer
 
         for node in self.editor.nodes:
             if not isinstance(node.parent, NodeViewer):
                 continue
-            if node == self.new_viewer:
-                node.set_active(True)
-                continue
             if node.is_active():
                 self.old_viewer = node
-                node.set_active(False)
+                break
 
-        # TODO: update window.TabView
+        for node in self.editor.nodes:
+            if not isinstance(node.parent, NodeViewer):
+                continue
+            node.set_active(node == self.new_viewer)
+
+        if self.old_viewer == self.new_viewer:
+            return False
+
+        window = self.editor.get_window()
+        tab_view = window.TabView
+
+        n_pinned = tab_view.get_n_pinned_pages()
+        n_pages = tab_view.get_n_pages() - n_pinned
+
+        # Close all existing pages
+        for _ in range(n_pages):
+            page = tab_view.get_nth_page(n_pinned)
+            tab_view.close_page(page)
+
+        # Clean up page references
+        if self.old_viewer:
+            sviews = self.old_viewer.parent.SUPPORTED_VIEWS
+            for content in self.old_viewer.contents[:-1]:
+                socket = content.Socket
+                if socket.data_type in sviews:
+                    content.Page = None
+
+        # Open all related pages
+        parent = self.new_viewer.parent
+        for self_content in self.new_viewer.contents[:-1]:
+            self_socket = self_content.Socket
+            link = self_socket.links[0]
+            pair_socket = link.in_socket
+            if pair_socket.data_type == Sheet:
+                label = self_content.Widget
+                title = label.get_label()
+                args = (title, pair_socket, self_content)
+                parent.add_sheet_editor(*args)
 
         return True
 
@@ -558,10 +589,6 @@ class ActionSelectByClick(Action):
 
             if self.node:
                 self.node.select()
-
-        if self.node:
-            if isinstance(self.node.parent, NodeViewer):
-                ActionSelectViewer(self.editor, self.node).do()
 
         window = self.editor.get_root()
         window.StatusBar.populate()

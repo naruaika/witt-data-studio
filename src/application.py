@@ -300,14 +300,35 @@ class Application(Adw.Application):
         # Close the current blank window
         if not on_startup:
             window = self.get_active_main_window()
-            if not window.file_path and \
-                    not window.history.undo_stack and \
-                    not window.history.redo_stack:
+            if (
+                not window.file_path          and
+                not window.history.undo_stack and
+                not window.history.redo_stack
+            ):
                 window.close()
 
         window = Window(application = self,
                         nodes       = nodes,
                         links       = links)
+
+        window.history.freezing = True
+
+        viewer = None
+        if 'viewer' in content:
+            if node_id := content['viewer']:
+                viewer = nodes_map[node_id]
+                editor = window.node_editor
+                editor.select_viewer(viewer)
+        if not viewer:
+            from .node.repository import NodeViewer
+            for node in nodes:
+                if isinstance(node.parent, NodeViewer):
+                    editor = window.node_editor
+                    editor.select_viewer(node)
+                    break
+
+        window.history.freezing = False
+
         window.present()
 
         window.file_path = file_path
@@ -324,9 +345,13 @@ class Application(Adw.Application):
                 file_path: str = None,
                 ) ->       None:
         """"""
+        from .node.repository import NodeViewer
+
         save_data = {'version': self.WIBOOK_VERSION}
 
         editor = window.node_editor
+
+        save_data['viewer'] = None
 
         save_data['nodes'] = []
         for node in editor.nodes:
@@ -337,6 +362,10 @@ class Application(Adw.Application):
                 'contents': node.do_save(),
             }
             save_data['nodes'].append(node_data)
+
+            if isinstance(node.parent, NodeViewer):
+                if node.is_active():
+                    save_data['viewer'] = id(node)
 
         save_data['links'] = []
         for link in editor.links:

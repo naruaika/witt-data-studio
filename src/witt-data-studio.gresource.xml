@@ -73,6 +73,8 @@
     <file preprocess="xml-stripblanks">user-home-symbolic.svg</file>
     <file preprocess="xml-stripblanks">value-increase-symbolic.svg</file>
     <file preprocess="xml-stripblanks">value-decrease-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">view-conceal-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">view-reveal-symbolic.svg</file>
     <file preprocess="xml-stripblanks">window-close-symbolic.svg</file>
 
     <file preprocess="xml-stripblanks">xxx-aggregator-count-rows-symbolic.svg</file>

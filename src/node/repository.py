@@ -1315,7 +1315,19 @@ class NodeViewer(NodeTemplate):
 
         self._add_input()
 
+        self._setup_uinterfaces()
+
         return self.frame
+
+    def _setup_uinterfaces(self) -> None:
+        """"""
+        self.frame.ActiveToggle.set_visible(True)
+
+        def on_activated(button: Gtk.Button) -> None:
+            editor = self.frame.get_editor()
+            editor.select_viewer(self.frame)
+
+        self.frame.ActiveToggle.connect('clicked', on_activated)
 
     def is_active(self) -> bool:
         """"""
@@ -1326,6 +1338,13 @@ class NodeViewer(NodeTemplate):
                    ) ->    None:
         """"""
         self.frame.data['is-active'] = active
+
+        if active:
+            self.frame.ActiveToggle.set_icon_name('view-reveal-symbolic')
+            self.frame.ActiveToggle.remove_css_class('dimmed')
+        else:
+            self.frame.ActiveToggle.set_icon_name('view-conceal-symbolic')
+            self.frame.ActiveToggle.add_css_class('dimmed')
 
     def do_process(self,
                    pair_socket:  NodeSocket,
@@ -1448,24 +1467,10 @@ class NodeViewer(NodeTemplate):
                 window.TabView.close_page(self_content.Page)
                 self_content.Page = None
 
-            def add_sheet_editor() -> bool:
-                """"""
-                from ..sheet.editor import SheetEditor
-
-                if window := self.frame.get_root():
-                    frame = pair_socket.Frame
-                    sheet = pair_socket.Content.get_data()
-                    editor = SheetEditor(title,
-                                         sheet.tables,
-                                         sheet.sparse,
-                                         node = frame)
-                    self_content.Page = window.add_new_editor(editor)
-                    return Gdk.EVENT_PROPAGATE
-
-                return Gdk.EVENT_STOP
-
-            if pair_socket.data_type == Sheet:
-                GLib.idle_add(add_sheet_editor)
+            if self.is_active():
+                if pair_socket.data_type == Sheet:
+                    args = (title, pair_socket, self_content)
+                    GLib.idle_add(self.add_sheet_editor, *args)
 
             if self_content.placeholder:
                 self_content.placeholder = False
@@ -1492,6 +1497,29 @@ class NodeViewer(NodeTemplate):
             gc.collect()
 
         content.do_remove = do_remove
+
+    def add_sheet_editor(self,
+                         title:        str,
+                         pair_socket:  NodeSocket,
+                         self_content: NodeContent,
+                         ) ->          bool:
+        """"""
+        from ..sheet.editor import SheetEditor
+
+        if not self.is_active():
+            return Gdk.EVENT_PROPAGATE
+
+        if window := self.frame.get_root():
+            frame = pair_socket.Frame
+            sheet = pair_socket.Content.get_data()
+            editor = SheetEditor(title,
+                                 sheet.tables,
+                                 sheet.sparse,
+                                 node = frame)
+            self_content.Page = window.add_new_editor(editor)
+            return Gdk.EVENT_PROPAGATE
+
+        return Gdk.EVENT_STOP
 
 
 

@@ -16,6 +16,10 @@
     background-color: color-mix(in srgb, currentColor 5%, transparent);
 }
 
+.node-head .active-toggle {
+    border-radius: 50%;
+}
+
 .node-body {
     padding: 10px;
     border-bottom-left-radius: 8px;

@@ -34,6 +34,12 @@ tabbar.inline tabbox {
     padding-bottom: 0;
 }
 
+.button-sm {
+    padding: 2px;
+    min-height: 20px;
+    min-width: 20px;
+}
+
 .rotate-90deg {
     transform: rotate(90deg);
 }

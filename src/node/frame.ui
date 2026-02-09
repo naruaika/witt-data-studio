@@ -29,6 +29,20 @@
                 </style>
               </object>
             </child>
+            <child>
+              <object class="GtkButton" id="ActiveToggle">
+                <property name="margin-end">2</property>
+                <property name="valign">center</property>
+                <property name="icon-name">view-conceal-symbolic</property>
+                <property name="visible">false</property>
+                <style>
+                  <class name="active-toggle"/>
+                  <class name="button-sm"/>
+                  <class name="dimmed"/>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </child>
             <style>
               <class name="node-head"/>
             </style>
