@@ -244,8 +244,8 @@ class SheetSelection():
                      if isinstance(focused_table, DataTable) \
                      else None
 
-        # TODO: if the cursor in a blank cell, it should find nearest non-blank
-        # cell when pressing Control plus arrow keys.
+        # TODO: find nearest non-blank cell right before a blank cell
+        # when pressing an arrow key while holding Control key
 
         match keyval:
             case Gdk.KEY_Tab | Gdk.KEY_ISO_Left_Tab:
