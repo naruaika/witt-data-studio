@@ -186,16 +186,8 @@ class SheetView():
                                ) ->     bool:
         """"""
         # Prevent from interrupting any window-level actions
-        if (
-            state in {
-                Gdk.ModifierType.CONTROL_MASK,
-                Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK,
-            }
-            and keyval in {
-                Gdk.KEY_Tab,
-                Gdk.KEY_ISO_Left_Tab,
-            }
-        ):
+        if (state & Gdk.ModifierType.CONTROL_MASK) \
+                and keyval in {Gdk.KEY_Tab, Gdk.KEY_ISO_Left_Tab}:
             return Gdk.EVENT_PROPAGATE
 
         if keyval in {

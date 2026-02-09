@@ -145,7 +145,7 @@ class SheetSelection():
         row_2 = row
 
         state = event.get_current_event_state()
-        if state == Gdk.ModifierType.SHIFT_MASK:
+        if state & Gdk.ModifierType.SHIFT_MASK:
             active = self.current_active_cell
             col_1 = active.column
             row_1 = active.row
@@ -247,13 +247,10 @@ class SheetSelection():
         # TODO: if the cursor in a blank cell, it should find nearest non-blank
         # cell when pressing Control plus arrow keys.
 
-        # FIXME: when caps-lock key is enabled, the selection expansion and
-        # the go-to-top/bottom/left/rightmost-cell are no longer functioning.
-
         match keyval:
             case Gdk.KEY_Tab | Gdk.KEY_ISO_Left_Tab:
                 # Select a cell at the left to the selection
-                if state == Gdk.ModifierType.SHIFT_MASK:
+                if state & Gdk.ModifierType.SHIFT_MASK:
                     target_position = (active_position[0] - 1,
                                        active_position[1])
 
@@ -276,7 +273,7 @@ class SheetSelection():
 
             case Gdk.KEY_Return:
                 # Select a cell at the bottom to the selection
-                if state == Gdk.ModifierType.SHIFT_MASK:
+                if state & Gdk.ModifierType.SHIFT_MASK:
                     target_position = (active_position[0],
                                        active_position[1] - 1)
 
@@ -286,24 +283,8 @@ class SheetSelection():
                                        active_position[1] + 1)
 
             case Gdk.KEY_Left:
-                # Select the leftmost cell in the same row
-                if state == Gdk.ModifierType.CONTROL_MASK:
-                    if table_bbox and table_bbox.column < target_position[0]:
-                        target_position = (table_bbox.column,
-                                           active_position[1])
-                    else:
-                        target_position = (1, # first column
-                                           active_position[1])
-
-                # Include a cell at the left to the selection
-                elif state == Gdk.ModifierType.SHIFT_MASK:
-                    cursor_position = (cursor_position[0] - 1,
-                                       cursor_position[1])
-                    target_position = (active_position,
-                                       cursor_position)
-
                 # Include all cells to the left to the selection
-                elif state == Gdk.ModifierType.SHIFT_MASK | Gdk.ModifierType.CONTROL_MASK:
+                if (state & Gdk.ModifierType.SHIFT_MASK) and (state & Gdk.ModifierType.CONTROL_MASK):
                     if table_bbox and table_bbox.column < target_position[0]:
                         cursor_position = (table_bbox.column,
                                            cursor_position[1])
@@ -314,30 +295,30 @@ class SheetSelection():
                         target_position = (active_position,
                                            cursor_position)
 
+                # Select the leftmost cell in the same row
+                elif state & Gdk.ModifierType.CONTROL_MASK:
+                    if table_bbox and table_bbox.column < target_position[0]:
+                        target_position = (table_bbox.column,
+                                           active_position[1])
+                    else:
+                        target_position = (1, # first column
+                                           active_position[1])
+
+                # Include a cell at the left to the selection
+                elif state & Gdk.ModifierType.SHIFT_MASK:
+                    cursor_position = (cursor_position[0] - 1,
+                                       cursor_position[1])
+                    target_position = (active_position,
+                                       cursor_position)
+
                 # Select a cell at the left to the selection
                 else:
                     target_position = (active_position[0] - 1,
                                        active_position[1])
 
             case Gdk.KEY_Right:
-                # Select the rightmost cell in the same row
-                if state == Gdk.ModifierType.CONTROL_MASK:
-                    if table_bbox and target_position[0] < table_bbox.column + table_bbox.column_span - 1:
-                        target_position = (table_bbox.column + table_bbox.column_span - 1,
-                                           active_position[1])
-                    else:
-                        target_position = (active_position[0] + 1,
-                                           active_position[1])
-
-                # Include a cell at the right to the selection
-                elif state == Gdk.ModifierType.SHIFT_MASK:
-                    cursor_position = (cursor_position[0] + 1,
-                                       cursor_position[1])
-                    target_position = (active_position,
-                                       cursor_position)
-
                 # Include all cells to the right to the selection
-                elif state == Gdk.ModifierType.SHIFT_MASK | Gdk.ModifierType.CONTROL_MASK:
+                if (state & Gdk.ModifierType.SHIFT_MASK) and (state & Gdk.ModifierType.CONTROL_MASK):
                     if table_bbox and target_position[0] < table_bbox.column + table_bbox.column_span - 1:
                         cursor_position = (table_bbox.column + table_bbox.column_span - 1,
                                            cursor_position[1])
@@ -349,14 +330,43 @@ class SheetSelection():
                         target_position = (active_position,
                                            cursor_position)
 
+                # Select the rightmost cell in the same row
+                elif state & Gdk.ModifierType.CONTROL_MASK:
+                    if table_bbox and target_position[0] < table_bbox.column + table_bbox.column_span - 1:
+                        target_position = (table_bbox.column + table_bbox.column_span - 1,
+                                           active_position[1])
+                    else:
+                        target_position = (active_position[0] + 1,
+                                           active_position[1])
+
+                # Include a cell at the right to the selection
+                elif state & Gdk.ModifierType.SHIFT_MASK:
+                    cursor_position = (cursor_position[0] + 1,
+                                       cursor_position[1])
+                    target_position = (active_position,
+                                       cursor_position)
+
                 # Select a cell at the right to the selection
                 else:
                     target_position = (active_position[0] + 1,
                                        active_position[1])
 
             case Gdk.KEY_Up:
+                # Include all cells above to the selection
+                if (state & Gdk.ModifierType.SHIFT_MASK) and (state & Gdk.ModifierType.CONTROL_MASK):
+                    if table_bbox and table_bbox.row < target_position[1]:
+                        cursor_position = (cursor_position[0],
+                                           table_bbox.row)
+                        target_position = (active_position,
+                                           cursor_position)
+                    else:
+                        cursor_position = (cursor_position[0],
+                                           1) # first row
+                        target_position = (active_position,
+                                           cursor_position)
+
                 # Select the topmost cell in the same column
-                if state == Gdk.ModifierType.CONTROL_MASK:
+                elif state & Gdk.ModifierType.CONTROL_MASK:
                     if table_bbox and table_bbox.row < target_position[1]:
                         target_position = (active_position[0],
                                            table_bbox.row)
@@ -365,24 +375,11 @@ class SheetSelection():
                                            1) # first row
 
                 # Include a cell at the top to the selection
-                elif state == Gdk.ModifierType.SHIFT_MASK:
+                elif state & Gdk.ModifierType.SHIFT_MASK:
                     cursor_position = (cursor_position[0],
                                        cursor_position[1] - 1)
                     target_position = (active_position,
                                        cursor_position)
-
-                # Include all cells above to the selection
-                elif state == Gdk.ModifierType.SHIFT_MASK | Gdk.ModifierType.CONTROL_MASK:
-                    if table_bbox and table_bbox.row < target_position[1]:
-                        cursor_position = (cursor_position[0],
-                                           table_bbox.row)
-                        target_position = (active_position,
-                                           cursor_position)
-                    else:
-                        cursor_position = (cursor_position[0],
-                                           1) # first row
-                        target_position = (active_position,
-                                           cursor_position)
 
                 # Select a cell at the top to the selection
                 else:
@@ -390,24 +387,8 @@ class SheetSelection():
                                        active_position[1] - 1)
 
             case Gdk.KEY_Down:
-                # Select the bottommost cell in the same column
-                if state == Gdk.ModifierType.CONTROL_MASK:
-                    if table_bbox and target_position[1] < table_bbox.row + table_bbox.row_span - 1:
-                        target_position = (active_position[0],
-                                           table_bbox.row + table_bbox.row_span - 1)
-                    else:
-                        target_position = (active_position[0],
-                                           active_position[1] + 1)
-
-                # Include a cell at the bottom to the selection
-                elif state == Gdk.ModifierType.SHIFT_MASK:
-                    cursor_position = (cursor_position[0],
-                                       cursor_position[1] + 1)
-                    target_position = (active_position,
-                                       cursor_position)
-
                 # Include all cells below to the selection
-                elif state == Gdk.ModifierType.SHIFT_MASK | Gdk.ModifierType.CONTROL_MASK:
+                if (state & Gdk.ModifierType.SHIFT_MASK) and (state & Gdk.ModifierType.CONTROL_MASK):
                     if table_bbox and target_position[1] < table_bbox.row + table_bbox.row_span - 1:
                         cursor_position = (cursor_position[0],
                                            table_bbox.row + table_bbox.row_span - 1)
@@ -418,6 +399,22 @@ class SheetSelection():
                                            cursor_position[1] + 1)
                         target_position = (active_position,
                                            cursor_position)
+
+                # Select the bottommost cell in the same column
+                elif state & Gdk.ModifierType.CONTROL_MASK:
+                    if table_bbox and target_position[1] < table_bbox.row + table_bbox.row_span - 1:
+                        target_position = (active_position[0],
+                                           table_bbox.row + table_bbox.row_span - 1)
+                    else:
+                        target_position = (active_position[0],
+                                           active_position[1] + 1)
+
+                # Include a cell at the bottom to the selection
+                elif state & Gdk.ModifierType.SHIFT_MASK:
+                    cursor_position = (cursor_position[0],
+                                       cursor_position[1] + 1)
+                    target_position = (active_position,
+                                       cursor_position)
 
                 # Select a cell at the bottom to the selection
                 else:
