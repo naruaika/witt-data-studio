@@ -198,8 +198,11 @@ class NodeFrame(Adw.Bin):
 
             self.is_dragging = True
 
+        state = gesture.get_current_event_state()
+        snap = state & Gdk.ModifierType.CONTROL_MASK
+
         editor = self.get_editor()
-        editor.update_move_selections(offset_x, offset_y)
+        editor.update_move_selections(offset_x, offset_y, snap)
 
     def _on_drag_end(self,
                      gesture:  Gtk.GestureDrag,

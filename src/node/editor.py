@@ -1178,6 +1178,7 @@ class NodeEditor(Gtk.Overlay):
     def update_move_selections(self,
                                offset_x: float,
                                offset_y: float,
+                               snap:     bool = False,
                                ) ->      None:
         """"""
         offset_x = self._cursor_x_position - self._origin_x_position
@@ -1187,8 +1188,17 @@ class NodeEditor(Gtk.Overlay):
             return
 
         for node in self.selected_nodes:
-            node.x = int(min(max(0, node._old_x + offset_x), node._max_x))
-            node.y = int(min(max(0, node._old_y + offset_y), node._max_y))
+            new_y = node._old_y + offset_y
+            new_x = node._old_x + offset_x
+
+            if snap:
+                new_y = (new_y // 25) * 25
+                new_x = (new_x // 25) * 25
+                new_y += (25 - 10) # node's frame internal padding
+                new_x += (25 - 10) # node's frame internal padding
+
+            node.y = int(min(max(0, new_y), node._max_y))
+            node.x = int(min(max(0, new_x), node._max_x))
             self.Canvas.move(node, node.x, node.y)
 
         self.queue_draw()
