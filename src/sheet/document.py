@@ -87,8 +87,8 @@ class SheetDocument(Document):
         # iterate over out of bound document data area.
         # Well, what if the user does dirty action like
         # having data positioned far away from the rest
-        # which will make this strategy has no effect?
-        # Flag this as TODO for now.
+        # that will make this meaningless? Flag this as
+        # TODO for now.
         self.bounding_box = BoundingBox()
 
         if self.has_data():

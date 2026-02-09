@@ -454,6 +454,28 @@ class NodeFrame(Adw.Bin):
                 self.out_points.append(point)
                 self.out_sockets.append(socket)
 
+    @property
+    def right(self) -> int:
+        """"""
+        return self.x + self.get_width()
+
+    @property
+    def bottom(self) -> int:
+        """"""
+        return self.y + self.get_height()
+
+    def intersects(self,
+                   target: 'NodeFrame',
+                   ) ->    'bool':
+        """"""
+        is_disjoint = (
+            self.right  < target.x      or # left of target
+            self.x      > target.right  or # right of target
+            self.bottom < target.y      or # above target
+            self.y      > target.bottom    # below target
+        )
+        return not is_disjoint
+
     def select(self) -> None:
         """"""
         editor = self.get_editor()

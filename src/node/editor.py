@@ -940,6 +940,68 @@ class NodeEditor(Gtk.Overlay):
         window = self.get_window()
         return window.do(action)
 
+    def auto_arrange(self,
+                     root: 'NodeFrame',
+                     ) ->  'None':
+        """"""
+        window = self.get_window()
+
+        is_in_transx = window.history.grouping
+
+        if not is_in_transx:
+            window.history.grouping = True
+
+        def do_arrange(target: NodeFrame) -> None:
+            """"""
+            frames = []
+
+            for content in target.contents:
+                if not (socket := content.Socket):
+                    continue
+                if not socket.is_input():
+                    continue
+                for link in socket.links:
+                    if not link.compatible:
+                        continue
+                    if link != link.in_socket.links[0]:
+                        continue
+                    frame = link.in_socket.Frame
+                    if frame in frames:
+                        continue
+                    frames.append(frame)
+
+            if not frames:
+                return
+
+            group_height = sum([(f.get_height() or 125) for f in frames])
+            group_height += 50 * (len(frames) - 1)
+
+            target_center = target.y + (target.get_height() or 125) / 2
+
+            y = target_center - group_height / 2
+            x = target.x - frame.get_width() - 50
+
+            if root != target:
+                y = target.y
+
+            if len(frames) == 1:
+                y = target.y
+
+            for frame in frames:
+                old_pos = (frame.x, frame.y)
+                new_pos = (min(frame.x, x), y)
+                positions = (old_pos, new_pos)
+                self.move_node(frame, positions)
+
+                y += (frame.get_height() or 125) + 50
+
+                do_arrange(frame)
+
+        do_arrange(root)
+
+        if not is_in_transx:
+            window.history.grouping = False
+
     def collect_points(self) -> None:
         """"""
         self.in_points   = []

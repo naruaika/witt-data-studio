@@ -210,9 +210,21 @@ class ActionMoveNode(Action):
            ) ->      bool:
         """"""
         canvas = self.editor.Canvas
+
+        canvas_width  = canvas.get_width()
+        canvas_height = canvas.get_height()
+
         for index, node in enumerate(self.nodes):
+            node_width  = node.get_width()  or 175
+            node_height = node.get_height() or 125
+            max_x = canvas_width  - node_width
+            max_y = canvas_height - node_height
+
             node.x = self.positions[index][1][0]
             node.y = self.positions[index][1][1]
+            node.x = int(min(max(0, node.x), max_x))
+            node.y = int(min(max(0, node.y), max_y))
+
             canvas.move(node, node.x, node.y)
             node.compute_points()
 

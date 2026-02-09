@@ -322,8 +322,6 @@ class FileImportWindow(Adw.Window):
 
         editor = window.node_editor
 
-        # TODO: improve the node placement algorithm
-
         canvas_width = editor.Canvas.get_width()
         canvas_height = editor.Canvas.get_height()
         viewport_width = window.TabView.get_width()
@@ -341,7 +339,7 @@ class FileImportWindow(Adw.Window):
             x_position = (canvas_width  - viewport_width)  / 2
             y_position = (canvas_height - viewport_height) / 2
             viewer = NodeViewer.new(x_position + (viewport_width  - 175) / 2 + 50,
-                                    y_position + (viewport_height - 100) / 2)
+                                    y_position + (viewport_height - 125) / 2)
             editor.add_node(viewer)
             editor.select_viewer(viewer)
 
@@ -371,6 +369,8 @@ class FileImportWindow(Adw.Window):
         in_socket = reader.contents[0].Socket
         out_socket = sheet.contents[-1].Socket
         editor.add_link(in_socket, out_socket)
+
+        editor.auto_arrange(viewer)
 
         window.activate_action('win.focus-editor')
         # TODO: go to the tab if reusing a sheet

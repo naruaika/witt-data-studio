@@ -906,26 +906,6 @@ class SheetEditor(Gtk.Box):
         window = self.get_root()
         editor = window.node_editor
 
-        def do_reposition(curr_node: NodeFrame,
-                          prev_node: NodeFrame) -> None:
-            """"""
-            # TODO: improve the overall placement algorithm
-            offset_x = (prev_node.get_width() or 175)
-            old_position = (curr_node.x, curr_node.y)
-            new_position = (curr_node.x - offset_x - 50, curr_node.y)
-            editor.move_node(curr_node, (old_position, new_position))
-            prev_node = curr_node
-            for content in curr_node.contents:
-                if not (socket := content.Socket):
-                    continue
-                if not socket.is_input():
-                    continue
-                for link in socket.links:
-                    curr_socket = link.in_socket
-                    curr_node = curr_socket.Frame
-                    do_reposition(curr_node, prev_node)
-                prev_node = curr_node
-
         def do_transform(func_args: list[Any] = [],
                          **kwargs:  dict,
                          ) ->       bool:
@@ -954,6 +934,7 @@ class SheetEditor(Gtk.Box):
             transformer = editor.create_node(func_name, x, y)
             transformer.set_data(*func_args)
             editor.add_node(transformer)
+            editor.select_by_click(transformer)
 
             # Manipulate so that the transformer node seem to
             # be reconnected to the sheet node
@@ -965,10 +946,7 @@ class SheetEditor(Gtk.Box):
             content = transformer.contents[1]
             editor.add_link(pair_socket, content.Socket)
 
-            # Re-position all nodes to the left recursively
-            do_reposition(pair_node, transformer)
-
-            editor.select_by_click(transformer)
+            editor.auto_arrange(self.node)
 
             window.history.grouping = False
 
@@ -1069,11 +1047,9 @@ class SheetEditor(Gtk.Box):
                 viewer = node
                 break
 
-        # TODO: improve the node placement algorithm
-
         # Create a new sheet node
-        target_position = (viewer.x - 175 - 50, viewer.y)
-        sheet = editor.create_node(name, *target_position)
+        position = (viewer.x - 175 - 50, viewer.y)
+        sheet = editor.create_node(name, *position)
         if sheet:
             editor.add_node(sheet)
             editor.select_by_click(sheet)
@@ -1082,6 +1058,8 @@ class SheetEditor(Gtk.Box):
         in_socket = sheet.contents[0].Socket
         out_socket = viewer.contents[-1].Socket
         editor.add_link(in_socket, out_socket)
+
+        editor.auto_arrange(viewer)
 
         window.history.grouping = False
 

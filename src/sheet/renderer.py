@@ -395,9 +395,8 @@ class SheetRenderer():
         context.clip()
 
         # Draw column headers texts (centered)
-        # It's so rare to see a worksheet go beyond Z*9 columns, but it's better to be prepared for it anyway
-        # by having defining the clip region to prevent the text from overflowing to the next cells. TODO: maybe
-        # it's better to automatically adjust the cell widths to fit the text width if the text is overflowing?
+        # It's so rare to see a worksheet go beyond Z*9 columns, but it's better to be prepared for it
+        # anyway by having defining the clip region to prevent the text from overflowing to the next cells.
         col_index = display.get_starting_column()
         x = display.get_cell_x_from_column(col_index)
 

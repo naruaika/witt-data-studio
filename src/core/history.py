@@ -77,7 +77,7 @@ class History():
 
         def do_stack(action: Action) -> None:
             """"""
-            # TODO: limit the stack size
+            # TODO: limit the stack size?
             self.undo_stack.append(action)
             for action in self.redo_stack:
                 action.clean()

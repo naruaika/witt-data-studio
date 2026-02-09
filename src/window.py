@@ -204,8 +204,6 @@ class Window(Adw.ApplicationWindow):
         create_command('win.focus-editor',  _('Focus Editor'),
                                             shortcuts = ['<Primary>Escape'])
 
-        # TODO: add context for undo and redo command
-
         create_command('win.undo',          _('Undo'),
                                             shortcuts = ['<Primary>z'])
         create_command('win.redo',          _('Redo'),
@@ -329,8 +327,6 @@ class Window(Adw.ApplicationWindow):
         """"""
         self.Toolbar.populate()
         self.StatusBar.populate()
-
-        # TODO: update undo/redo menu item
 
         editor = self.get_selected_editor()
         editor.grab_focus()

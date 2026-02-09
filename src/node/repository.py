@@ -1742,12 +1742,9 @@ class NodeRemoveColumns(NodeTemplate):
         table_columns = self.frame.data['all-columns']
 
         if table_columns:
-            if columns := self.frame.data['columns']:
-                sorted_columns = []
-                for column in table_columns:
-                    if column not in columns:
-                        sorted_columns.append(column)
-                table = table.select(sorted_columns)
+            import polars.selectors as cs
+            columns = self.frame.data['columns']
+            table = table.select(cs.exclude(columns))
 
         self.frame.data['table'] = table
 
