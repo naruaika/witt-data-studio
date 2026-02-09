@@ -668,8 +668,8 @@ class NodeEditor(Gtk.Overlay):
 
         vadjustment = self.ScrolledWindow.get_vadjustment()
         hadjustment = self.ScrolledWindow.get_hadjustment()
-        vadjustment.set_value(scroll_y_position - 50)
-        hadjustment.set_value(scroll_x_position - 50)
+        vadjustment.set_value(scroll_y_position - 25)
+        hadjustment.set_value(scroll_x_position - 25)
 
     def do_collect_points(self,
                           nodes: list['NodeFrame'] = [],
@@ -838,8 +838,8 @@ class NodeEditor(Gtk.Overlay):
 
         name = parameter.get_string()
         node = self.create_node(name,
-                                scroll_x_position + 50,#self._cursor_x_position
-                                scroll_y_position + 50)#self._cursor_y_position
+                                scroll_x_position + 25,#self._cursor_x_position
+                                scroll_y_position + 25)#self._cursor_y_position
 
         if node:
             window = self.get_root()
