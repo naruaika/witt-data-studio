@@ -8532,9 +8532,18 @@ class NodeAddPrefix(NodeTemplate):
 
         if self.frame.data['columns']:
             from polars import col
+            from polars import String
+
             column = self.frame.data['column']
             prefix = self.frame.data['prefix']
-            table = table.with_columns((prefix + col(column)).alias(column))
+
+            expr = col(column)
+
+            dtype = table.collect_schema()[column]
+            if not isinstance(dtype, String):
+                expr = expr.cast(String)
+
+            table = table.with_columns((prefix + expr).alias(column))
 
         self.frame.data['table'] = table
 
@@ -8607,10 +8616,7 @@ class NodeAddPrefix(NodeTemplate):
         """"""
         table = self.frame.data['table']
 
-        import polars.selectors as cs
-        table_columns = table.select(cs.string()) \
-                             .collect_schema() \
-                             .names()
+        table_columns = table.collect_schema().names()
 
         self.frame.data['columns'] = table_columns
 
@@ -8769,9 +8775,18 @@ class NodeAddSuffix(NodeTemplate):
 
         if self.frame.data['columns']:
             from polars import col
+            from polars import String
+
             column = self.frame.data['column']
             suffix = self.frame.data['suffix']
-            table = table.with_columns((col(column) + suffix).alias(column))
+
+            expr = col(column)
+
+            dtype = table.collect_schema()[column]
+            if not isinstance(dtype, String):
+                expr = expr.cast(String)
+
+            table = table.with_columns((expr + suffix).alias(column))
 
         self.frame.data['table'] = table
 
@@ -8844,10 +8859,7 @@ class NodeAddSuffix(NodeTemplate):
         """"""
         table = self.frame.data['table']
 
-        import polars.selectors as cs
-        table_columns = table.select(cs.string()) \
-                             .collect_schema() \
-                             .names()
+        table_columns = table.collect_schema().names()
 
         self.frame.data['columns'] = table_columns
 

@@ -495,10 +495,8 @@ class NodeEditor(Gtk.Overlay):
                        'uppercase',             f"{_('Column')}: {_('Change Case to Uppercase')}")
         create_command('change-case-to-'
                        'titlecase',             f"{_('Column')}: {_('Change Case to Title Case')}")
-
         create_command('trim-contents',         f"{_('Column')}: {_('Trim Contents')}")
         create_command('clean-contents',        f"{_('Column')}: {_('Clean Contents')}")
-
         create_command('add-prefix',            f"{_('Column')}: {_('Add Prefix')}")
         create_command('add-suffix',            f"{_('Column')}: {_('Add Suffix')}")
 

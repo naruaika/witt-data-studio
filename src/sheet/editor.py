@@ -474,8 +474,7 @@ class SheetEditor(Gtk.Box):
                        'nondigit-to-digit',     f"{_('Column')}: {get_title_from_layout('split-column-by-nondigit-to-digit')}...",
                                                 context = 'table_focus and string_focus')
 
-        create_command('format-column',         '$placeholder',
-                                                context = 'table_focus and string_focus')
+        create_command('format-column',         '$placeholder')
         create_command('change-case-to-'
                        'lowercase',             f"{_('Column')}: {get_title_from_layout('change-case-to-lowercase')}...",
                                                 context = 'table_focus and string_focus')
@@ -485,16 +484,12 @@ class SheetEditor(Gtk.Box):
         create_command('change-case-to-'
                        'titlecase',             f"{_('Column')}: {get_title_from_layout('change-case-to-titlecase')}...",
                                                 context = 'table_focus and string_focus')
-
         create_command('trim-contents',         f"{_('Column')}: {get_title_from_layout('trim-contents')}...",
                                                 context = 'table_focus and string_focus')
         create_command('clean-contents',        f"{_('Column')}: {get_title_from_layout('clean-contents')}...",
                                                 context = 'table_focus and string_focus')
-
-        create_command('add-prefix',            f"{_('Column')}: {get_title_from_layout('add-prefix')}...",
-                                                context = 'table_focus and string_focus')
-        create_command('add-suffix',            f"{_('Column')}: {get_title_from_layout('add-suffix')}...",
-                                                context = 'table_focus and string_focus')
+        create_command('add-prefix',            f"{_('Column')}: {get_title_from_layout('add-prefix')}...")
+        create_command('add-suffix',            f"{_('Column')}: {get_title_from_layout('add-suffix')}...")
 
         create_command('merge-columns',         f"{_('Column')}: {get_title_from_layout('merge-columns')}...")
 

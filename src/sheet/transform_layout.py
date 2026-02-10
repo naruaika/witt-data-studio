@@ -534,7 +534,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                     (
                         _('Column'),
                         'combo',
-                        '$string-columns:use-column',
+                        '$all-columns:use-column',
                     ),
                     (_('Prefix'), 'entry'),
                 ],
@@ -547,7 +547,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                     (
                         _('Column'),
                         'combo',
-                        '$string-columns:use-column',
+                        '$all-columns:use-column',
                     ),
                     (_('Suffix'), 'entry'),
                 ],

@@ -788,6 +788,9 @@ class Toolbar(Gtk.Box):
         menu = self.SplitColumnButton.get_menu_model()
         self._update_menu(menu, names)
 
+        menu = self.FormatColumnButton.get_menu_model()
+        self._update_menu(menu, names)
+
         menu = self.ColumnStatisticsButton.get_menu_model()
         self._update_menu(menu, names)
 
