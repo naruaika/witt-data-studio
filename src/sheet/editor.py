@@ -291,6 +291,7 @@ class SheetEditor(Gtk.Box):
 
         create_action('new-sheet',              lambda *_: self._add_new_worksheet('new-sheet'))
 
+        create_action('group-by',               lambda *_: self._transform_table('group-by'))
         create_action('transpose-table',        lambda *_: self._transform_table('transpose-table'))
         create_action('reverse-rows',           lambda *_: self._transform_table('reverse-rows'))
 
@@ -442,6 +443,7 @@ class SheetEditor(Gtk.Box):
         create_command('new-sheet',             f"{_('Create')}: {_('Sheet')}",
                                                 context = None)
 
+        create_command('group-by',              f"{_('Table')}: {get_title_from_layout('group-by')}...")
         create_command('transpose-table',       f"{_('Table')}: {get_title_from_layout('transpose-table')}...")
         create_command('reverse-rows',          f"{_('Table')}: {get_title_from_layout('reverse-rows')}")
 

@@ -307,27 +307,15 @@ class Application(Adw.Application):
             ):
                 window.close()
 
-        window = Window(application = self,
-                        nodes       = nodes,
-                        links       = links)
-
-        window.history.freezing = True
-
         viewer = None
         if 'viewer' in content:
             if node_id := content['viewer']:
                 viewer = nodes_map[node_id]
-                editor = window.node_editor
-                editor.select_viewer(viewer)
-        if not viewer:
-            from .node.repository import NodeViewer
-            for node in nodes:
-                if isinstance(node.parent, NodeViewer):
-                    editor = window.node_editor
-                    editor.select_viewer(node)
-                    break
 
-        window.history.freezing = False
+        window = Window(application = self,
+                        nodes       = nodes,
+                        links       = links,
+                        viewer      = viewer)
 
         window.present()
 

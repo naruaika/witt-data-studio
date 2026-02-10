@@ -46,6 +46,7 @@ from .widget import NodeComboButton
 from .widget import NodeEntry
 from .widget import NodeFileChooser
 from .widget import NodeLabel
+from .widget import NodeListEntry
 from .widget import NodeListItem
 from .widget import NodeSpinButton
 
@@ -4069,7 +4070,7 @@ class NodeSortRows(NodeTemplate):
             if self.frame.data['levels']:
                 levels = []
                 for level in self.frame.data['levels']:
-                    column, order = level
+                    column, _ = level
                     if column in table_columns:
                         levels.append(level)
                 self.frame.data['levels'] = levels
@@ -4113,9 +4114,7 @@ class NodeSortRows(NodeTemplate):
         contents = [
             (
                 'dropdown',
-                {
-                    c: c for c in self.frame.data['all-columns']
-                },
+                {c: c for c in self.frame.data['all-columns']},
             ),
             (
                 'dropdown',
@@ -4140,6 +4139,284 @@ class NodeSortRows(NodeTemplate):
             self.frame.data['level-expanded'] = expander.get_expanded()
 
         expander.connect('notify::expanded', on_expanded)
+
+
+
+class NodeGroupBy(NodeTemplate):
+
+    ndname = _('Group By')
+
+    action = 'group-by'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeGroupBy(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['all-columns']          = []
+        self.frame.data['groupings']            = []
+        self.frame.data['all-aggregations']     = {'count':       _('Count'),
+                                                   'sum':         _('Summation'),
+                                                   'median':      _('Median'),
+                                                   'mean':        _('Average'),
+                                                   'max':         _('Maximum'),
+                                                   'min':         _('Minimum'),
+                                                   'std':         _('Std. Deviation'),
+                                                   'var':         _('Variance'),
+                                                   'quantile:1':  _('1st Quartile'),
+                                                   'quantile:2':  _('2nd Quartile'),
+                                                   'quantile:3':  _('3rd Quartile'),
+                                                   'product':     _('Product'),
+                                                   'first':       _('First'),
+                                                   'last':        _('Last'),
+                                                   'n_unique':    _('No. Unique'),
+                                                   'null_count':  _('No. Blank'),
+                                                   'implode':     _('Implode'),
+                                                   'bitwise_and': _('Bitwise AND'),
+                                                   'bitwise_or':  _('Bitwise OR'),
+                                                   'bitwise_xor': _('Bitwise XOR')}
+        self.frame.data['aggregations']         = []
+        self.frame.data['refresh-selector']     = False
+        self.frame.data['grouping-expanded']    = False
+        self.frame.data['aggregation-expanded'] = False
+
+        self._add_output()
+        self._add_input()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['groupings']        = args[0]
+        self.frame.data['aggregations']     = args[1]
+        self.frame.data['refresh-selector'] = True
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        self_content = self.frame.contents[1]
+
+        if not (links := self_content.Socket.links):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_selector()
+            return
+
+        pair_content = links[0].in_socket.Content
+        table = pair_content.get_data()
+
+        self.frame.data['table'] = table
+        self._refresh_selector()
+
+        if self.frame.data['all-columns']:
+            if aggregations := self.frame.data['aggregations']:
+                from polars import col
+                by = self.frame.data['groupings']
+                exprs = []
+                for alias, agg_name, col_name in aggregations:
+                    expr = col(col_name)
+                    if agg_name.startswith('quantile'):
+                        func_args, func_name = agg_name.split(':')
+                        expr = getattr(expr, func_name, None)
+                        expr = expr(int(func_args) * 0.25)
+                    else:
+                        expr = getattr(expr, agg_name, None)()
+                    expr = expr.alias(alias or f'{agg_name}_{col_name}')
+                    exprs.append(expr)
+                if exprs:
+                    table = table.group_by(by).agg(*exprs)
+
+        self.frame.data['table'] = table
+
+    def do_save(self) -> dict:
+        """"""
+        return {
+            'groupings':    deepcopy(self.frame.data['groupings']),
+            'aggregations': deepcopy(self.frame.data['aggregations']),
+        }
+
+    def do_restore(self,
+                   value: dict,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value['groupings'],
+                          value['aggregations'])
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['table'] = DataFrame()
+
+        def get_data() -> DataFrame:
+            """"""
+            return self.frame.data['table']
+
+        def set_data(value: DataFrame) -> None:
+            """"""
+            self.frame.data['table'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Table'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = DataFrame,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Table'))
+        label.set_xalign(0.0)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type,
+                                         data_type   = DataFrame)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _refresh_selector(self) -> None:
+        """"""
+        table = self.frame.data['table']
+
+        table_columns = table.collect_schema().names()
+
+        # Filter unvalid selection
+        if table_columns:
+            if self.frame.data['groupings']:
+                groupings = []
+                for column in table_columns:
+                    if column in self.frame.data['groupings']:
+                        groupings.append(column)
+                groupings = groupings or table_columns
+                self.frame.data['groupings'] = groupings
+
+            if self.frame.data['aggregations']:
+                aggregations = []
+                for aggregation in self.frame.data['aggregations']:
+                    *_, column = aggregation
+                    if column in table_columns:
+                        aggregations.append(aggregation)
+                self.frame.data['aggregations'] = aggregations
+
+        if self.frame.data['all-columns'] != table_columns:
+            self.frame.data['refresh-selector'] = True
+
+        self.frame.data['all-columns'] = table_columns
+
+        if self.frame.data['refresh-selector']:
+            if len(self.frame.contents) == 4:
+                content = self.frame.contents[-1]
+                self.frame.remove_content(content)
+                content = self.frame.contents[-1]
+                self.frame.remove_content(content)
+            if table_columns:
+                self._add_selector()
+
+        if len(self.frame.contents) == 4:
+            if self.frame.data['grouping-expanded']:
+                widget = self.frame.contents[2].Widget
+                widget.set_expanded(True)
+
+            if self.frame.data['aggregation-expanded']:
+                widget = self.frame.contents[3].Widget
+                widget.set_expanded(True)
+
+        self.frame.data['refresh-selector'] = False
+
+    def _add_selector(self) -> None:
+        """"""
+        def get_groupings() -> list[str]:
+            """"""
+            return self.frame.data['groupings']
+
+        def set_groupings(value: list[str]) -> None:
+            """"""
+            def callback(value: list[str]) -> None:
+                """"""
+                self.frame.data['groupings'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        group = NodeCheckGroup(get_data = get_groupings,
+                               set_data = set_groupings,
+                               options  = self.frame.data['all-columns'])
+        expander = Gtk.Expander(label = _('Grouping'),
+                                child = group)
+        self.frame.add_content(expander)
+
+        def on_groupings_expanded(widget:     Gtk.Widget,
+                                  param_spec: GObject.ParamSpec,
+                                  ) ->        None:
+            """"""
+            self.frame.data['grouping-expanded'] = expander.get_expanded()
+
+        expander.connect('notify::expanded', on_groupings_expanded)
+
+        def get_aggregations() -> list:
+            """"""
+            return self.frame.data['aggregations']
+
+        def set_aggregations(value: list) -> None:
+            """"""
+            def callback(value: list) -> None:
+                """"""
+                self.frame.data['aggregations'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        contents = [
+            (
+                'dropdown',
+                self.frame.data['all-aggregations'],
+            ),
+            (
+                'dropdown',
+                {c: c for c in self.frame.data['all-columns']},
+            ),
+        ]
+        widget = NodeListEntry(title    = _('Aggregation'),
+                               get_data = get_aggregations,
+                               set_data = set_aggregations,
+                               contents = contents)
+        expander = Gtk.Expander(label = _('Aggregations'),
+                                child = widget)
+        self.frame.add_content(expander)
+
+        def on_aggregations_expanded(widget:     Gtk.Widget,
+                                     param_spec: GObject.ParamSpec,
+                                     ) ->        None:
+            """"""
+            self.frame.data['aggregation-expanded'] = expander.get_expanded()
+
+        expander.connect('notify::expanded', on_aggregations_expanded)
 
 
 
@@ -4585,9 +4862,7 @@ class NodeChangeDataType(NodeTemplate):
         contents = [
             (
                 'dropdown',
-                {
-                    c: c for c in self.frame.data['all-columns']
-                },
+                {c: c for c in self.frame.data['all-columns']},
             ),
             (
                 'dropdown',
@@ -4804,9 +5079,7 @@ class NodeRenameColumns(NodeTemplate):
         contents = [
             (
                 'dropdown',
-                {
-                    c: c for c in self.frame.data['all-columns']
-                },
+                {c: c for c in self.frame.data['all-columns']},
             ),
             ('entry'),
         ]
@@ -17186,6 +17459,7 @@ _registered_nodes = [
 
     NodeSortRows(),
 
+    NodeGroupBy(),
     NodeTransposeTable(),
     NodeReverseRows(),
 

@@ -101,7 +101,6 @@ class Toolbar(Gtk.Box):
     FormatColumnButton       = Gtk.Template.Child()
     MergeColumnsButton       = Gtk.Template.Child()
     ExtractColumnButton      = Gtk.Template.Child()
-    ParseColumnButton        = Gtk.Template.Child()
 
     NumberColumnSection      = Gtk.Template.Child()
     ColumnStatisticsButton   = Gtk.Template.Child()
@@ -554,13 +553,6 @@ class Toolbar(Gtk.Box):
                             ),
                             (
                                 self.ExtractColumnButton,
-                                (
-                                    NodeEditor,
-                                    SheetEditor,
-                                ),
-                            ),
-                            (
-                                self.ParseColumnButton,
                                 (
                                     NodeEditor,
                                     SheetEditor,

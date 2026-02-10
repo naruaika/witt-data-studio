@@ -186,6 +186,10 @@ class SheetTransformWindow(Adw.Window):
             case 'list-check':
                 self._create_list_check(title, description, contents, defaults, indexed, ops_arg)
 
+            case 'list-entry':
+                self._create_list_entry(title, contents, ops_arg)
+                self.is_dynamic = True
+
             case 'list-item':
                 self._create_list_item(title, contents, ops_arg)
                 self.is_dynamic = True
@@ -426,6 +430,156 @@ class SheetTransformWindow(Adw.Window):
 
         ops_arg.stype = 'strv'
 
+    def _create_list_entry(self,
+                           title:    str,
+                           contents: list,
+                           ops_arg:  SheetOperationArg,
+                           ) ->      None:
+        """"""
+        group = Adw.PreferencesGroup()
+        box = group.get_first_child()
+        box = box.get_last_child()
+        list_box = box.get_first_child()
+        list_box.remove_css_class('boxed-list')
+        list_box.add_css_class('boxed-list-separate')
+        self.PreferencesPage.add(group)
+
+        ops_arg.value = json.dumps([])
+        ops_arg.stype = 'strv'
+
+        mdata = []
+
+        class ItemData():
+
+            def __init__(self,
+                         ops_arg: SheetOperationArg,
+                         mdata:   list,
+                         idata:   list,
+                         index:   int,
+                         ) ->     None:
+                """"""
+                self.ops_arg = ops_arg
+                self.mdata   = mdata
+                self.idata   = idata
+                self.index   = index
+
+            def get_data(self) -> str:
+                """"""
+                return self.idata[self.index]
+
+            def set_data(self,
+                         value: str,
+                         ) ->   None:
+                """"""
+                self.idata[self.index] = value
+                self.ops_arg.value = json.dumps(self.mdata)
+
+        def add_list_item() -> None:
+            """"""
+            entry = Adw.EntryRow(title = title)
+            entry.add_css_class('custom-entry-row')
+            group.add(entry)
+
+            box = entry.get_first_child()
+            box.set_orientation(Gtk.Orientation.VERTICAL)
+            box.set_margin_top(6)
+            box.set_margin_bottom(6)
+            box.set_spacing(10)
+
+            prefixes = box.get_first_child()
+            editable = prefixes.get_next_sibling()
+            separator = Gtk.Separator(orientation = Gtk.Orientation.VERTICAL)
+            box.insert_child_after(separator, editable)
+
+            suffix = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
+                             spacing     = 6,
+                             homogeneous = True)
+            entry.add_suffix(suffix)
+
+            idata = []
+
+            idata.append('')
+            item_data = ItemData(ops_arg, mdata, idata, 0)
+
+            def on_entry_changed(widget:     Gtk.Widget,
+                                 param_spec: GObject.ParamSpec,
+                                 item_data:  ItemData,
+                                 ) ->    None:
+                """"""
+                value = widget.get_text()
+                item_data.set_data(value)
+
+            entry.connect('notify::text', on_entry_changed, item_data)
+
+            for index, content in enumerate(contents):
+                if isiterable(content):
+                    dtype, options = content
+                    if isinstance(options, list):
+                        options = {o: o for o in options}
+                        contents[index] = (dtype, options)
+                else:
+                    dtype = content
+
+                match dtype:
+                    case 'dropdown':
+                        value = next(iter(options.keys()))
+                        idata.append(value)
+                    case 'entry':
+                        idata.append('')
+                    case _:
+                        idata.append(None)
+
+            mdata.append(idata)
+
+            for index, content in enumerate(contents):
+                if isiterable(content):
+                    dtype, options = content
+                else:
+                    dtype = content
+
+                item_data = ItemData(ops_arg, mdata, idata, index + 1)
+
+                match dtype:
+                    case 'dropdown':
+                        dropdown = self._create_child_dropdown(item_data.get_data,
+                                                               item_data.set_data,
+                                                               options)
+                        suffix.append(dropdown)
+
+                    case 'entry':
+                        dropdown = self._create_child_entry(item_data.get_data,
+                                                            item_data.set_data)
+                        suffix.append(dropdown)
+
+            def on_delete_button_clicked(button: Gtk.Button) -> None:
+                """"""
+                group.remove(entry)
+                dat_index = mdata.index(idata)
+                del mdata[dat_index]
+                ops_arg.value = json.dumps(mdata)
+
+            delete_button = Gtk.Button(valign    = Gtk.Align.CENTER,
+                                       icon_name = 'user-trash-symbolic')
+            delete_button.add_css_class('flat')
+            delete_button.add_css_class('circular')
+            delete_button.connect('clicked', on_delete_button_clicked)
+            entry.add_suffix(delete_button)
+
+        add_button = Adw.ButtonRow(title           = f'{_('Add')} {title}',
+                                   start_icon_name = 'list-add-symbolic')
+        group.add(add_button)
+
+        def on_add_button_clicked(button: Gtk.Button) -> None:
+            """"""
+            add_list_item()
+            ops_arg.value = json.dumps(mdata)
+            group.remove(add_button)
+            group.add(add_button)
+
+        add_button.connect('activated', on_add_button_clicked)
+
+        add_button.activate()
+
     def _create_list_item(self,
                           title:      str,
                           contents:   list,
@@ -499,7 +653,7 @@ class SheetTransformWindow(Adw.Window):
 
                 match dtype:
                     case 'dropdown':
-                        value = next(iter(options.values()))
+                        value = next(iter(options.keys()))
                         idata.append(value)
                     case 'entry':
                         idata.append('')

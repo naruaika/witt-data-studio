@@ -20,7 +20,6 @@
 from enum import Enum
 from gi.repository import Adw
 from gi.repository import Gdk
-from gi.repository import GLib
 from gi.repository import Graphene
 from gi.repository import Gtk
 from typing import Any
@@ -462,6 +461,14 @@ class NodeFrame(Adw.Bin):
             if socket.is_output():
                 self.out_points.append(point)
                 self.out_sockets.append(socket)
+
+    def get_width(self) -> int:
+        """"""
+        return max(0, Gtk.Widget.get_width(self) - 20)
+
+    def get_height(self) -> int:
+        """"""
+        return max(0, Gtk.Widget.get_height(self) - 20)
 
     @property
     def right(self) -> int:

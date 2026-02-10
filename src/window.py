@@ -55,13 +55,16 @@ class Window(Adw.ApplicationWindow):
 
     def __init__(self, **kwargs) -> None:
         """"""
-        nodes = kwargs.get('nodes', [])
-        links = kwargs.get('links', [])
+        nodes  = kwargs.get('nodes', [])
+        links  = kwargs.get('links', [])
+        viewer = kwargs.get('viewer', [])
 
         if 'nodes' in kwargs:
             del kwargs['nodes']
         if 'links' in kwargs:
             del kwargs['links']
+        if 'viewer' in kwargs:
+            del kwargs['viewer']
 
         super().__init__(**kwargs)
 
@@ -77,7 +80,7 @@ class Window(Adw.ApplicationWindow):
         self._setup_actions()
         self._setup_commands()
 
-        self._setup_node_editor(nodes, links)
+        self._setup_node_editor(nodes, links, viewer)
 
     def do_close_request(self) -> bool:
         """"""
@@ -303,13 +306,29 @@ class Window(Adw.ApplicationWindow):
         self.TabView.connect('close-page', self._on_page_closed)
 
     def _setup_node_editor(self,
-                           nodes: list['NodeFrame'] = [],
-                           links: list['NodeLink']  = [],
-                           ) ->   None:
+                           nodes:  list[NodeFrame] = [],
+                           links:  list[NodeLink]  = [],
+                           viewer: NodeFrame       = None,
+                           ) ->    None:
         """"""
         self.node_editor = None
         self.node_editor = NodeEditor(nodes, links)
         self.add_new_editor(self.node_editor, pinned = True)
+
+        if not viewer:
+            from .node.repository import NodeViewer
+            for node in nodes:
+                if isinstance(node.parent, NodeViewer):
+                    viewer = node
+                    break
+
+        def do_view(viewer: NodeFrame) -> None:
+            """"""
+            self.history.freezing = True
+            self.node_editor.select_viewer(viewer)
+            self.history.freezing = False
+
+        GLib.idle_add(do_view, viewer)
 
     def _on_resized(self,
                     widget:     Gtk.Widget,

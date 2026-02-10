@@ -1100,4 +1100,51 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
+        case 'group-by':
+            return (
+                _('Group By'),
+                [
+                    (
+                        [
+                            _('Grouping'),
+                            _('Select one or more columns to group rows by'),
+                        ],
+                        'list-check',
+                        '$all-columns',
+                    ),
+                    (
+                        _('Aggregation'),
+                        'list-entry',
+                        [
+                            (
+                                'dropdown',
+                                {
+                                    'count':       _('Count'),
+                                    'sum':         _('Summation'),
+                                    'median':      _('Median'),
+                                    'mean':        _('Average'),
+                                    'max':         _('Maximum'),
+                                    'min':         _('Minimum'),
+                                    'std':         _('Std. Deviation'),
+                                    'var':         _('Variance'),
+                                    'quantile:1':  _('1st Quartile'),
+                                    'quantile:2':  _('2nd Quartile'),
+                                    'quantile:3':  _('3rd Quartile'),
+                                    'product':     _('Product'),
+                                    'first':       _('First'),
+                                    'last':        _('Last'),
+                                    'n_unique':    _('No. Unique'),
+                                    'null_count':  _('No. Blank'),
+                                    'implode':     _('Implode'),
+                                    'bitwise_and': _('Bitwise AND'),
+                                    'bitwise_or':  _('Bitwise OR'),
+                                    'bitwise_xor': _('Bitwise XOR'),
+                                },
+                            ),
+                            ('dropdown', '$all-columns'),
+                        ],
+                    ),
+                ],
+            )
+
     raise KeyError()

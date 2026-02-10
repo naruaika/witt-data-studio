@@ -1836,8 +1836,8 @@
                                     <property name="menu-model">format_column_menu</property>
                                     <child>
                                       <object class="GtkBox">
-                                        <property name="orientation">horizontal</property>
-                                        <property name="spacing">6</property>
+                                        <property name="orientation">vertical</property>
+                                        <property name="homogeneous">true</property>
                                         <child>
                                           <object class="GtkImage">
                                             <property name="icon-name">xxx-text-font-symbolic</property>
@@ -1845,8 +1845,13 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Format&#x00A0;&#x2060;&#x2335;</property>
+                                            <property name="label" translatable="yes">Format &#x00A0;&#x2060;&#x2335;</property>
                                             <property name="vexpand">true</property>
+                                            <property name="valign">start</property>
+                                            <property name="lines">2</property>
+                                            <property name="wrap">true</property>
+                                            <property name="justify">center</property>
+                                            <property name="max-width-chars">0</property>
                                           </object>
                                         </child>
                                       </object>
@@ -1854,6 +1859,7 @@
                                     <layout>
                                       <property name="column">1</property>
                                       <property name="row">0</property>
+                                      <property name="row-span">2</property>
                                     </layout>
                                     <style>
                                       <class name="flat"/>
@@ -1885,8 +1891,8 @@
                                       </object>
                                     </child>
                                     <layout>
-                                      <property name="column">1</property>
-                                      <property name="row">1</property>
+                                      <property name="column">2</property>
+                                      <property name="row">0</property>
                                     </layout>
                                     <style>
                                       <class name="flat"/>
@@ -1911,39 +1917,6 @@
                                         <child>
                                           <object class="GtkLabel">
                                             <property name="label" translatable="yes">Extract&#x00A0;&#x2060;&#x2335;</property>
-                                            <property name="vexpand">true</property>
-                                          </object>
-                                        </child>
-                                      </object>
-                                    </child>
-                                    <layout>
-                                      <property name="column">2</property>
-                                      <property name="row">0</property>
-                                    </layout>
-                                    <style>
-                                      <class name="flat"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkButton" id="ParseColumnButton">
-                                    <property name="name">parse-column</property>
-                                    <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Parse</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'parse-column'</property>
-                                    <child>
-                                      <object class="GtkBox">
-                                        <property name="orientation">horizontal</property>
-                                        <property name="spacing">6</property>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="icon-name">xxx-decision-tree-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Parse&#x00A0;&#x2060;&#x2335;</property>
                                             <property name="vexpand">true</property>
                                           </object>
                                         </child>

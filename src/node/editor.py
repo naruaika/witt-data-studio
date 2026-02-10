@@ -298,6 +298,7 @@ class NodeEditor(Gtk.Overlay):
         create_action('new-integer',            lambda *_: create_node('new-integer'))
         create_action('new-string',             lambda *_: create_node('new-string'))
 
+        create_action('group-by',               lambda *_: create_node('group-by'))
         create_action('transpose-table',        lambda *_: create_node('transpose-table'))
         create_action('reverse-rows',           lambda *_: create_node('reverse-rows'))
 
@@ -460,6 +461,7 @@ class NodeEditor(Gtk.Overlay):
         create_command('new-integer',           f"{_('Create')}: {_('Constant')} {_('Integer')}")
         create_command('new-string',            f"{_('Create')}: {_('Constant')} {_('String')}")
 
+        create_command('group-by',              f"{_('Table')}: {_('Group By')}")
         create_command('transpose-table',       f"{_('Table')}: {_('Transpose Table')}")
         create_command('reverse-rows',          f"{_('Table')}: {_('Reverse Rows')}")
 

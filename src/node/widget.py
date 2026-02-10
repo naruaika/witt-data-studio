@@ -391,18 +391,13 @@ class NodeEntry(Gtk.Button):
         box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
                       spacing     = 6)
 
-        label = Gtk.Label(label        = title,
-                          xalign       = 0.0,
-                          hexpand      = True,
-                          ellipsize    = Pango.EllipsizeMode.END,
-                          tooltip_text = title)
-
-        label = Gtk.Label(label        = title,
-                          xalign       = 0.0,
-                          hexpand      = True,
-                          ellipsize    = Pango.EllipsizeMode.END,
-                          tooltip_text = title)
-        box.append(label)
+        if title:
+            label = Gtk.Label(label        = title,
+                              xalign       = 0.0,
+                              hexpand      = True,
+                              ellipsize    = Pango.EllipsizeMode.END,
+                              tooltip_text = title)
+            box.append(label)
 
         label = Gtk.Label(label  = default,
                           xalign = 1.0)
@@ -574,6 +569,131 @@ class NodeLabel(Gtk.Label):
 
 
 
+class NodeListEntry(Gtk.Box):
+
+    __gtype_name__ = 'NodeListEntry'
+
+    def __init__(self,
+                 title:    str,
+                 get_data: callable,
+                 set_data: callable,
+                 contents: list,
+                 ) ->      None:
+        """"""
+        super().__init__(orientation = Gtk.Orientation.VERTICAL,
+                         spacing     = 6)
+
+        self._data = deepcopy(get_data())
+
+        _contents = [('entry')] + contents
+
+        class ItemData():
+
+            def __init__(self,
+                         mdata: list,
+                         idata: list,
+                         index: int,
+                         ) ->   None:
+                """"""
+                self.mdata = mdata
+                self.idata = idata
+                self.index = index
+
+            def get_data(self) -> str:
+                """"""
+                return self.idata[self.index]
+
+            def set_data(self,
+                         value: str,
+                         ) ->   None:
+                """"""
+                self.idata[self.index] = value
+                set_data(deepcopy(self.mdata))
+
+        def add_list_item(idata: list) -> None:
+            """"""
+            box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL)
+            box.add_css_class('linked')
+            self.append(box)
+
+            subbox = Gtk.Box(orientation = Gtk.Orientation.VERTICAL,
+                             homogeneous = True,
+                             hexpand     = True)
+            subbox.add_css_class('linked')
+            box.append(subbox)
+
+            if not idata:
+                for index, content in enumerate(_contents):
+                    if isiterable(content):
+                        dtype, options = content
+                        if isinstance(options, list):
+                            options = {o: o for o in options}
+                        _contents[index] = (dtype, options)
+                    else:
+                        dtype = content
+
+                    match dtype:
+                        case 'dropdown':
+                            value = next(iter(options.keys()))
+                            idata.append(value)
+                        case 'entry':
+                            idata.append('')
+                        case _:
+                            idata.append(None)
+
+                self._data.append(idata)
+
+            for index, content in enumerate(_contents):
+                if isiterable(content):
+                    dtype, options = content
+                else:
+                    dtype = content
+
+                item_data = ItemData(self._data, idata, index)
+
+                match dtype:
+                    case 'dropdown':
+                        widget = NodeDropdown(item_data.get_data,
+                                              item_data.set_data,
+                                              options)
+                        subbox.append(widget)
+
+                    case 'entry':
+                        widget = NodeEntry(None,
+                                           item_data.get_data,
+                                           item_data.set_data)
+                        subbox.append(widget)
+
+            def on_delete_button_clicked(button: Gtk.Button) -> None:
+                """"""
+                self.remove(box)
+                dat_index = self._data.index(idata)
+                del self._data[dat_index]
+                set_data(deepcopy(self._data))
+
+            delete_button = Gtk.Button(icon_name = 'user-trash-symbolic')
+            delete_button.connect('clicked', on_delete_button_clicked)
+            box.append(delete_button)
+
+        for __data in self._data:
+            add_list_item(__data)
+
+        content = Adw.ButtonContent(label     = f'{_('Add')} {title}',
+                                    icon_name = 'list-add-symbolic')
+        add_button = Gtk.Button(child = content)
+        self.append(add_button)
+
+        def on_add_button_clicked(button: Gtk.Button) -> None:
+            """"""
+            add_list_item([])
+            set_data(deepcopy(self._data))
+            self.remove(add_button)
+            self.append(add_button)
+
+        add_button.connect('clicked', on_add_button_clicked)
+
+
+
 class NodeListItem(Gtk.Box):
 
     __gtype_name__ = 'NodeListItem'
@@ -629,15 +749,15 @@ class NodeListItem(Gtk.Box):
                 for index, content in enumerate(contents):
                     if isiterable(content):
                         dtype, options = content
-                    if isinstance(options, list):
-                        options = {o: o for o in options}
+                        if isinstance(options, list):
+                            options = {o: o for o in options}
                         contents[index] = (dtype, options)
                     else:
                         dtype = content
 
                     match dtype:
                         case 'dropdown':
-                            value = next(iter(options.values()))
+                            value = next(iter(options.keys()))
                             idata.append(value)
                         case 'entry':
                             idata.append('')
@@ -662,7 +782,8 @@ class NodeListItem(Gtk.Box):
                         subbox.append(widget)
 
                     case 'entry':
-                        widget = NodeEntry(item_data.get_data,
+                        widget = NodeEntry(None,
+                                           item_data.get_data,
                                            item_data.set_data)
                         subbox.append(widget)
 

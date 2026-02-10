@@ -5,3 +5,14 @@
     margin-left: 8px;
     margin-right: 8px;
 }
+
+.transform-window .custom-entry-row .suffixes {
+    margin-right: 0;
+}
+.transform-window .custom-entry-row .editable-area {
+    padding-right: 4px;
+}
+.transform-window .custom-entry-row .edit-icon {
+    padding-right: 0;
+    margin-right: -2px;
+}
