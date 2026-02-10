@@ -785,6 +785,9 @@ class Toolbar(Gtk.Box):
                     widget.set_sensitive(widget.get_name() in names)
                     widget.set_visible(True)
 
+        menu = self.SplitColumnButton.get_menu_model()
+        self._update_menu(menu, names)
+
         menu = self.ColumnStatisticsButton.get_menu_model()
         self._update_menu(menu, names)
 

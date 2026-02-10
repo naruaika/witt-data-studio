@@ -452,17 +452,13 @@ class SheetEditor(Gtk.Box):
         create_command('replace-values',        f"{_('Table')}: {get_title_from_layout('replace-values')}...")
         create_command('fill-blank-cells',      f"{_('Table')}: {get_title_from_layout('fill-blank-cells')}...")
 
-        create_command('split-column',          '$placeholder',
-                                                context = 'table_focus and string_focus')
+        create_command('split-column',          '$placeholder')
         create_command('split-column-by-'
-                       'delimiter',             f"{_('Column')}: {get_title_from_layout('split-column-by-delimiter')}...",
-                                                context = 'table_focus and string_focus')
+                       'delimiter',             f"{_('Column')}: {get_title_from_layout('split-column-by-delimiter')}...")
         create_command('split-column-by-'
-                       'number-of-characters',  f"{_('Column')}: {get_title_from_layout('split-column-by-number-of-characters')}...",
-                                                context = 'table_focus and string_focus')
+                       'number-of-characters',  f"{_('Column')}: {get_title_from_layout('split-column-by-number-of-characters')}...")
         create_command('split-column-by-'
-                       'positions',             f"{_('Column')}: {get_title_from_layout('split-column-by-positions')}...",
-                                                context = 'table_focus and string_focus')
+                       'positions',             f"{_('Column')}: {get_title_from_layout('split-column-by-positions')}...")
         create_command('split-column-by-'
                        'lowercase-to-'
                        'uppercase',             f"{_('Column')}: {get_title_from_layout('split-column-by-lowercase-to-uppercase')}...",

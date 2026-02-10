@@ -333,7 +333,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                     (
                         _('Column'),
                         'combo',
-                        '$string-columns:use-column',
+                        '$all-columns:use-column',
                     ),
                     (
                         _('Delimiter'),
@@ -371,7 +371,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                     (
                         _('Column'),
                         'combo',
-                        '$string-columns:use-column',
+                        '$all-columns:use-column',
                     ),
                     (_('No. Characters'), 'spin', (1, None, 0)),
                     (
@@ -393,7 +393,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                     (
                         _('Column'),
                         'combo',
-                        '$string-columns:use-column',
+                        '$all-columns:use-column',
                     ),
                     (_('Positions'), 'entry', '0, 1'),
                 ],

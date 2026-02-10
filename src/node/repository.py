@@ -5956,20 +5956,27 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
 
         if self.frame.data['columns']:
             from polars import col
+            from polars import String
 
             column    = self.frame.data['column']
             delimiter = self.frame.data['delimiter']
             n_columns = self.frame.data['n-columns']
             split_at  = self.frame.data['split-at']
 
+            expr = col(column)
+
+            dtype = table.collect_schema()[column]
+            if not isinstance(dtype, String):
+                expr = expr.cast(String)
+
             if n_columns == 0:
-                expr = col(column).str.count_matches(delimiter)
+                expr = expr.str.count_matches(delimiter)
                 n_columns = table.select((expr + 1).max()).collect().item()
 
             if split_at == 'first':
-                expr = col(column).str.splitn(delimiter, n_columns)
+                expr = expr.str.splitn(delimiter, n_columns)
             else:
-                expr = col(column).str.split_exact(delimiter, n_columns - 1)
+                expr = expr.str.split_exact(delimiter, n_columns - 1)
 
             names = [f'{column}_{i}' for i in range(n_columns)]
             expr = expr.struct.rename_fields(names)
@@ -6050,10 +6057,7 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
         """"""
         table = self.frame.data['table']
 
-        import polars.selectors as cs
-        table_columns = table.select(cs.string()) \
-                             .collect_schema() \
-                             .names()
+        table_columns = table.collect_schema().names()
 
         self.frame.data['columns'] = table_columns
 
@@ -6266,6 +6270,7 @@ class NodeSplitColumnByNumberOfCharacters(NodeTemplate):
 
         if self.frame.data['columns']:
             from polars import col
+            from polars import String
             from polars import struct
 
             column   = self.frame.data['column']
@@ -6274,27 +6279,33 @@ class NodeSplitColumnByNumberOfCharacters(NodeTemplate):
 
             n_columns = 0
 
+            expr = col(column)
+
+            dtype = table.collect_schema()[column]
+            if not isinstance(dtype, String):
+                expr = expr.cast(String)
+
             match strategy:
                 case 'first':
                     expr = struct([
-                        col(column).str.slice(0, n_chars).alias(f'{column}_0'),
-                        col(column).str.slice(n_chars).alias(f'{column}_1'),
+                        expr.str.slice(0, n_chars).alias(f'{column}_0'),
+                        expr.str.slice(n_chars).alias(f'{column}_1'),
                     ])
                     n_columns = 2
 
                 case 'last':
-                    expr = col(column).str.len_chars() - n_chars
+                    expr = expr.str.len_chars() - n_chars
                     expr = struct([
-                        col(column).str.slice(0, expr).alias(f'{column}_0'),
-                        col(column).str.slice(-n_chars).alias(f'{column}_1'),
+                        expr.str.slice(0, expr).alias(f'{column}_0'),
+                        expr.str.slice(-n_chars).alias(f'{column}_1'),
                     ])
                     n_columns = 2
 
                 case 'repeat':
-                    expr = col(column).str.len_chars().max() / n_chars
-                    n_columns = int(table.select(expr).collect().item())
-                    expr = col(column).str.extract_all(f'.{{1,{n_chars}}}') \
-                                      .list.to_struct(upper_bound = n_columns)
+                    ncol_expr = expr.str.len_chars().max() / n_chars
+                    n_columns = int(table.select(ncol_expr).collect().item())
+                    expr = expr.str.extract_all(f'.{{1,{n_chars}}}') \
+                               .list.to_struct(upper_bound = n_columns)
 
             names = [f'{column}_{i}' for i in range(n_columns)]
             expr = expr.struct.rename_fields(names)
@@ -6373,10 +6384,7 @@ class NodeSplitColumnByNumberOfCharacters(NodeTemplate):
         """"""
         table = self.frame.data['table']
 
-        import polars.selectors as cs
-        table_columns = table.select(cs.string()) \
-                             .collect_schema() \
-                             .names()
+        table_columns = table.collect_schema().names()
 
         self.frame.data['columns'] = table_columns
 
@@ -6530,6 +6538,7 @@ class NodeSplitColumnByPositions(NodeTemplate):
         if self.frame.data['columns']:
             from ast import literal_eval
             from polars import col
+            from polars import String
             from polars import struct
 
             column = self.frame.data['column']
@@ -6546,14 +6555,20 @@ class NodeSplitColumnByPositions(NodeTemplate):
                     positions.insert(0, 0)
 
             if positions:
+                expr = col(column)
+
+                dtype = table.collect_schema()[column]
+                if not isinstance(dtype, String):
+                    expr = expr.cast(String)
+
                 exprs = []
                 while positions:
                     offset = positions.pop(0)
                     length = None
                     if positions:
                         length = positions[0] - offset
-                    expr = col(column).str.slice(offset, length)
-                    exprs.append(expr.alias(f'{column}_{len(exprs)}'))
+                    slice_expr = expr.str.slice(offset, length)
+                    exprs.append(slice_expr.alias(f'{column}_{len(exprs)}'))
                 expr = struct(exprs)
 
                 names = [f'{column}_{i}' for i in range(len(exprs))]
@@ -6631,10 +6646,7 @@ class NodeSplitColumnByPositions(NodeTemplate):
         """"""
         table = self.frame.data['table']
 
-        import polars.selectors as cs
-        table_columns = table.select(cs.string()) \
-                             .collect_schema() \
-                             .names()
+        table_columns = table.collect_schema().names()
 
         self.frame.data['columns'] = table_columns
 
