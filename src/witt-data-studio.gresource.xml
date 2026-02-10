@@ -85,6 +85,7 @@
     <file preprocess="xml-stripblanks">xxx-catalog-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-chemistry-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-circle-outline-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-code-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-column-delete-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-column-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-copy-symbolic.svg</file>
@@ -95,8 +96,10 @@
     <file preprocess="xml-stripblanks">xxx-decision-tree-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-delete-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-diagram-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-document-export-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-document-import-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-education-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-filter-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-forum-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-group-resource-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-help-symbolic.svg</file>
@@ -104,6 +107,7 @@
     <file preprocess="xml-stripblanks">xxx-idea-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-information-square-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-insert-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-join-inner-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-label-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-migrate-alt-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-notebook-symbolic.svg</file>

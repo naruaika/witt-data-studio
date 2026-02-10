@@ -40,6 +40,7 @@ class Toolbar(Gtk.Box):
     OpenFileButton           = Gtk.Template.Child()
     QueryDatabaseButton      = Gtk.Template.Child()
     RecentSourcesButton      = Gtk.Template.Child()
+    ExportDataButton         = Gtk.Template.Child()
     FileUtilitiesButton      = Gtk.Template.Child()
 
     ManageColumnsSection     = Gtk.Template.Child()
@@ -50,19 +51,20 @@ class Toolbar(Gtk.Box):
     KeepRowsButton           = Gtk.Template.Child()
     RemoveRowsButton         = Gtk.Template.Child()
 
-    SortSection              = Gtk.Template.Child()
+    SortAndFilterSection     = Gtk.Template.Child()
     SortRowsButton           = Gtk.Template.Child()
+    FilterRowsButton         = Gtk.Template.Child()
 
     TransformSection         = Gtk.Template.Child()
-    SplitColumnQButton       = Gtk.Template.Child()
+    JoinTablesQButton        = Gtk.Template.Child()
     GroupByQButton           = Gtk.Template.Child()
+    SplitColumnQButton       = Gtk.Template.Child()
     ChangeDataTypeQButton    = Gtk.Template.Child()
     ReplaceValuesQButton     = Gtk.Template.Child()
 
     WorkflowSection          = Gtk.Template.Child()
-    NewSheetButton           = Gtk.Template.Child()
-    NewChartButton           = Gtk.Template.Child()
-    NewStoryButton           = Gtk.Template.Child()
+    NewWorkspaceButton       = Gtk.Template.Child()
+    CustomCodeButton         = Gtk.Template.Child()
     NewViewerButton          = Gtk.Template.Child()
     NewConstantsButton       = Gtk.Template.Child()
 
@@ -182,6 +184,12 @@ class Toolbar(Gtk.Box):
                                 ),
                             ),
                             (
+                                self.ExportDataButton,
+                                (
+                                    SheetEditor,
+                                ),
+                            ),
+                            (
                                 self.FileUtilitiesButton,
                                 (
                                     NodeEditor,
@@ -239,7 +247,7 @@ class Toolbar(Gtk.Box):
                     ),
 
                     (
-                        self.SortSection,
+                        self.SortAndFilterSection,
                         (
                             NodeEditor,
                             SheetEditor,
@@ -247,6 +255,13 @@ class Toolbar(Gtk.Box):
                         [
                             (
                                 self.SortRowsButton,
+                                (
+                                    NodeEditor,
+                                    SheetEditor,
+                                ),
+                            ),
+                            (
+                                self.FilterRowsButton,
                                 (
                                     NodeEditor,
                                     SheetEditor,
@@ -263,7 +278,7 @@ class Toolbar(Gtk.Box):
                         ),
                         [
                             (
-                                self.SplitColumnQButton,
+                                self.JoinTablesQButton,
                                 (
                                     NodeEditor,
                                     SheetEditor,
@@ -271,6 +286,13 @@ class Toolbar(Gtk.Box):
                             ),
                             (
                                 self.GroupByQButton,
+                                (
+                                    NodeEditor,
+                                    SheetEditor,
+                                ),
+                            ),
+                            (
+                                self.SplitColumnQButton,
                                 (
                                     NodeEditor,
                                     SheetEditor,
@@ -301,7 +323,7 @@ class Toolbar(Gtk.Box):
                         ),
                         [
                             (
-                                self.NewSheetButton,
+                                self.NewWorkspaceButton,
                                 (
                                     NodeEditor,
                                     ChartEditor,
@@ -309,19 +331,9 @@ class Toolbar(Gtk.Box):
                                 ),
                             ),
                             (
-                                self.NewChartButton,
+                                self.CustomCodeButton,
                                 (
                                     NodeEditor,
-                                    ChartEditor,
-                                    SheetEditor,
-                                ),
-                            ),
-                            (
-                                self.NewStoryButton,
-                                (
-                                    NodeEditor,
-                                    ChartEditor,
-                                    SheetEditor,
                                 ),
                             ),
                             (
@@ -785,14 +797,13 @@ class Toolbar(Gtk.Box):
                     widget.set_sensitive(widget.get_name() in names)
                     widget.set_visible(True)
 
-        menu = self.SplitColumnButton.get_menu_model()
-        self._update_menu(menu, names)
-
-        menu = self.FormatColumnButton.get_menu_model()
-        self._update_menu(menu, names)
-
-        menu = self.ColumnStatisticsButton.get_menu_model()
-        self._update_menu(menu, names)
+        for button in [
+            self.SplitColumnButton,
+            self.FormatColumnButton,
+            self.ColumnStatisticsButton,
+        ]:
+            menu = button.get_menu_model()
+            self._update_menu(menu, names)
 
     def _update_menu(self,
                      menu:    Gio.MenuModel,

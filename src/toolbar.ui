@@ -361,13 +361,13 @@
                                   <object class="GtkButton" id="RecentSourcesButton">
                                     <property name="name">recent-sources</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Recent Sources</property>
+                                    <property name="tooltip-text" translatable="yes">Recent</property>
                                     <property name="action-name">win.toolbar</property>
                                     <property name="action-target">'recent-sources'</property>
                                     <child>
                                       <object class="GtkBox">
-                                        <property name="orientation">vertical</property>
-                                        <property name="homogeneous">true</property>
+                                        <property name="orientation">horizontal</property>
+                                        <property name="spacing">6</property>
                                         <child>
                                           <object class="GtkImage">
                                             <property name="icon-name">xxx-recently-viewed-symbolic</property>
@@ -375,13 +375,8 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Recent Sources&#x00A0;&#x2060;&#x2335;</property>
+                                            <property name="label" translatable="yes">Recent&#x00A0;&#x2060;&#x2335;</property>
                                             <property name="vexpand">true</property>
-                                            <property name="valign">start</property>
-                                            <property name="lines">2</property>
-                                            <property name="wrap">true</property>
-                                            <property name="justify">center</property>
-                                            <property name="max-width-chars">0</property>
                                           </object>
                                         </child>
                                       </object>
@@ -389,7 +384,39 @@
                                     <layout>
                                       <property name="column">3</property>
                                       <property name="row">0</property>
-                                      <property name="row-span">2</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkButton" id="ExportDataButton">
+                                    <property name="name">export-data</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Export</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'export-data'</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">horizontal</property>
+                                        <property name="spacing">6</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-document-export-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Export</property>
+                                            <property name="vexpand">true</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">3</property>
+                                      <property name="row">1</property>
                                     </layout>
                                     <style>
                                       <class name="flat"/>
@@ -400,13 +427,13 @@
                                   <object class="GtkButton" id="FileUtilitiesButton">
                                     <property name="name">file-utilities</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">File Utilities</property>
+                                    <property name="tooltip-text" translatable="yes">Utilities</property>
                                     <property name="action-name">win.toolbar</property>
                                     <property name="action-target">'file-utilities'</property>
                                     <child>
                                       <object class="GtkBox">
-                                        <property name="orientation">vertical</property>
-                                        <property name="homogeneous">true</property>
+                                        <property name="orientation">horizontal</property>
+                                        <property name="spacing">6</property>
                                         <child>
                                           <object class="GtkImage">
                                             <property name="icon-name">xxx-repo-artifact-symbolic</property>
@@ -414,21 +441,15 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">File Utilities&#x00A0;&#x2060;&#x2335;</property>
+                                            <property name="label" translatable="yes">Utilities&#x00A0;&#x2060;&#x2335;</property>
                                             <property name="vexpand">true</property>
-                                            <property name="valign">start</property>
-                                            <property name="lines">2</property>
-                                            <property name="wrap">true</property>
-                                            <property name="justify">center</property>
-                                            <property name="max-width-chars">0</property>
                                           </object>
                                         </child>
                                       </object>
                                     </child>
                                     <layout>
-                                      <property name="column">4</property>
-                                      <property name="row">0</property>
-                                      <property name="row-span">2</property>
+                                      <property name="column">3</property>
+                                      <property name="row">1</property>
                                     </layout>
                                     <style>
                                       <class name="flat"/>
@@ -679,9 +700,9 @@
                       </object>
                     </child>
 
-                    <!-- Sort Section -->
+                    <!-- Sort & Filter Section -->
                     <child>
-                      <object class="GtkBox" id="SortSection">
+                      <object class="GtkBox" id="SortAndFilterSection">
                         <property name="name">sort</property>
                         <property name="orientation">horizontal</property>
                         <property name="spacing">6</property>
@@ -733,11 +754,50 @@
                                     </style>
                                   </object>
                                 </child>
+                                <child>
+                                  <object class="GtkButton" id="FilterRowsButton">
+                                    <property name="name">filter-rows</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Filter Rows</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'filter-rows'</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">vertical</property>
+                                        <property name="homogeneous">true</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-filter-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Filter Rows</property>
+                                            <property name="vexpand">true</property>
+                                            <property name="valign">start</property>
+                                            <property name="lines">2</property>
+                                            <property name="wrap">true</property>
+                                            <property name="justify">center</property>
+                                            <property name="max-width-chars">0</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">2</property>
+                                      <property name="row">0</property>
+                                      <property name="row-span">2</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
                               </object>
                             </child>
                             <child>
                               <object class="GtkLabel">
-                                <property name="label" translatable="yes">Sort</property>
+                                <property name="label" translatable="yes">Sort &amp; Filter</property>
                                 <style>
                                   <class name="caption"/>
                                 </style>
@@ -769,23 +829,24 @@
                               <object class="GtkGrid">
                                 <property name="vexpand">true</property>
                                 <child>
-                                  <object class="GtkMenuButton" id="SplitColumnQButton">
-                                    <property name="name">split-column</property>
+                                  <object class="GtkButton" id="JoinTablesQButton">
+                                    <property name="name">group-by</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Split Column</property>
-                                    <property name="menu-model">split_column_menu</property>
+                                    <property name="tooltip-text" translatable="yes">Join Tables</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'group-by'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">vertical</property>
                                         <property name="homogeneous">true</property>
                                         <child>
                                           <object class="GtkImage">
-                                            <property name="icon-name">xxx-split-screen-symbolic</property>
+                                            <property name="icon-name">xxx-join-inner-symbolic</property>
                                           </object>
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Split Column&#x00A0;&#x2060;&#x2335;</property>
+                                            <property name="label" translatable="yes">Join Tables</property>
                                             <property name="vexpand">true</property>
                                             <property name="valign">start</property>
                                             <property name="lines">2</property>
@@ -846,6 +907,44 @@
                                   </object>
                                 </child>
                                 <child>
+                                  <object class="GtkMenuButton" id="SplitColumnQButton">
+                                    <property name="name">split-column</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Split Column</property>
+                                    <property name="menu-model">split_column_menu</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">vertical</property>
+                                        <property name="homogeneous">true</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-split-screen-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Split Column&#x00A0;&#x2060;&#x2335;</property>
+                                            <property name="vexpand">true</property>
+                                            <property name="valign">start</property>
+                                            <property name="lines">2</property>
+                                            <property name="wrap">true</property>
+                                            <property name="justify">center</property>
+                                            <property name="max-width-chars">0</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">2</property>
+                                      <property name="row">0</property>
+                                      <property name="row-span">2</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
                                   <object class="GtkButton" id="ChangeDataTypeQButton">
                                     <property name="name">change-data-type</property>
                                     <property name="vexpand">true</property>
@@ -870,7 +969,7 @@
                                       </object>
                                     </child>
                                     <layout>
-                                      <property name="column">2</property>
+                                      <property name="column">3</property>
                                       <property name="row">0</property>
                                     </layout>
                                     <style>
@@ -903,7 +1002,7 @@
                                       </object>
                                     </child>
                                     <layout>
-                                      <property name="column">2</property>
+                                      <property name="column">3</property>
                                       <property name="row">1</property>
                                     </layout>
                                     <style>
@@ -947,24 +1046,23 @@
                               <object class="GtkGrid">
                                 <property name="vexpand">true</property>
                                 <child>
-                                  <object class="GtkButton" id="NewSheetButton">
-                                    <property name="name">new-sheet</property>
+                                  <object class="GtkMenuButton" id="NewWorkspaceButton">
+                                    <property name="name">new-workspace</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">New Sheet</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'new-sheet'</property>
+                                    <property name="tooltip-text" translatable="yes">Workspace</property>
+                                    <property name="menu-model">new_workspace_menu</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">vertical</property>
                                         <property name="homogeneous">true</property>
                                         <child>
                                           <object class="GtkImage">
-                                            <property name="icon-name">xxx-data-table-symbolic</property>
+                                            <property name="icon-name">xxx-notebook-symbolic</property>
                                           </object>
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">New Sheet</property>
+                                            <property name="label" translatable="yes">Workspace &#x00A0;&#x2060;&#x2335;</property>
                                             <property name="vexpand">true</property>
                                             <property name="valign">start</property>
                                             <property name="lines">2</property>
@@ -986,24 +1084,24 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="NewChartButton">
-                                    <property name="name">new-chart</property>
+                                  <object class="GtkButton" id="CustomCodeButton">
+                                    <property name="name">custom-code</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">New Chart</property>
+                                    <property name="tooltip-text" translatable="yes">Custom Code</property>
                                     <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'new-chart'</property>
+                                    <property name="action-target">'custom-code'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">vertical</property>
                                         <property name="homogeneous">true</property>
                                         <child>
                                           <object class="GtkImage">
-                                            <property name="icon-name">xxx-diagram-symbolic</property>
+                                            <property name="icon-name">xxx-code-symbolic</property>
                                           </object>
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">New Chart</property>
+                                            <property name="label" translatable="yes">Custom Code</property>
                                             <property name="vexpand">true</property>
                                             <property name="valign">start</property>
                                             <property name="lines">2</property>
@@ -1016,45 +1114,6 @@
                                     </child>
                                     <layout>
                                       <property name="column">1</property>
-                                      <property name="row">0</property>
-                                      <property name="row-span">2</property>
-                                    </layout>
-                                    <style>
-                                      <class name="flat"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkButton" id="NewStoryButton">
-                                    <property name="name">new-story</property>
-                                    <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">New Story</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'new-story'</property>
-                                    <child>
-                                      <object class="GtkBox">
-                                        <property name="orientation">vertical</property>
-                                        <property name="homogeneous">true</property>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="icon-name">xxx-notebook-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="label" translatable="yes">New Story</property>
-                                            <property name="vexpand">true</property>
-                                            <property name="valign">start</property>
-                                            <property name="lines">2</property>
-                                            <property name="wrap">true</property>
-                                            <property name="justify">center</property>
-                                            <property name="max-width-chars">0</property>
-                                          </object>
-                                        </child>
-                                      </object>
-                                    </child>
-                                    <layout>
-                                      <property name="column">2</property>
                                       <property name="row">0</property>
                                       <property name="row-span">2</property>
                                     </layout>
@@ -1088,7 +1147,7 @@
                                       </object>
                                     </child>
                                     <layout>
-                                      <property name="column">3</property>
+                                      <property name="column">2</property>
                                       <property name="row">0</property>
                                     </layout>
                                     <style>
@@ -1120,7 +1179,7 @@
                                       </object>
                                     </child>
                                     <layout>
-                                      <property name="column">3</property>
+                                      <property name="column">2</property>
                                       <property name="row">1</property>
                                     </layout>
                                     <style>
@@ -2933,6 +2992,28 @@
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">split-column-by-nondigit-to-digit</attribute>
       </item>
+    </section>
+  </menu>
+
+  <menu id="new_workspace_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Sheet</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">new-sheet</attribute>
+      </item>
+      <!--
+      <item>
+        <attribute name="label" translatable="yes">Chart</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">new-chart</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Story</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">new-story</attribute>
+      </item>
+      -->
     </section>
   </menu>
 

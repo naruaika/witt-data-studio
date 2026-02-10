@@ -289,7 +289,7 @@ class SheetEditor(Gtk.Box):
 
         create_action('sort-rows',              lambda *_: self._transform_table('sort-rows'))
 
-        create_action('new-sheet',              lambda *_: self._add_new_worksheet('new-sheet'))
+        create_action('new-sheet',              lambda *_: self._add_new_workspace('new-sheet'))
 
         create_action('group-by',               lambda *_: self._transform_table('group-by'))
         create_action('transpose-table',        lambda *_: self._transform_table('transpose-table'))
@@ -440,6 +440,8 @@ class SheetEditor(Gtk.Box):
 
         create_command('sort-rows',             f"{_('Table')}: {get_title_from_layout('sort-rows')}...")
 
+        create_command('new-workspace',         '$placeholder',
+                                                context = None)
         create_command('new-sheet',             f"{_('Create')}: {_('Sheet')}",
                                                 context = None)
 
@@ -1014,7 +1016,7 @@ class SheetEditor(Gtk.Box):
                                       application   = application)
         dialog.present()
 
-    def _add_new_worksheet(self,
+    def _add_new_workspace(self,
                            name: str,
                            ) ->  None:
         """"""

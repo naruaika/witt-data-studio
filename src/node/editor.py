@@ -453,9 +453,12 @@ class NodeEditor(Gtk.Overlay):
 
         create_command('sort-rows',             f"{_('Table')}: {_('Sort Rows')}")
 
-        create_command('new-constants',         '$placeholder')
+        create_command('new-workspace',         '$placeholder')
         create_command('new-sheet',             f"{_('Create')}: {_('Sheet')}")
+
         create_command('new-viewer',            f"{_('Create')}: {_('Viewer')}")
+
+        create_command('new-constants',         '$placeholder')
         create_command('new-boolean',           f"{_('Create')}: {_('Constant')} {_('Boolean')}")
         create_command('new-decimal',           f"{_('Create')}: {_('Constant')} {_('Decimal')}")
         create_command('new-integer',           f"{_('Create')}: {_('Constant')} {_('Integer')}")
