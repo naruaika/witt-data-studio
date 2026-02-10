@@ -157,8 +157,7 @@ class Window(Adw.ApplicationWindow):
                                             ['<Primary>w'])
         create_action('close-window',       self._on_close_window_action,
                                             ['<Alt>F4'])
-        create_action('focus-editor',       self._on_focus_editor_action,
-                                            ['<Primary>Escape'])
+        create_action('focus-editor',       self._on_focus_editor_action)
 
         create_action('undo',               lambda *_: self.undo(),
                                             ['<Primary>z'])
@@ -205,7 +204,7 @@ class Window(Adw.ApplicationWindow):
         create_command('win.close-window',  _('Close Window'),
                                             shortcuts = ['<Alt>F4'])
         create_command('win.focus-editor',  _('Focus Editor'),
-                                            shortcuts = ['<Primary>Escape'])
+                                            shortcuts = ['Escape'])
 
         create_command('win.undo',          _('Undo'),
                                             shortcuts = ['<Primary>z'])
@@ -302,6 +301,10 @@ class Window(Adw.ApplicationWindow):
         self.connect('notify::fullscrened', self._on_resized)
         self.connect('notify::maximized', self._on_resized)
 
+        key_event_controller = Gtk.EventControllerKey()
+        key_event_controller.connect('key-pressed', self._on_key_pressed)
+        self.add_controller(key_event_controller)
+
         self.TabView.connect('notify::selected-page', self._on_page_changed)
         self.TabView.connect('close-page', self._on_page_closed)
 
@@ -338,6 +341,19 @@ class Window(Adw.ApplicationWindow):
         editors = self.get_all_editors()
         for editor in editors:
             editor.queue_resize()
+
+    def _on_key_pressed(self,
+                        event:   Gtk.EventControllerKey,
+                        keyval:  int,
+                        keycode: int,
+                        state:   Gdk.ModifierType,
+                        ) ->     bool:
+        """"""
+        if keyval == Gdk.KEY_Escape:
+            self.activate_action('win.focus-editor')
+            return True
+
+        return False
 
     def _on_page_changed(self,
                          widget:     Gtk.Widget,
