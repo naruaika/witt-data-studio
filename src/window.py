@@ -55,9 +55,9 @@ class Window(Adw.ApplicationWindow):
 
     def __init__(self, **kwargs) -> None:
         """"""
-        nodes  = kwargs.get('nodes', [])
-        links  = kwargs.get('links', [])
-        viewer = kwargs.get('viewer', [])
+        nodes  = kwargs.get('nodes',  [])
+        links  = kwargs.get('links',  [])
+        viewer = kwargs.get('viewer', None)
 
         if 'nodes' in kwargs:
             del kwargs['nodes']

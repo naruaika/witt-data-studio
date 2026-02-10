@@ -649,6 +649,8 @@ class NodeEditor(Gtk.Overlay):
         self.add_node(sheet)
         self.add_link(in_socket, out_socket)
 
+        self.select_viewer(viewer)
+
         window.history.freezing = False
 
         vadjustment = self.ScrolledWindow.get_vadjustment()
