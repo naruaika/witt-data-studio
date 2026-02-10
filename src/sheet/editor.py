@@ -493,27 +493,19 @@ class SheetEditor(Gtk.Box):
 
         create_command('merge-columns',         f"{_('Column')}: {get_title_from_layout('merge-columns')}...")
 
-        create_command('extract-column',        '$placeholder',
-                                                context = 'table_focus and string_focus')
-        create_command('extract-text-length',   f"{_('Column')}: {get_title_from_layout('extract-text-length')}...",
-                                                context = 'table_focus and string_focus')
+        create_command('extract-column',        '$placeholder')
+        create_command('extract-text-length',   f"{_('Column')}: {get_title_from_layout('extract-text-length')}...")
         create_command('extract-first-'
-                       'characters',            f"{_('Column')}: {get_title_from_layout('extract-first-characters')}...",
-                                                context = 'table_focus and string_focus')
+                       'characters',            f"{_('Column')}: {get_title_from_layout('extract-first-characters')}...")
         create_command('extract-last-'
-                       'characters',            f"{_('Column')}: {get_title_from_layout('extract-last-characters')}...",
-                                                context = 'table_focus and string_focus')
-        create_command('extract-text-in-range', f"{_('Column')}: {get_title_from_layout('extract-text-in-range')}...",
-                                                context = 'table_focus and string_focus')
+                       'characters',            f"{_('Column')}: {get_title_from_layout('extract-last-characters')}...")
+        create_command('extract-text-in-range', f"{_('Column')}: {get_title_from_layout('extract-text-in-range')}...")
         create_command('extract-text-before-'
-                       'delimiter',             f"{_('Column')}: {get_title_from_layout('extract-text-before-delimiter')}...",
-                                                context = 'table_focus and string_focus')
+                       'delimiter',             f"{_('Column')}: {get_title_from_layout('extract-text-before-delimiter')}...")
         create_command('extract-text-after-'
-                       'delimiter',             f"{_('Column')}: {get_title_from_layout('extract-text-after-delimiter')}...",
-                                                context = 'table_focus and string_focus')
+                       'delimiter',             f"{_('Column')}: {get_title_from_layout('extract-text-after-delimiter')}...")
         create_command('extract-text-between-'
-                       'delimiters',            f"{_('Column')}: {get_title_from_layout('extract-text-between-delimiters')}...",
-                                                context = 'table_focus and string_focus')
+                       'delimiters',            f"{_('Column')}: {get_title_from_layout('extract-text-between-delimiters')}...")
 
         create_command('column-statistics',     '$placeholder')
         create_command('calculate-summation',   f"{_('Column')}: {get_title_from_layout('calculate-summation')}...",

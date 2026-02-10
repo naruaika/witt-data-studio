@@ -9325,8 +9325,17 @@ class NodeExtractTextLength(NodeTemplate):
 
         if self.frame.data['columns']:
             from polars import col
+            from polars import String
+
             column = self.frame.data['column']
-            table = table.with_columns(col(column).str.len_chars())
+
+            expr = col(column)
+
+            dtype = table.collect_schema()[column]
+            if not isinstance(dtype, String):
+                expr = expr.cast(String)
+
+            table = table.with_columns(expr.str.len_chars())
 
         self.frame.data['table'] = table
 
@@ -9500,9 +9509,18 @@ class NodeExtractFirstCharacters(NodeTemplate):
 
         if self.frame.data['columns']:
             from polars import col
+            from polars import String
+
             column = self.frame.data['column']
             offset = self.frame.data['n-chars']
-            table = table.with_columns(col(column).str.slice(0, offset))
+
+            expr = col(column)
+
+            dtype = table.collect_schema()[column]
+            if not isinstance(dtype, String):
+                expr = expr.cast(String)
+
+            table = table.with_columns(expr.str.slice(0, offset))
 
         self.frame.data['table'] = table
 
@@ -9703,9 +9721,18 @@ class NodeExtractLastCharacters(NodeTemplate):
 
         if self.frame.data['columns']:
             from polars import col
+            from polars import String
+
             column = self.frame.data['column']
             offset = self.frame.data['n-chars']
-            table = table.with_columns(col(column).str.slice(-offset))
+
+            expr = col(column)
+
+            dtype = table.collect_schema()[column]
+            if not isinstance(dtype, String):
+                expr = expr.cast(String)
+
+            table = table.with_columns(expr.str.slice(-offset))
 
         self.frame.data['table'] = table
 
@@ -9912,10 +9939,19 @@ class NodeExtractTextInRange(NodeTemplate):
 
         if self.frame.data['columns']:
             from polars import col
+            from polars import String
+
             column = self.frame.data['column']
             offset = self.frame.data['from-index']
             length = self.frame.data['n-chars']
-            table = table.with_columns(col(column).str.slice(offset, length))
+
+            expr = col(column)
+
+            dtype = table.collect_schema()[column]
+            if not isinstance(dtype, String):
+                expr = expr.cast(String)
+
+            table = table.with_columns(expr.str.slice(offset, length))
 
         self.frame.data['table'] = table
 
@@ -10141,11 +10177,18 @@ class NodeExtractTextBeforeDelimiter(NodeTemplate):
 
         if self.frame.data['columns']:
             from polars import col
+            from polars import String
 
             column = self.frame.data['column']
             delimiter = self.frame.data['delimiter']
 
-            expr = col(column).str.splitn(delimiter, 2).struct.field('field_0').fill_null('')
+            expr = col(column)
+
+            dtype = table.collect_schema()[column]
+            if not isinstance(dtype, String):
+                expr = expr.cast(String)
+
+            expr = expr.str.splitn(delimiter, 2).struct.field('field_0').fill_null('')
             table = table.with_columns(expr.alias(column))
 
         self.frame.data['table'] = table
@@ -10381,11 +10424,18 @@ class NodeExtractTextAfterDelimiter(NodeTemplate):
 
         if self.frame.data['columns']:
             from polars import col
+            from polars import String
 
             column = self.frame.data['column']
             delimiter = self.frame.data['delimiter']
 
-            expr = col(column).str.splitn(delimiter, 2).struct.field('field_1').fill_null('')
+            expr = col(column)
+
+            dtype = table.collect_schema()[column]
+            if not isinstance(dtype, String):
+                expr = expr.cast(String)
+
+            expr = expr.str.splitn(delimiter, 2).struct.field('field_1').fill_null('')
             table = table.with_columns(expr.alias(column))
 
         self.frame.data['table'] = table
@@ -10627,17 +10677,24 @@ class NodeExtractTextBetweenDelimiters(NodeTemplate):
 
         if self.frame.data['columns']:
             from polars import col
+            from polars import String
             from re import escape
 
             column = self.frame.data['column']
             start  = self.frame.data['start']
             end    = self.frame.data['end']
 
+            expr = col(column)
+
+            dtype = table.collect_schema()[column]
+            if not isinstance(dtype, String):
+                expr = expr.cast(String)
+
             start = escape(start)
             end   = escape(end)
 
             pattern = fr'{start}(.*?){end}'
-            expr = col(column).str.extract(pattern, 1).fill_null('')
+            expr = expr.str.extract(pattern, 1).fill_null('')
 
             table = table.with_columns(expr.alias(column))
 
