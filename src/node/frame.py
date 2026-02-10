@@ -171,12 +171,23 @@ class NodeFrame(Adw.Bin):
         editor = self.get_editor()
         editor.begin_move_selections()
 
+        self._prev_offset_x = 0
+        self._prev_offset_y = 0
+
     def _on_drag_update(self,
                         gesture:  Gtk.GestureDrag,
                         offset_x: float,
                         offset_y: float,
                         ) ->      None:
         """"""
+        if (
+            self._prev_offset_x == offset_x and
+            self._prev_offset_y == offset_y
+        ):
+            return
+        self._prev_offset_x = offset_x
+        self._prev_offset_y = offset_y
+
         if not self.is_dragging and \
                 abs(offset_x) > 0.5 and \
                 abs(offset_y) > 0.5:
