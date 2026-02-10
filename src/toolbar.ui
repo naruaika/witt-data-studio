@@ -830,11 +830,11 @@
                                 <property name="vexpand">true</property>
                                 <child>
                                   <object class="GtkButton" id="JoinTablesQButton">
-                                    <property name="name">group-by</property>
+                                    <property name="name">join-tables</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Join Tables</property>
                                     <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'group-by'</property>
+                                    <property name="action-target">'join-tables'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">vertical</property>

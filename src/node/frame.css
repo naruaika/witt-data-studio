@@ -139,10 +139,10 @@
 }
 */
 .node-body expander-widget checkbutton {
-    background-color: color-mix(in srgb, currentColor 5%, transparent);
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
 }
 .node-body expander-widget checkbutton:hover {
-    background-color: color-mix(in srgb, currentColor 10%, transparent);
+    background-color: color-mix(in srgb, currentColor 15%, transparent);
 }
 
 .node-body button.has-open-popup {
