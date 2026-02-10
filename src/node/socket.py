@@ -86,10 +86,15 @@ class NodeSocket(Gtk.Widget):
         editor = self.get_editor()
 
         source_socket = self
-        # If it is a second socket and is already in link,
-        # edit that linkage virtually instead
+
         is_outsocket = self.is_input()
         is_connected = len(self.links) == 1
+
+        self._is_backward = is_outsocket and not is_connected
+        self._drag_offset = (0, 0)
+
+        # If it is a second socket and is already in link,
+        # edit that linkage virtually instead
         if is_outsocket and is_connected:
             link = self.links[0]
             source_socket = link.in_socket
@@ -102,16 +107,15 @@ class NodeSocket(Gtk.Widget):
         point = (point.x + radius - 2, point.y + radius)
         scalar = (point, point)
 
-        self._offset = (0, 0)
         # We need to also offset the future-link's end
-        # when vritually editing an existing linkage
+        # when virtually editing an existing linkage
         if is_outsocket and is_connected:
             point = Graphene.Point().init(0, 0)
             *_, point = self.compute_point(canvas, point)
             point = (point.x + radius - 2, point.y + radius)
             scalar = (scalar[0], point)
-            self._offset = (point[0] - scalar[0][0],
-                            point[1] - scalar[0][1])
+            self._drag_offset = (point[0] - scalar[0][0],
+                                 point[1] - scalar[0][1])
 
         # Do not forget to also unlink the actual linkage
         if is_outsocket and is_connected:
@@ -135,10 +139,10 @@ class NodeSocket(Gtk.Widget):
         """"""
         editor = self.get_editor()
         point_1 = editor.future_link[0]
-        point_2 = (point_1[0] + self._offset[0] + offset_x,
-                   point_1[1] + self._offset[1] + offset_y)
+        point_2 = (point_1[0] + self._drag_offset[0] + offset_x,
+                   point_1[1] + self._drag_offset[1] + offset_y)
         scalar = (point_1, point_2)
-        editor.update_future_link(scalar)
+        editor.update_future_link(scalar, self._is_backward)
 
     def _on_drag_end(self,
                      gesture:  Gtk.GestureDrag,

@@ -1032,10 +1032,14 @@ class NodeEditor(Gtk.Overlay):
         self.update_future_link(scalar)
 
     def update_future_link(self,
-                           scalar: Scalar2D,
-                           ) ->    None:
+                           scalar:   Scalar2D,
+                           backward: bool = False,
+                           ) ->      None:
         """"""
-        self.future_link = scalar
+        if scalar:
+            self.future_link = (*scalar, backward)
+        else:
+            self.future_link = None
         self._snap_future_link()
         self.Canvas.queue_draw()
 
@@ -1152,7 +1156,8 @@ class NodeEditor(Gtk.Overlay):
         # Snap the future-link to the target socket coordinate
         point_1 = self.future_link[0]
         point_2 = (target_point[0], target_point[1])
-        self.future_link = (point_1, point_2)
+        backward = self.future_link[2]
+        self.future_link = (point_1, point_2, backward)
 
         self._target_socket = target_socket
 

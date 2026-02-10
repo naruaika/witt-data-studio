@@ -125,6 +125,10 @@ class NodeCanvas(Gtk.Fixed):
         editor = self.get_editor()
         point_1 = editor.future_link[0]
         point_2 = editor.future_link[1]
+        backward = editor.future_link[2]
+
+        if backward:
+            point_1, point_2 = point_2, point_1
 
         x1 = point_1[0]
         y1 = point_1[1]
