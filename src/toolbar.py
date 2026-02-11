@@ -64,7 +64,7 @@ class Toolbar(Gtk.Box):
 
     WorkflowSection          = Gtk.Template.Child()
     NewWorkspaceButton       = Gtk.Template.Child()
-    CustomCodeButton         = Gtk.Template.Child()
+    CustomFormulaButton      = Gtk.Template.Child()
     NewViewerButton          = Gtk.Template.Child()
     NewConstantsButton       = Gtk.Template.Child()
 
@@ -331,7 +331,7 @@ class Toolbar(Gtk.Box):
                                 ),
                             ),
                             (
-                                self.CustomCodeButton,
+                                self.CustomFormulaButton,
                                 (
                                     NodeEditor,
                                 ),

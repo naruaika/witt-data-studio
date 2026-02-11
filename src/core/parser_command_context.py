@@ -48,12 +48,12 @@ _GRAMMAR = r"""
 @v_args(inline=True)
 class Transformer(Transformer):
 
-    OPERATORS = {'>=' : operator.ge,
-                 '<=' : operator.le,
-                 '!=' : operator.ne,
-                 '==' : operator.eq,
-                 '>'  : operator.gt,
-                 '<'  : operator.lt}
+    OPERATORS = {'>=': operator.ge,
+                 '<=': operator.le,
+                 '!=': operator.ne,
+                 '==': operator.eq,
+                 '>':  operator.gt,
+                 '<':  operator.lt}
 
     def __init__(self, vars: dict) -> None:
         """"""
@@ -92,3 +92,9 @@ class Transformer(Transformer):
 
 
 parser = Lark(_GRAMMAR, parser = 'lalr')
+
+
+
+def initialize() -> None:
+    """"""
+    pass

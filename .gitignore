@@ -4,3 +4,4 @@ __pycache__
 *.backup
 *.bak
 *.bk
+*.out

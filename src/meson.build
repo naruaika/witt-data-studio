@@ -47,7 +47,7 @@ core_sources = [
   'core/file_manager.py',
   'core/history.py',
   'core/parser_command_context.py',
-  'core/parser_sheet_formula.py',
+  'core/parser_custom_formula.py',
   'core/plugins.py',
   'core/utils_file.py',
   'core/utils_function.py',

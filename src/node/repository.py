@@ -56,7 +56,7 @@ def _iscompatible(pair_socket:  NodeSocket,
     """"""
     self_socket = self_content.Socket
 
-    if not (pair_socket.data_type or self_socket.data_type):
+    if not (pair_socket.data_type and self_socket.data_type):
         compatible = True
     else:
         compatible = pair_socket.data_type == self_socket.data_type
@@ -204,7 +204,7 @@ class NodeBoolean(NodeTemplate):
             """"""
             _take_snapshot(self, self.set_data, value)
 
-        check = NodeCheckButton(title    = _('Value'),
+        check = NodeCheckButton(title    = _('Boolean'),
                                 get_data = get_data,
                                 set_data = set_data)
         socket_type = NodeSocketType.OUTPUT
@@ -271,7 +271,7 @@ class NodeDecimal(NodeTemplate):
             """"""
             _take_snapshot(self, self.set_data, value)
 
-        spin = NodeSpinButton(title    = _('Value'),
+        spin = NodeSpinButton(title    = _('Decimal'),
                               get_data = get_data,
                               set_data = set_data,
                               lower    = 0)
@@ -339,7 +339,7 @@ class NodeInteger(NodeTemplate):
             """"""
             _take_snapshot(self, self.set_data, value)
 
-        spin = NodeSpinButton(title    = _('Value'),
+        spin = NodeSpinButton(title    = _('Integer'),
                               get_data = get_data,
                               set_data = set_data,
                               lower    = 0,
@@ -408,7 +408,7 @@ class NodeString(NodeTemplate):
             """"""
             _take_snapshot(self, self.set_data, value)
 
-        entry = NodeEntry(title    = _('Value'),
+        entry = NodeEntry(title    = _('String'),
                           get_data = get_data,
                           set_data = set_data)
         socket_type = NodeSocketType.OUTPUT
@@ -1103,7 +1103,7 @@ class NodeSheet(NodeTemplate):
             self.frame.data['value'] = value
             self.frame.do_execute(backward = False)
 
-        widget = NodeLabel(_('Value'))
+        widget = NodeLabel(_('Sheet'))
         socket_type = NodeSocketType.OUTPUT
         self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
@@ -1374,7 +1374,7 @@ class NodeViewer(NodeTemplate):
             elif pair_socket.data_type in self.PRIMITIVE_TYPES:
                 label.set_label(str(value) or f'[{_('Empty')}]')
 
-            elif pair_socket.data_type in {DataFrame}:
+            elif pair_socket.data_type in {DataFrame, LazyFrame}:
                 if isinstance(value, LazyFrame):
                     value = value.collect()
                 label.set_label(str(value))
@@ -1446,7 +1446,7 @@ class NodeViewer(NodeTemplate):
                     label.set_wrap(True)
                     label.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
 
-            elif pair_socket.data_type in {DataFrame}:
+            elif pair_socket.data_type in {DataFrame, LazyFrame}:
                 label.add_css_class('monospace')
                 label.set_ellipsize(Pango.EllipsizeMode.NONE)
 
@@ -1521,6 +1521,150 @@ class NodeViewer(NodeTemplate):
             return Gdk.EVENT_PROPAGATE
 
         return Gdk.EVENT_STOP
+
+
+
+class NodeCustomFormula(NodeTemplate):
+
+    ndname = _('Custom Formula')
+
+    action = 'custom-formula'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeCustomFormula(x, y)
+
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['formula'] = '$value'
+
+        self._add_output()
+        self._add_input()
+        self._add_formula()
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        self.frame.data['formula'] = args[0]
+
+        widget = self.frame.contents[2].Widget
+        widget.set_data(args[0])
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   in_content: NodeContent,
+                   ) ->          None:
+        """"""
+        in_content = self.frame.contents[1]
+
+        out_content = self.frame.contents[0]
+        out_socket = out_content.Socket
+
+        if not (links := in_content.Socket.links):
+            self.frame.data['value'] = None
+            out_socket.data_type = None
+            return
+
+        pair_content = links[0].in_socket.Content
+        value = pair_content.get_data()
+        out_socket.data_type = type(value)
+
+        if formula := self.frame.data['formula']:
+            from ..core.parser_custom_formula import Transformer
+            from ..core.parser_custom_formula import parser
+            vars = {'value': value}
+            tree = parser.parse(formula)
+            transformer = Transformer(vars)
+            value = transformer.transform(tree)
+            out_socket.data_type = type(value)
+
+        self.frame.data['value'] = value
+
+    def do_save(self) -> str:
+        """"""
+        return self.frame.data['formula']
+
+    def do_restore(self,
+                   value: str,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value)
+        except:
+            pass # TODO: show errors to user
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['value'] = None
+
+        def get_data() -> Any:
+            """"""
+            return self.frame.data['value']
+
+        def set_data(value: Any) -> None:
+            """"""
+            self.frame.data['value'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Value'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_input(self) -> None:
+        """"""
+        label = NodeLabel(_('Value'), can_link = True)
+        socket_type = NodeSocketType.INPUT
+        content = self.frame.add_content(widget      = label,
+                                         socket_type = socket_type)
+
+        def do_link(pair_socket:  NodeSocket,
+                    self_content: NodeContent,
+                    ) ->          None:
+            """"""
+            if not _iscompatible(pair_socket, self_content):
+                return
+
+            self.frame.do_execute(pair_socket, self_content)
+
+        content.do_link = do_link
+
+        def do_unlink(socket: NodeSocket) -> None:
+            """"""
+            self.frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+        content.do_unlink = do_unlink
+
+    def _add_formula(self) -> None:
+        """"""
+        def get_data() -> str:
+            """"""
+            return self.frame.data['formula']
+
+        def set_data(value: str) -> None:
+            """"""
+            def callback(value: str) -> None:
+                """"""
+                self.frame.data['formula'] = value
+                self.frame.do_execute(backward = False)
+            _take_snapshot(self, callback, value)
+
+        entry = NodeEntry(title    = None,
+                          get_data = get_data,
+                          set_data = set_data)
+        self.frame.add_content(widget   = entry,
+                               get_data = get_data,
+                               set_data = set_data)
 
 
 
@@ -1625,8 +1769,7 @@ class NodeChooseColumns(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -1813,8 +1956,7 @@ class NodeRemoveColumns(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -2010,8 +2152,7 @@ class NodeKeepTopKRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -2233,8 +2374,7 @@ class NodeKeepBottomKRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -2437,8 +2577,7 @@ class NodeKeepFirstKRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -2578,8 +2717,7 @@ class NodeKeepLastKRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -2730,8 +2868,7 @@ class NodeKeepRangeOfRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -2911,8 +3048,7 @@ class NodeKeepEveryNthRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -3085,8 +3221,7 @@ class NodeKeepDuplicateRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -3267,8 +3402,7 @@ class NodeRemoveFirstKRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -3408,8 +3542,7 @@ class NodeRemoveLastKRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -3562,8 +3695,7 @@ class NodeRemoveRangeOfRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -3767,8 +3899,7 @@ class NodeRemoveDuplicateRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -4034,8 +4165,7 @@ class NodeSortRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -4277,8 +4407,7 @@ class NodeGroupBy(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -4511,8 +4640,7 @@ class NodeTransposeTable(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -4623,8 +4751,7 @@ class NodeReverseRows(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -4782,8 +4909,7 @@ class NodeChangeDataType(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -4999,8 +5125,7 @@ class NodeRenameColumns(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -5334,8 +5459,7 @@ class NodeReplaceValues(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -5746,8 +5870,7 @@ class NodeFillBlankCells(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -6028,8 +6151,7 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -6355,8 +6477,7 @@ class NodeSplitColumnByNumberOfCharacters(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -6617,8 +6738,7 @@ class NodeSplitColumnByPositions(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -6828,8 +6948,7 @@ class NodeSplitColumnByLowercaseToUppercase(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -7009,8 +7128,7 @@ class NodeSplitColumnByUppercaseToLowercase(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -7190,8 +7308,7 @@ class NodeSplitColumnByDigitToNonDigit(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -7371,8 +7488,7 @@ class NodeSplitColumnByNonDigitToDigit(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -7539,8 +7655,7 @@ class NodeChangeCaseToLowercase(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -7707,8 +7822,7 @@ class NodeChangeCaseToUppercase(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -7875,8 +7989,7 @@ class NodeChangeCaseToTitleCase(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -8073,8 +8186,7 @@ class NodeTrimContents(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -8340,8 +8452,7 @@ class NodeCleanContents(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -8587,8 +8698,7 @@ class NodeAddPrefix(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -8830,8 +8940,7 @@ class NodeAddSuffix(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -9107,8 +9216,7 @@ class NodeMergeColumns(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -9375,8 +9483,7 @@ class NodeExtractTextLength(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -9564,8 +9671,7 @@ class NodeExtractFirstCharacters(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -9776,8 +9882,7 @@ class NodeExtractLastCharacters(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -9997,8 +10102,7 @@ class NodeExtractTextInRange(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -10233,8 +10337,7 @@ class NodeExtractTextBeforeDelimiter(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -10480,8 +10583,7 @@ class NodeExtractTextAfterDelimiter(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -10742,8 +10844,7 @@ class NodeExtractTextBetweenDelimiters(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -11023,8 +11124,7 @@ class NodeCalculateMinimum(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -11190,8 +11290,7 @@ class NodeCalculateMaximum(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -11357,8 +11456,7 @@ class NodeCalculateSummation(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -11524,8 +11622,7 @@ class NodeCalculateMedian(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -11691,8 +11788,7 @@ class NodeCalculateAverage(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -11858,8 +11954,7 @@ class NodeCalculateStandardDeviation(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -12025,8 +12120,7 @@ class NodeCountValues(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -12189,8 +12283,7 @@ class NodeCountValues(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -12354,8 +12447,7 @@ class NodeCountDistinctValues(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -12536,8 +12628,7 @@ class NodeCalculateAddition(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -12775,8 +12866,7 @@ class NodeCalculateMultiplication(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -13014,8 +13104,7 @@ class NodeCalculateSubtraction(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -13253,8 +13342,7 @@ class NodeCalculateDivision(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -13492,8 +13580,7 @@ class NodeCalculateIntegerDivision(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -13731,8 +13818,7 @@ class NodeCalculateModulo(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -13970,8 +14056,7 @@ class NodeCalculatePercentage(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -14209,8 +14294,7 @@ class NodeCalculatePercentOf(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -14431,8 +14515,7 @@ class NodeCalculateAbsolute(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -14599,8 +14682,7 @@ class NodeCalculateSquareRoot(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -14767,8 +14849,7 @@ class NodeCalculateSquare(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -14935,8 +15016,7 @@ class NodeCalculateCube(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -15120,8 +15200,7 @@ class NodeCalculatePowerK(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -15342,8 +15421,7 @@ class NodeCalculateExponent(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -15510,8 +15588,7 @@ class NodeCalculateBase10(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -15678,8 +15755,7 @@ class NodeCalculateNatural(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -15846,8 +15922,7 @@ class NodeCalculateSine(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -16014,8 +16089,7 @@ class NodeCalculateCosine(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -16182,8 +16256,7 @@ class NodeCalculateTangent(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -16350,8 +16423,7 @@ class NodeCalculateArcsine(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -16518,8 +16590,7 @@ class NodeCalculateArccosine(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -16686,8 +16757,7 @@ class NodeCalculateArctangent(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -16888,8 +16958,7 @@ class NodeRoundValue(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -17101,8 +17170,7 @@ class NodeCalculateIsEven(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -17269,8 +17337,7 @@ class NodeCalculateIsOdd(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -17437,8 +17504,7 @@ class NodeExtractValueSign(NodeTemplate):
 
     def _add_input(self) -> None:
         """"""
-        label = NodeLabel(_('Table'))
-        label.set_xalign(0.0)
+        label = NodeLabel(_('Table'), can_link = True)
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = label,
                                          socket_type = socket_type,
@@ -17521,6 +17587,8 @@ _registered_nodes = [
     NodeReadFile(),
     NodeSheet(),
     NodeViewer(),
+
+    NodeCustomFormula(),
 
     NodeChooseColumns(),
     NodeRemoveColumns(),

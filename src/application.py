@@ -212,11 +212,13 @@ class Application(Adw.Application):
 
         def do_preload() -> None:
             """"""
-            # FIXME: be aware that any of these is possible
-            # to be required by any node that is running on
-            # startup.
-            from .core.parser_command_context import parser
-            from .core.parser_sheet_formula import parser
+            from .core import parser_command_context as parser
+            parser.initialize()
+
+            # This is meaningless for workbook that includes
+            # custom code that run on startup
+            from .core import parser_custom_formula as parser
+            parser.initialize()
 
         Thread(target = do_preload, daemon = False).start()
 

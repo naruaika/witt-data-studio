@@ -291,6 +291,7 @@ class NodeEditor(Gtk.Overlay):
         create_action('sort-rows',              lambda *_: create_node('sort-rows'))
 
         create_action('new-sheet',              lambda *_: create_node('new-sheet'))
+        create_action('custom-formula',         lambda *_: create_node('custom-formula'))
         create_action('new-viewer',             lambda *_: create_node('new-viewer'))
 
         create_action('new-boolean',            lambda *_: create_node('new-boolean'))
@@ -456,6 +457,7 @@ class NodeEditor(Gtk.Overlay):
         create_command('new-workspace',         '$placeholder')
         create_command('new-sheet',             f"{_('Create')}: {_('Sheet')}")
 
+        create_command('custom-formula',        f"{_('Create')}: {_('Custom Code')}")
         create_command('new-viewer',            f"{_('Create')}: {_('Viewer')}")
 
         create_command('new-constants',         '$placeholder')

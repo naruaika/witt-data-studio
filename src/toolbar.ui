@@ -1084,12 +1084,12 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="CustomCodeButton">
-                                    <property name="name">custom-code</property>
+                                  <object class="GtkButton" id="CustomFormulaButton">
+                                    <property name="name">custom-formula</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Custom Code</property>
+                                    <property name="tooltip-text" translatable="yes">Custom Formula</property>
                                     <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'custom-code'</property>
+                                    <property name="action-target">'custom-formula'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">vertical</property>
@@ -1101,7 +1101,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Custom Code</property>
+                                            <property name="label" translatable="yes">Custom Formula</property>
                                             <property name="vexpand">true</property>
                                             <property name="valign">start</property>
                                             <property name="lines">2</property>
