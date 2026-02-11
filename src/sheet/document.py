@@ -229,7 +229,7 @@ class SheetDocument(Document):
             except Exception as e:
                 dataframe = DataFrame({'#ERROR!': None}).head(0)
                 has_error = True
-                print(e)
+                print(e) # TODO: show errors to user
 
             for tindex, table in enumerate(self.tables):
                 if table is old_table:

@@ -25,6 +25,7 @@ from gi.repository import Gtk
 from gi.repository import Pango
 from polars import DataFrame
 from polars import LazyFrame
+from polars import Series
 from polars import DataType
 from polars import Expr
 from typing import Any
@@ -32,6 +33,7 @@ import gc
 
 from ..core.utils import generate_uuid
 from ..core.utils import unique_name
+from ..core.utils import isiterable
 
 from .action import ActionEditNode
 from .data_type import Sheet
@@ -45,6 +47,7 @@ from .widget import NodeCheckGroup
 from .widget import NodeComboButton
 from .widget import NodeEntry
 from .widget import NodeFileChooser
+from .widget import NodeFormulaEditor
 from .widget import NodeLabel
 from .widget import NodeListEntry
 from .widget import NodeListItem
@@ -59,7 +62,11 @@ def _iscompatible(pair_socket:  NodeSocket,
     if not (pair_socket.data_type and self_socket.data_type):
         compatible = True
     else:
-        compatible = pair_socket.data_type == self_socket.data_type
+        pair_types = set(pair_socket.data_type) if isiterable(pair_socket.data_type) \
+                                                else {pair_socket.data_type}
+        self_types = set(self_socket.data_type) if isiterable(self_socket.data_type) \
+                                                else {self_socket.data_type}
+        compatible = not pair_types.isdisjoint(self_types)
 
     link = self_socket.links[0]
     link.compatible = compatible
@@ -1122,9 +1129,10 @@ class NodeSheet(NodeTemplate):
         widget.append(label)
 
         socket_type = NodeSocketType.INPUT
+        data_type = [DataFrame, LazyFrame]
         content = self.frame.add_content(widget      = widget,
                                          socket_type = socket_type,
-                                         data_type   = DataFrame,
+                                         data_type   = data_type,
                                          placeholder = True,
                                          auto_remove = True)
 
@@ -1295,7 +1303,7 @@ class NodeViewer(NodeTemplate):
 
     SUPPORTED_VIEWS = {Sheet}
 
-    PRIMITIVE_TYPES = {bool, float, int, str}
+    PRIMITIVE_TYPES = {bool, float, int, str, list, dict, tuple, None}
 
     @staticmethod
     def new(x:   int = 0,
@@ -1374,9 +1382,12 @@ class NodeViewer(NodeTemplate):
             elif pair_socket.data_type in self.PRIMITIVE_TYPES:
                 label.set_label(str(value) or f'[{_('Empty')}]')
 
-            elif pair_socket.data_type in {DataFrame, LazyFrame}:
+            elif pair_socket.data_type in {DataFrame, LazyFrame, Series}:
                 if isinstance(value, LazyFrame):
-                    value = value.collect()
+                    try:
+                        value = value.collect()
+                    except Exception as e:
+                        value = e
                 label.set_label(str(value))
 
             else:
@@ -1446,7 +1457,7 @@ class NodeViewer(NodeTemplate):
                     label.set_wrap(True)
                     label.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
 
-            elif pair_socket.data_type in {DataFrame, LazyFrame}:
+            elif pair_socket.data_type in {DataFrame, LazyFrame, Series}:
                 label.add_css_class('monospace')
                 label.set_ellipsize(Pango.EllipsizeMode.NONE)
 
@@ -1557,6 +1568,8 @@ class NodeCustomFormula(NodeTemplate):
         widget = self.frame.contents[2].Widget
         widget.set_data(args[0])
 
+        self.frame.do_execute(backward = False)
+
     def do_process(self,
                    pair_socket:  NodeSocket,
                    in_content: NodeContent,
@@ -1567,23 +1580,26 @@ class NodeCustomFormula(NodeTemplate):
         out_content = self.frame.contents[0]
         out_socket = out_content.Socket
 
-        if not (links := in_content.Socket.links):
-            self.frame.data['value'] = None
-            out_socket.data_type = None
-            return
+        value = None
+        self.frame.data['value'] = value
+        out_socket.data_type = None
 
-        pair_content = links[0].in_socket.Content
-        value = pair_content.get_data()
-        out_socket.data_type = type(value)
+        if links := in_content.Socket.links:
+            pair_content = links[0].in_socket.Content
+            value = pair_content.get_data()
+            out_socket.data_type = type(value)
 
         if formula := self.frame.data['formula']:
             from ..core.parser_custom_formula import Transformer
             from ..core.parser_custom_formula import parser
-            vars = {'value': value}
-            tree = parser.parse(formula)
-            transformer = Transformer(vars)
-            value = transformer.transform(tree)
-            out_socket.data_type = type(value)
+            try:
+                vars = {'value': value}
+                tree = parser.parse(formula)
+                transformer = Transformer(vars)
+                value = transformer.transform(tree)
+                out_socket.data_type = type(value)
+            except:
+                pass # TODO: show errors to user
 
         self.frame.data['value'] = value
 
@@ -1659,10 +1675,9 @@ class NodeCustomFormula(NodeTemplate):
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
-        entry = NodeEntry(title    = None,
-                          get_data = get_data,
-                          set_data = set_data)
-        self.frame.add_content(widget   = entry,
+        widget = NodeFormulaEditor(get_data = get_data,
+                                   set_data = set_data)
+        self.frame.add_content(widget   = widget,
                                get_data = get_data,
                                set_data = set_data)
 
@@ -2522,6 +2537,8 @@ class NodeKeepFirstKRows(NodeTemplate):
         widget = self.frame.contents[2].Widget
         widget.set_data(args[0])
 
+        self.frame.do_execute(backward = False)
+
     def do_process(self,
                    pair_socket:  NodeSocket,
                    self_content: NodeContent,
@@ -2661,6 +2678,8 @@ class NodeKeepLastKRows(NodeTemplate):
 
         widget = self.frame.contents[2].Widget
         widget.set_data(args[0])
+
+        self.frame.do_execute(backward = False)
 
     def do_process(self,
                    pair_socket:  NodeSocket,
@@ -2807,6 +2826,8 @@ class NodeKeepRangeOfRows(NodeTemplate):
 
         widget = self.frame.contents[3].Widget
         widget.set_data(args[1])
+
+        self.frame.do_execute(backward = False)
 
     def do_process(self,
                    pair_socket:  NodeSocket,
@@ -2987,6 +3008,8 @@ class NodeKeepEveryNthRows(NodeTemplate):
         box = container.get_first_child()
         value = box.get_last_child()
         value.set_label(str(args[1]))
+
+        self.frame.do_execute(backward = False)
 
     def do_process(self,
                    pair_socket:  NodeSocket,
@@ -3487,6 +3510,8 @@ class NodeRemoveLastKRows(NodeTemplate):
         widget = self.frame.contents[2].Widget
         widget.set_data(args[0])
 
+        self.frame.do_execute(backward = False)
+
     def do_process(self,
                    pair_socket:  NodeSocket,
                    self_content: NodeContent,
@@ -3632,6 +3657,8 @@ class NodeRemoveRangeOfRows(NodeTemplate):
 
         widget = self.frame.contents[3].Widget
         widget.set_data(args[1])
+
+        self.frame.do_execute(backward = False)
 
     def do_process(self,
                    pair_socket:  NodeSocket,

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="Adw" version="1.0"/>
+  <requires lib="GtkSource" version="5.0"/>
+  <template class="FormulaEditorWindow" parent="AdwWindow">
+    <property name="width-request">362</property>
+    <property name="height-request">362</property>
+    <property name="default-width">500</property>
+    <property name="default-height">500</property>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <property name="title-widget">
+              <object class="AdwWindowTitle" id="WindowTitle">
+                <property name="title">Custom Formula</property>
+              </object>
+            </property>
+          </object>
+        </child>
+        <property name="content">
+          <object class="GtkScrolledWindow">
+            <child>
+              <object class="GtkSourceView" id="SourceView">
+                <property name="hexpand">true</property>
+                <property name="vexpand">true</property>
+                <property name="monospace">true</property>
+                <property name="tab-width">4</property>
+                <property name="auto-indent">true</property>
+                <property name="smart-backspace">true</property>
+                <property name="show-line-numbers">true</property>
+                <property name="highlight-current-line">true</property>
+                <property name="insert-spaces-instead-of-tabs">true</property>
+              </object>
+            </child>
+          </object>
+        </property>
+        <child type="bottom">
+          <object class="GtkCenterBox">
+            <property name="orientation">horizontal</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="visible">true</property>
+            <property name="end-widget">
+              <object class="GtkButton" id="ApplyButton">
+                <property name="label" translatable="yes">Apply</property>
+                <signal name="clicked" handler="_on_apply_button_clicked" swapped="no"/>
+                <style>
+                  <class name="pill"/>
+                  <class name="suggested-action"/>
+                </style>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </property>
+    <style>
+      <class name="view"/>
+    </style>
+  </template>
+</interface>

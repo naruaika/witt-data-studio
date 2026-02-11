@@ -3,6 +3,7 @@
   <gresource prefix="/com/macipra/witt">
     <file preprocess="xml-stripblanks">command_palette.ui</file>
     <file preprocess="xml-stripblanks">file_import_window.ui</file>
+    <file preprocess="xml-stripblanks">formula_editor_window.ui</file>
     <file preprocess="xml-stripblanks">status_bar.ui</file>
     <file preprocess="xml-stripblanks">toolbar.ui</file>
     <file preprocess="xml-stripblanks">window.ui</file>

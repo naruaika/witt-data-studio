@@ -62,7 +62,7 @@ _GRAMMAR = r"""
             | dict
             | NUMBER
             | STRING
-            | SPACY_VAR
+            | VAR
             | NAME
 
     tuple: "(" [formula ("," formula?)+ [","]] ")"
@@ -86,7 +86,7 @@ _GRAMMAR = r"""
 
     NAME: /[a-zA-Z_$][a-zA-Z0-9_$]*/
 
-    SPACY_VAR: "$" STRING
+    VAR: "$" STRING
 
     %import common.NEWLINE
     %import common.WS_INLINE
@@ -547,11 +547,7 @@ class Transformer(Transformer):
         """"""
         return args
 
-    def NAME(self, value: str):
-        """"""
-        return value
-
-    def SPACY_VAR(self, value: str):
+    def VAR(self, value: str):
         """"""
         value = value.removeprefix('$')
         value = value.strip("\"'")
@@ -562,6 +558,10 @@ class Transformer(Transformer):
                 self.vars.get(f'${value}')
             )
         )
+
+    def NAME(self, value: str):
+        """"""
+        return value
 
     def NUMBER(self, value: str):
         """"""

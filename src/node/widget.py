@@ -934,3 +934,49 @@ class NodeSpinButton(Gtk.Button):
         box = self.get_child()
         label = box.get_last_child()
         label.set_label(str(value))
+
+
+
+class NodeFormulaEditor(Gtk.Button):
+
+    __gtype_name__ = 'NodeFormulaEditor'
+
+    def __init__(self,
+                 get_data: callable,
+                 set_data: callable,
+                 ) ->      None:
+        """"""
+        label = Gtk.Label(label            = get_data(),
+                          xalign           = 0.0,
+                          ellipsize        = Pango.EllipsizeMode.END,
+                          single_line_mode = True)
+        label.add_css_class('monospace')
+
+        super().__init__(child = label)
+
+        def do_apply(formula: str) -> None:
+            """"""
+            set_data(formula)
+            self.set_data(formula)
+
+        def on_clicked(button: Gtk.Button) -> None:
+            """"""
+            window = self.get_root()
+            application = window.get_application()
+
+            from ..formula_editor_window import FormulaEditorWindow
+            editor_window = FormulaEditorWindow(subtitle      = None,
+                                                callback      = do_apply,
+                                                transient_for = window,
+                                                application   = application,
+                                                text          = get_data())
+            editor_window.present()
+
+        self.connect('clicked', on_clicked)
+
+    def set_data(self,
+                 value: str,
+                 ) ->   None:
+        """"""
+        label = self.get_child()
+        label.set_label(str(value))

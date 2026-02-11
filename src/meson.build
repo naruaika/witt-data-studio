@@ -28,6 +28,7 @@ root_sources = [
   'file_import_parquet_view.py',
   'file_import_window.py',
   'file_manager.py',
+  'formula_editor_window.py',
   'main.py',
   'status_bar.py',
   'toolbar.py',

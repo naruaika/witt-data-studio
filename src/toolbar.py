@@ -61,10 +61,10 @@ class Toolbar(Gtk.Box):
     SplitColumnQButton       = Gtk.Template.Child()
     ChangeDataTypeQButton    = Gtk.Template.Child()
     ReplaceValuesQButton     = Gtk.Template.Child()
+    CustomFormulaButton      = Gtk.Template.Child()
 
     WorkflowSection          = Gtk.Template.Child()
     NewWorkspaceButton       = Gtk.Template.Child()
-    CustomFormulaButton      = Gtk.Template.Child()
     NewViewerButton          = Gtk.Template.Child()
     NewConstantsButton       = Gtk.Template.Child()
 
@@ -312,6 +312,13 @@ class Toolbar(Gtk.Box):
                                     SheetEditor,
                                 ),
                             ),
+                            (
+                                self.CustomFormulaButton,
+                                (
+                                    NodeEditor,
+                                    SheetEditor,
+                                ),
+                            ),
                         ],
                     ),
 
@@ -328,12 +335,6 @@ class Toolbar(Gtk.Box):
                                     NodeEditor,
                                     ChartEditor,
                                     SheetEditor,
-                                ),
-                            ),
-                            (
-                                self.CustomFormulaButton,
-                                (
-                                    NodeEditor,
                                 ),
                             ),
                             (

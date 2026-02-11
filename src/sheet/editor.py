@@ -290,6 +290,7 @@ class SheetEditor(Gtk.Box):
         create_action('sort-rows',              lambda *_: self._transform_table('sort-rows'))
 
         create_action('new-sheet',              lambda *_: self._add_new_workspace('new-sheet'))
+        create_action('custom-formula',         lambda *_: self._write_custom_formula())
 
         create_action('group-by',               lambda *_: self._transform_table('group-by'))
         create_action('transpose-table',        lambda *_: self._transform_table('transpose-table'))
@@ -444,6 +445,7 @@ class SheetEditor(Gtk.Box):
                                                 context = None)
         create_command('new-sheet',             f"{_('Create')}: {_('Sheet')}",
                                                 context = None)
+        create_command('custom-formula',        f"{_('Table')}: {_('Write Custom Formula')}...")
 
         create_command('group-by',              f"{_('Table')}: {get_title_from_layout('group-by')}...")
         create_command('transpose-table',       f"{_('Table')}: {get_title_from_layout('transpose-table')}...")
@@ -1002,10 +1004,9 @@ class SheetEditor(Gtk.Box):
         for ridx in range(len(win_layout)):
             do_evaluate(ridx, win_layout)
 
-        window = self.get_root()
-        application = window.get_application()
-
         subtitle = f'{self.title} – {table.tname}'
+
+        application = window.get_application()
 
         from .transform_window import SheetTransformWindow
         dialog = SheetTransformWindow(title         = win_title,
@@ -1015,6 +1016,76 @@ class SheetEditor(Gtk.Box):
                                       transient_for = window,
                                       application   = application)
         dialog.present()
+
+    def _write_custom_formula(self) -> None:
+        """"""
+        active = self.selection.current_active_cell
+
+        lcolumn = self.display.get_lcolumn_from_column(active.column)
+        lrow = self.display.get_lrow_from_row(active.row)
+
+        table = self.document.get_table_by_position(lcolumn, lrow)
+
+        if not isinstance(table, DataTable):
+            return False
+
+        window = self.get_root()
+        editor = window.node_editor
+
+        def do_transform(formula: str) -> None:
+            """"""
+            window.history.grouping = True
+
+            # Find the related node content
+            contents = self.node.contents[1:-1]
+            for content in contents:
+                box = content.Widget
+                label = box.get_first_child()
+                label = label.get_label()
+                if label == table.tname:
+                    break
+
+            # Find the pair node socket
+            self_content = content
+            self_socket = self_content.Socket
+            link = self_socket.links[0]
+            pair_socket = link.in_socket
+            pair_node = pair_socket.Frame
+
+            # Create a new appropriate node
+            x = self.node.x - 175 - 50
+            y = pair_node.y
+            transformer = editor.create_node('custom-formula', x, y)
+            transformer.set_data(formula)
+            editor.add_node(transformer)
+            editor.select_by_click(transformer)
+
+            # Manipulate so that the transformer node seem to
+            # be reconnected to the sheet node
+            self_content.node_uid = id(transformer)
+
+            # Connect the pair node, new node, and self node
+            content = transformer.contents[0]
+            editor.add_link(content.Socket, self_socket)
+            content = transformer.contents[1]
+            editor.add_link(pair_socket, content.Socket)
+
+            editor.auto_arrange(self.node)
+
+            window.history.grouping = False
+
+            self.grab_focus()
+
+        application = window.get_application()
+
+        subtitle = f'{self.title} – {table.tname}'
+
+        from ..formula_editor_window import FormulaEditorWindow
+        editor_window = FormulaEditorWindow(subtitle      = subtitle,
+                                            callback      = do_transform,
+                                            transient_for = window,
+                                            application   = application)
+        editor_window.present()
 
     def _add_new_workspace(self,
                            name: str,
