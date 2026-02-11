@@ -3,7 +3,7 @@ build==1.4.0
 certifi==2026.1.4
 cffi==2.0.0
 charset-normalizer==3.4.4
-cryptography==46.0.3
+cryptography==46.0.5
 debugpy==1.8.19
 docutils==0.22.4
 fastexcel==0.19.0
