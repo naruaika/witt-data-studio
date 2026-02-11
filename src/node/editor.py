@@ -961,6 +961,7 @@ class NodeEditor(Gtk.Overlay):
         def do_arrange(target: NodeFrame) -> None:
             """"""
             frames = []
+            primes = []
 
             for content in target.contents:
                 if not (socket := content.Socket):
@@ -968,14 +969,12 @@ class NodeEditor(Gtk.Overlay):
                 if not socket.is_input():
                     continue
                 for link in socket.links:
-                    if not link.compatible:
-                        continue
-                    if link != link.in_socket.links[0]:
-                        continue
                     frame = link.in_socket.Frame
-                    if frame in frames:
-                        continue
-                    frames.append(frame)
+                    if link == link.in_socket.links[0]:
+                        if frame not in primes:
+                            primes.append(primes)
+                    if frame not in frames:
+                        frames.append(frame)
 
             if not frames:
                 return
@@ -993,10 +992,14 @@ class NodeEditor(Gtk.Overlay):
 
             if len(frames) == 1:
                 y = target.y
+                if frames[0] not in primes:
+                    y = frame.y
 
             for frame in frames:
                 old_pos = (frame.x, frame.y)
                 new_pos = (min(frame.x, x), y)
+                if old_pos == new_pos:
+                    continue
                 positions = (old_pos, new_pos)
                 self.move_node(frame, positions)
 
