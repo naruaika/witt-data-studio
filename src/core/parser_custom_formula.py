@@ -57,6 +57,7 @@ _GRAMMAR = r"""
     call: "(" [arguments] ")"
 
     ?primary: "(" formula ")"
+            | tuple
             | list
             | dict
             | NUMBER
@@ -64,7 +65,7 @@ _GRAMMAR = r"""
             | SPACY_VAR
             | NAME
 
-    tuple: "(" [formula ("," formula)* [","]] ")"
+    tuple: "(" [formula ("," formula?)+ [","]] ")"
     list:  "[" [formula ("," formula)* [","]] "]"
     dict:  "{" [pair ("," pair)* [","]] "}"
     pair:  (STRING | NUMBER | tuple) ":" formula

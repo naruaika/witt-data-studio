@@ -207,3 +207,21 @@ class TestParserSheetFormula:
                          '2,7.0,b\n' \
                          '3,8.0,c\n' \
                          '4,9.0,c\n'
+
+    def test_11(self) -> None:
+        """"""
+        formula = "123"
+        result = self._run_formula(formula)
+        assert result == 123
+
+        formula = "[1, 2, 3]"
+        result = self._run_formula(formula)
+        assert result == [1, 2, 3]
+
+        formula = "(1, 2, 3)"
+        result = self._run_formula(formula)
+        assert result == (1, 2, 3)
+
+        formula = "{'a': 1, 'b': 2, 'c': 3}"
+        result = self._run_formula(formula)
+        assert result == {'a': 1, 'b': 2, 'c': 3}
