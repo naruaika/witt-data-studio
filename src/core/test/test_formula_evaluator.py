@@ -1,4 +1,4 @@
-# test_parser_custom_formula.py
+# test_formula_evaluator.py
 #
 # Copyright (c) 2025 Naufan Rusyda Faikar
 #
@@ -18,9 +18,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 
-from src.core.parser_custom_formula import Transformer
-from src.core.parser_custom_formula import parser
+from src.core.formula_evaluator import Evaluator
 from typing import Any
+import os
 import polars
 
 class TestParserSheetFormula:
@@ -37,17 +37,14 @@ class TestParserSheetFormula:
         })
     }
 
-    def _run_formula(self, formula: str) -> Any:
+    def evaluate(self, formula: str) -> Any:
         """"""
-        tree = parser.parse(formula)
-        transformer = Transformer(self.vars)
-        result = transformer.transform(tree)
-        return result
+        return Evaluator(self.vars).evaluate(formula)
 
     def test_1(self) -> None:
         """"""
         formula = 'DataFrame({"foo": [1, 2, 3, 4], "bar": [1, 2, 2, 1]})'
-        result = self._run_formula(formula)
+        result = self.evaluate(formula)
         assert polars.DataFrame({
             'foo': [ 1, 2, 3, 4 ],
             'bar': [ 1, 2, 2, 1 ],
@@ -59,7 +56,7 @@ class TestParserSheetFormula:
             "bar": [6.0, 7.0, 8.0],
             "ham": [Date(2020, 1, 2), Date(2021, 3, 4), Date(2022, 5, 6)],
         })"""
-        result = self._run_formula(formula)
+        result = self.evaluate(formula)
         assert polars.DataFrame({
             "foo": [ 1,                2,                3                ],
             "bar": [ 6.0,              7.0,              8.0              ],
@@ -68,30 +65,30 @@ class TestParserSheetFormula:
 
     def test_2(self) -> None:
         """"""
-        formula = '$Table1'
-        result = self._run_formula(formula)
+        formula = 'Table1'
+        result = self.evaluate(formula)
         assert polars.DataFrame({
             'foo': [  1,   2,   3,   4  ],
             'bar': [ 6.0, 7.0, 8.0, 9.0 ],
             'ham': [ 'a', 'b', 'c', 'c' ],
         }).equals(result)
 
-        formula = '$Table2.bottom_k(2, by="bar")'
-        result = self._run_formula(formula)
+        formula = 'Table2.bottom_k(2, by="bar")'
+        result = self.evaluate(formula)
         assert polars.DataFrame({
             "foo": [ 1, 4 ],
             "bar": [ 1, 1 ],
         }).equals(result)
 
-        formula = "$'Table2'.bottom_k(2, by=['foo', 'bar'])"
-        result = self._run_formula(formula)
+        formula = "Table2.bottom_k(2, by=['foo', 'bar'])"
+        result = self.evaluate(formula)
         assert polars.DataFrame({
             "foo": [ 1, 2 ],
             "bar": [ 1, 2 ],
         }).equals(result)
 
-        formula = '$"Table1".cast({"bar": Type.Int16})'
-        result = self._run_formula(formula)
+        formula = 'Table1.cast({"bar": Type.Int16})'
+        result = self.evaluate(formula)
         assert polars.DataFrame({
             "foo": [  1,   2,   3,   4  ],
             "bar": [  6,   7,   8,   9  ],
@@ -100,16 +97,16 @@ class TestParserSheetFormula:
 
     def test_3(self) -> None:
         """"""
-        formula = '$Table1.filter(Column("foo") > 1)'
-        result = self._run_formula(formula)
+        formula = 'Table1.filter(Column("foo") > 1)'
+        result = self.evaluate(formula)
         assert polars.DataFrame({
             "foo": [  2,   3,   4  ],
             "bar": [  7,   8,   9  ],
             "ham": [ 'b', 'c', 'c' ],
         }).equals(result)
 
-        formula = '$Table1.filter((1 < Column("foo")) & (Column("bar") > 7))'
-        result = self._run_formula(formula)
+        formula = 'Table1.filter((1 < Column("foo")) & (Column("bar") > 7))'
+        result = self.evaluate(formula)
         assert polars.DataFrame({
             "foo": [  3,   4  ],
             "bar": [ 8.0, 9.0 ],
@@ -118,8 +115,8 @@ class TestParserSheetFormula:
 
     def test_4(self) -> None:
         """"""
-        formula = '$Table1.group_by("ham").agg(Column("foo").sum()).sort("foo")'
-        result = self._run_formula(formula)
+        formula = 'Table1.group_by("ham").agg(Column("foo").sum()).sort("foo")'
+        result = self.evaluate(formula)
         assert polars.DataFrame({
             "ham": [ 'a', 'b', 'c' ],
             "foo": [  1,   2,   7  ],
@@ -127,16 +124,16 @@ class TestParserSheetFormula:
 
     def test_5(self) -> None:
         """"""
-        formula = "$Table1.select(Column('*'))"
-        result = self._run_formula(formula)
+        formula = "Table1.select(Column('*'))"
+        result = self.evaluate(formula)
         assert polars.DataFrame({
             "foo": [  1,   2,   3,   4  ],
             "bar": [ 6.0, 7.0, 8.0, 9.0 ],
             "ham": [ 'a', 'b', 'c', 'c' ],
         }).equals(result)
 
-        formula = "$Table1.select(Column('*').count())"
-        result = self._run_formula(formula)
+        formula = "Table1.select(Column('*').count())"
+        result = self.evaluate(formula)
         assert polars.DataFrame({
             "foo": [ 4 ],
             "bar": [ 4 ],
@@ -145,16 +142,16 @@ class TestParserSheetFormula:
 
     def test_6(self) -> None:
         """"""
-        formula = "$Table1.select(Column('ham').str.to_uppercase())"
-        result = self._run_formula(formula)
+        formula = "Table1.select(Column('ham').str.to_uppercase())"
+        result = self.evaluate(formula)
         assert polars.DataFrame({
             "ham": [ 'A', 'B', 'C', 'C' ],
         }).equals(result)
 
     def test_7(self) -> None:
         """"""
-        formula = "$Table1.with_columns(Column('bar').cast(Type.Int16))"
-        result = self._run_formula(formula)
+        formula = "Table1.with_columns(Column('bar').cast(Type.Int16))"
+        result = self.evaluate(formula)
         assert polars.DataFrame({
             "foo": [  1,   2,   3,   4  ],
             "bar": [  6,   7,   8,   9  ],
@@ -163,8 +160,8 @@ class TestParserSheetFormula:
 
     def test_8(self) -> None:
         """"""
-        formula = "$Table1.select(Column('ham').str.to_uppercase() + 'X')"
-        result = self._run_formula(formula)
+        formula = "Table1.select(Column('ham').str.to_uppercase() + 'X')"
+        result = self.evaluate(formula)
         assert polars.DataFrame({
             "ham": [ 'AX', 'BX', 'CX', 'CX' ],
         }).equals(result)
@@ -172,10 +169,10 @@ class TestParserSheetFormula:
     def test_9(self) -> None:
         """"""
         formula = """
-        expression = Column("foo") > 2
-        $Table1.filter(expression)
+expression = Column("foo") > 2
+Table1.filter(expression)
         """
-        result = self._run_formula(formula)
+        result = self.evaluate(formula)
         assert polars.DataFrame({
             "foo": [  3,   4  ],
             "bar": [ 8.0, 9.0 ],
@@ -183,12 +180,12 @@ class TestParserSheetFormula:
         }).equals(result)
 
         formula = """
-        literal = 2
-        expression = (Column("foo") >= literal) &
-                     (Column("bar") >= literal)
-        $Table2.filter(expression)
+literal = 2
+expression = (Column("foo") >= literal) & \
+             (Column("bar") >= literal)
+Table2.filter(expression)
         """
-        result = self._run_formula(formula)
+        result = self.evaluate(formula)
         assert polars.DataFrame({
             "foo": [ 2, 3 ],
             "bar": [ 2, 2 ],
@@ -196,32 +193,53 @@ class TestParserSheetFormula:
 
     def test_10(self) -> None:
         """"""
-        formula = "$Table1.write_csv('test_file.out')"
-        result = self._run_formula(formula)
+        fpath = 'file.out'
+
+        formula = f"Table1.write_csv('{fpath}')"
+        result = self.evaluate(formula)
         assert result is None
 
-        formula = "$Table1.write_csv()"
-        result = self._run_formula(formula)
+        formula = "Table1.write_csv()"
+        result = self.evaluate(formula)
         assert result == 'foo,bar,ham\n' \
                          '1,6.0,a\n' \
                          '2,7.0,b\n' \
                          '3,8.0,c\n' \
                          '4,9.0,c\n'
 
+        if os.path.exists(fpath):
+            os.remove(fpath)
+
     def test_11(self) -> None:
         """"""
         formula = "123"
-        result = self._run_formula(formula)
+        result = self.evaluate(formula)
         assert result == 123
 
         formula = "[1, 2, 3]"
-        result = self._run_formula(formula)
+        result = self.evaluate(formula)
         assert result == [1, 2, 3]
 
         formula = "(1, 2, 3)"
-        result = self._run_formula(formula)
+        result = self.evaluate(formula)
         assert result == (1, 2, 3)
 
         formula = "{'a': 1, 'b': 2, 'c': 3}"
-        result = self._run_formula(formula)
+        result = self.evaluate(formula)
         assert result == {'a': 1, 'b': 2, 'c': 3}
+
+    def test_12(self) -> None:
+        """"""
+        formula = "(lambda x: x + 1)(5)"
+        result = self.evaluate(formula)
+        assert result == 6
+
+    def test_13(self) -> None:
+        """"""
+        formula = 'Table1.filter(~(Column("foo") > 1))'
+        result = self.evaluate(formula)
+        assert polars.DataFrame({
+            "foo": [  1,  ],
+            "bar": [ 6.0, ],
+            "ham": [ 'a', ],
+        }).equals(result)

@@ -189,7 +189,6 @@ class Application(Adw.Application):
         from gi.repository import GtkSource
         from gi.repository import WebKit
         from polars import Config
-        from threading import Thread
 
         from .status_bar import StatusBar
         from .toolbar import Toolbar
@@ -211,18 +210,6 @@ class Application(Adw.Application):
 
         from .core import plugins
         plugins.initialize()
-
-        def do_preload() -> None:
-            """"""
-            from .core import parser_command_context as parser
-            parser.initialize()
-
-            # This is meaningless for workbook that includes
-            # custom code that run on startup
-            from .core import parser_custom_formula as parser
-            parser.initialize()
-
-        Thread(target = do_preload, daemon = False).start()
 
     def load(self,
              file_path:  str,

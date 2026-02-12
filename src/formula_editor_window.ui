@@ -6,8 +6,8 @@
   <template class="FormulaEditorWindow" parent="AdwWindow">
     <property name="width-request">362</property>
     <property name="height-request">362</property>
-    <property name="default-width">500</property>
-    <property name="default-height">500</property>
+    <property name="default-width">800</property>
+    <property name="default-height">800</property>
     <property name="content">
       <object class="AdwToolbarView">
         <child type="top">

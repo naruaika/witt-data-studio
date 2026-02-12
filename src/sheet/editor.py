@@ -168,8 +168,7 @@ class SheetEditor(Gtk.Box):
 
     def get_command_list(self) -> list[dict]:
         """"""
-        from ..core.parser_command_context import Transformer
-        from ..core.parser_command_context import parser
+        from ..core.context_evaluator import Evaluator
 
         variables = {}
 
@@ -230,9 +229,7 @@ class SheetEditor(Gtk.Box):
             if context is None:
                 return True
             try:
-                tree = parser.parse(context)
-                transformer = Transformer(variables)
-                return transformer.transform(tree)
+                return Evaluator(variables).evaluate(context)
             except:
                 return False
 

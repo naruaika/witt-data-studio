@@ -35,7 +35,6 @@ Currently, we're only outlining the tasks we'll be performing, not the sequence 
 - [ ] Interactive charts with linked views
 - [ ] Automatic pipeline execution
 - [ ] Self-hostable report export
-- [ ] Project versioning
 
 ## Build & Run
 

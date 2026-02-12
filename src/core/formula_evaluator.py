@@ -1,4 +1,4 @@
-# parser_sheet_formula.py
+# formula_evaluator.py
 #
 # Copyright (c) 2025 Naufan Rusyda Faikar
 #
@@ -18,89 +18,16 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from __future__ import annotations
-from lark import Lark
-from lark import Token
-from lark import Transformer
-from lark import v_args
 from datetime import datetime
 from datetime import date
 from datetime import time
 from difflib import get_close_matches
+from functools import reduce
 from typing import Any
-import json
+import ast
 import operator
 import polars
 import polars.selectors
-
-# TODO: add support for basic programming syntaxes
-# TODO: add support for python-like basic syntaxes
-
-_GRAMMAR = r"""
-    ?start: script
-
-    ?script:    (NEWLINE* assignment)* NEWLINE* formula [NEWLINE*]
-    assignment: NAME "=" formula
-
-    ?formula:     bitwise_or
-    ?bitwise_or:  bitwise_xor (BITWISE_OR  bitwise_xor)*
-    ?bitwise_xor: bitwise_and (BITWISE_XOR bitwise_and)*
-    ?bitwise_and: comparison  (BITWISE_AND comparison)*
-
-    ?comparison: summation (COMPARATOR summation)*
-    ?summation:  product   (SUMMATOR   product)*
-    ?product:    exponent  (PRODUCTOR  exponent)*
-    ?exponent:   unary     (EXPONENTOR exponent)?
-
-    ?unary: UNATOR unary | atom
-
-    atom: primary (call | "." NAME call?)*
-    call: "(" [arguments] ")"
-
-    ?primary: "(" formula ")"
-            | tuple
-            | list
-            | dict
-            | NUMBER
-            | STRING
-            | VAR
-            | NAME
-
-    tuple: "(" [formula ("," formula?)+ [","]] ")"
-    list:  "[" [formula ("," formula)* [","]] "]"
-    dict:  "{" [pair ("," pair)* [","]] "}"
-    pair:  (STRING | NUMBER | tuple) ":" formula
-
-    arguments: argument ("," argument)* [","]
-    argument:  (formula | pair_arg)
-    pair_arg:  NAME "=" formula
-
-    COMPARATOR: ">" | "<" | "==" | "!=" | ">=" | "<="
-    SUMMATOR:   "+" | "-"
-    PRODUCTOR:  "*" | "/" | "//" | "%"
-    EXPONENTOR: "**"
-    UNATOR:     "~" | "not"
-
-    BITWISE_OR:  "|"
-    BITWISE_XOR: "^"
-    BITWISE_AND: "&"
-
-    NAME: /[a-zA-Z_$][a-zA-Z0-9_$]*/
-
-    VAR: "$" STRING
-
-    %import common.NEWLINE
-    %import common.WS_INLINE
-
-    %ignore WS_INLINE
-    %ignore NEWLINE
-
-    %import common.SIGNED_NUMBER -> NUMBER
-    %import common.ESCAPED_STRING
-
-    STRING: ESCAPED_STRING | SINGLE_QUOTED_STRING
-    SINGLE_QUOTED_STRING: /'(\\.|[^'\\])*'/
-"""
-
 
 class _AttrProxyMeta(type):
     def __getattr__(cls, name):
@@ -334,44 +261,29 @@ class _PolarsUtility(_AttrProxy):
     }
 
 
-@v_args(inline = True)
-class Transformer(Transformer):
+class Evaluator():
 
-    OPERATORS = {'+':  operator.add,
-                 '-':  operator.sub,
-                 '*':  operator.mul,
-                 '/':  operator.truediv,
-                 '//': operator.floordiv,
-                 '%':  operator.mod,
-                 '**': operator.pow,
-                 '^':  operator.xor,
-                 '&':  operator.and_,
-                 '|':  operator.or_,
+    OPERATORS = {ast.Add:      operator.add,
+                 ast.Sub:      operator.sub,
+                 ast.Mult:     operator.mul,
+                 ast.Div:      operator.truediv,
+                 ast.FloorDiv: operator.floordiv,
+                 ast.Mod:      operator.mod,
+                 ast.Pow:      operator.pow,
+                 ast.BitXor:   operator.xor,
+                 ast.BitAnd:   operator.and_,
+                 ast.BitOr:    operator.or_,
 
-                 '>':  operator.gt,
-                 '<':  operator.lt,
-                 '==': operator.eq,
-                 '!=': operator.ne,
-                 '>=': operator.ge,
-                 '<=': operator.le}
+                 ast.Gt:       operator.gt,
+                 ast.Lt:       operator.lt,
+                 ast.Eq:       operator.eq,
+                 ast.NotEq:    operator.ne,
+                 ast.GtE:      operator.ge,
+                 ast.LtE:      operator.le,
 
-    POLARS_OPERATORS = {'+':  'add',
-                        '-':  'sub',
-                        '*':  'mul',
-                        '/':  'truediv',
-                        '//': 'floordiv',
-                        '%':  'mod',
-                        '**': 'pow',
-                        '^':  'xor',
-                        '&':  'and_',
-                        '|':  'or_',
-
-                        '>':  'gt',
-                        '<':  'lt',
-                        '==': 'eq',
-                        '!=': 'ne',
-                        '>=': 'ge',
-                        '<=': 'le'}
+                 ast.Invert:   operator.invert,
+                 ast.USub:     operator.neg,
+                 ast.Not:      operator.not_}
 
     def __init__(self, vars: dict):
         """"""
@@ -396,190 +308,114 @@ class Transformer(Transformer):
                      'Selector':      _PolarsSelector,
                      'Utility':       _PolarsUtility}
 
-        self.vars.update(self._prefix_vars(vars))
+        self.vars.update(vars)
 
-    def _prefix_vars(self, vars):
+    def evaluate(self, formula: str):
         """"""
-        if isinstance(vars, dict):
-            return {self._format_key(k): self._prefix_vars(v) for k, v in vars.items()}
-        return vars
+        tree = ast.parse(formula)
+        result = None
+        for node in tree.body:
+            result = self._visit(node)
+        return result
 
-    def _format_key(self, key):
+    def _visit(self, node):
         """"""
-        return f'$"{key}"' if ' ' in key else f'${key}'
+        if isinstance(node, ast.UnaryOp):
+            op = self.OPERATORS[type(node.op)]
+            operand = self._visit(node.operand)
+            return op(operand)
 
-    def script(self, *args):
+        if isinstance(node, ast.List):
+            return [self._visit(elt) for elt in node.elts]
+
+        if isinstance(node, ast.Tuple):
+            return tuple(self._visit(elt) for elt in node.elts)
+
+        if isinstance(node, ast.Dict):
+            keys = [self._visit(k) for k in node.keys]
+            values = [self._visit(v) for v in node.values]
+            return dict(zip(keys, values))
+
+        if isinstance(node, ast.Expr):
+            return self._visit(node.value)
+
+        if isinstance(node, ast.Assign):
+            target = node.targets[0].id
+            value = self._visit(node.value)
+            self.vars[target] = value
+            return value
+
+        if isinstance(node, ast.Name):
+            if node.id in self.vars:
+                return self.vars[node.id]
+            raise NameError(f"Variable '{node.id}' is not defined.")
+
+        if isinstance(node, ast.Constant):
+            return node.value
+
+        if isinstance(node, ast.Call):
+            func = self._visit(node.func)
+            args = [self._visit(a) for a in node.args]
+            kwargs = {k.arg: self._visit(k.value) for k in node.keywords}
+            return func(*args, **kwargs)
+
+        if isinstance(node, ast.Attribute):
+            obj = self._visit(node.value)
+            return getattr(obj, node.attr)
+
+        if isinstance(node, ast.BinOp):
+            left = self._visit(node.left)
+            right = self._visit(node.right)
+            op = self.OPERATORS[type(node.op)]
+            return op(left, right)
+
+        if isinstance(node, ast.Compare):
+            left = self._visit(node.left)
+            curr = left
+            result = None
+            for op, comp in zip(node.ops, node.comparators):
+                right = self._visit(comp)
+                op = self.OPERATORS[type(op)]
+                comparison = op(curr, right)
+                if result is None:
+                    result = comparison
+                else:
+                    result = result & comparison
+                curr = right
+            return result
+
+        if isinstance(node, ast.BoolOp):
+            values = [self._visit(v) for v in node.values]
+            if isinstance(node.op, ast.And):
+                return reduce(op.and_, values)
+            elif isinstance(node.op, ast.Or):
+                return reduce(op.or_, values)
+            return values
+
+        if isinstance(node, ast.Lambda):
+            return self._create_lambda(node)
+
+        raise TypeError(f"Syntax '{type(node).__name__}' is not allowed.")
+
+    def _create_lambda(self, node):
         """"""
-        if args:
-            return args[-1]
-        return None
+        names = [arg.arg for arg in node.args.args]
 
-    def assignment(self, *args):
-        """"""
-        token, value = args
-        if isinstance(value, Token):
-            value = self.vars[value.value]
-        var = str(token.value)
-        self.vars[var] = value
-        return value
+        def do_create(*values):
+            """"""
+            local_vars = dict(zip(names, values))
 
-    def _bitwise(self, *args):
-        """"""
-        left = args[0]
-        for i in range(1, len(args), 2):
-            op_str = str(args[i])
-            right = args[i+1]
-            if isinstance(left, Token):
-                left = self.vars[left.value]
-            if isinstance(right, Token):
-                right = self.vars[right.value]
-            if isinstance(left, polars.Expr):
-                op = self.POLARS_OPERATORS[op_str]
-                left = getattr(left, op)(right)
-                continue
-            if isinstance(right, polars.Expr):
-                op = self.POLARS_OPERATORS[op_str]
-                if not isinstance(left, polars.Expr):
-                    left = polars.lit(left)
-                left = getattr(left, op)(right)
-                continue
-            op = self.OPERATORS[op_str]
-            left = op(left, right)
-        return left
+            old_vars = self.vars.copy()
+            self.vars.update(local_vars)
 
-    bitwise_or  = _bitwise
-    bitwise_xor = _bitwise
-    bitwise_and = _bitwise
-    comparison  = _bitwise
-    summation   = _bitwise
-    product     = _bitwise
+            try:
+                return self._visit(node.body)
+            except:
+                pass # TODO: show errors to user
+            finally:
+                self.vars = old_vars
 
-    def exponent(self, *args):
-        """"""
-        if len(args) == 1:
-            return args[0]
-        left, op, right = args
-        op = self.OPERATORS[str(op)]
-        return op(left, right)
-
-    def unary(self, *args):
-        """"""
-        if len(args) == 1:
-            return args[0]
-        token, value = args
-        op = str(token).lower()
-        if op in {'~', '-'}:
-            if isinstance(value, polars.Expr):
-                return value.neg()
-            return operator.neg(value)
-        if op == 'not':
-            return operator.not_(value)
-        return value
-
-    def atom(self, *args):
-        """"""
-        obj = args[0]
-        if isinstance(obj, Token):
-            obj = self.vars.get(obj.value)
-        for arg in args[1:]:
-            if isinstance(arg, tuple):
-                _args, _kwargs = arg
-                for idx, arg in enumerate(_args):
-                    if isinstance(arg, Token):
-                        _args[idx] = self.vars[arg.value]
-                for key, arg in _kwargs:
-                    if isinstance(arg, Token):
-                        _kwargs[key] = self.vars[arg.value]
-                obj = obj(*_args, **_kwargs)
-            else:
-                if arg.startswith('_'):
-                    return obj # TODO: show errors to user
-                if not hasattr(obj, arg):
-                    return obj # TODO: show errors to user
-                obj = getattr(obj, arg)
-        return obj
-
-    def call(self, arg):
-        """"""
-        return arg if arg else ([], {})
-
-    def primary(self, arg):
-        """"""
-        if not isinstance(arg, Token):
-            return arg
-        if var := self.vars.get(arg):
-            return var
-        arg = arg.upper()
-        return self.vars.get(arg, arg)
-
-    def tuple(self, *args):
-        """"""
-        return tuple(args)
-
-    def list(self, *args):
-        """"""
-        return list(args)
-
-    def dict(self, *args):
-        """"""
-        return dict(args)
-
-    def pair(self, *args):
-        """"""
-        return args
-
-    def arguments(self, *args):
-        """"""
-        _args = []
-        _kwargs = {}
-        for arg in args:
-            if isinstance(arg, tuple):
-                _kwargs[arg[0]] = arg[1]
-            else:
-                _args.append(arg)
-        return (_args, _kwargs)
-
-    def argument(self, arg):
-        """"""
-        return arg
-
-    def pair_arg(self, *args):
-        """"""
-        return args
-
-    def VAR(self, value: str):
-        """"""
-        value = value.removeprefix('$')
-        value = value.strip("\"'")
-        return self.vars.get(
-            f'$"{value}"',
-            self.vars.get(
-                f"$'{value}'",
-                self.vars.get(f'${value}')
-            )
-        )
-
-    def NAME(self, value: str):
-        """"""
-        return value
-
-    def NUMBER(self, value: str):
-        """"""
-        try:
-            return int(value)
-        except:
-            return float(value)
-
-    def STRING(self, value: str):
-        """"""
-        if value.startswith('"'):
-            return json.loads(value)
-        else:
-            return value[1:-1].replace(r"\'", "'") \
-                              .replace(r"\\", "\\")
-
-
-parser = Lark(_GRAMMAR, parser = 'lalr')
+        return do_create
 
 
 

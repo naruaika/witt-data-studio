@@ -50,7 +50,7 @@ class FormulaEditorWindow(Adw.Window):
         self._setup_source_view()
         self._setup_controllers()
 
-        self.SourceBuffer.set_text(text or '$value')
+        self.SourceBuffer.set_text(text or 'value')
 
     def _setup_source_view(self) -> None:
         """"""

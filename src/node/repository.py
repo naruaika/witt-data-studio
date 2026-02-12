@@ -1553,7 +1553,7 @@ class NodeCustomFormula(NodeTemplate):
         self.frame.do_save    = self.do_save
         self.frame.do_restore = self.do_restore
 
-        self.frame.data['formula'] = '$value'
+        self.frame.data['formula'] = 'value'
 
         self._add_output()
         self._add_input()
@@ -1572,7 +1572,7 @@ class NodeCustomFormula(NodeTemplate):
 
     def do_process(self,
                    pair_socket:  NodeSocket,
-                   in_content: NodeContent,
+                   self_content: NodeContent,
                    ) ->          None:
         """"""
         in_content = self.frame.contents[1]
@@ -1590,13 +1590,10 @@ class NodeCustomFormula(NodeTemplate):
             out_socket.data_type = type(value)
 
         if formula := self.frame.data['formula']:
-            from ..core.parser_custom_formula import Transformer
-            from ..core.parser_custom_formula import parser
+            from ..core.formula_evaluator import Evaluator
             try:
-                vars = {'value': value}
-                tree = parser.parse(formula)
-                transformer = Transformer(vars)
-                value = transformer.transform(tree)
+                variables = {'value': value}
+                value = Evaluator(variables).evaluate(formula)
                 out_socket.data_type = type(value)
             except:
                 pass # TODO: show errors to user
