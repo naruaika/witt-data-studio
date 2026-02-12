@@ -127,12 +127,14 @@ class Application(Adw.Application):
                                  version            = self.VERSION,
                                  copyright          = '© 2025 Naufan Rusyda Faikar',
                                  license_type       = Gtk.License.AGPL_3_0,
-                                 designers          = ['Naufan Rusyda Faikar'],
+                                 designers          = ['Naufan Rusyda Faikar <hello@naruaika.me>'],
                                  developer_name     = 'Naufan Rusyda Faikar',
-                                 developers         = ['Naufan Rusyda Faikar'],
+                                 developers         = ['Naufan Rusyda Faikar <hello@naruaika.me>'],
+                                 artists            = ['Naufan Rusyda Faikar <hello@naruaika.me>'],
                                  issue_url          = f'{repository_url}/issues',
                                  support_url        = f'{repository_url}/discussions',
-                                 translator_credits = _('translator-credits'))
+                                 translator_credits = _('translator-credits'),
+                                 website            = repository_url)
         window = self.get_active_main_window()
         dialog.present(window)
 
