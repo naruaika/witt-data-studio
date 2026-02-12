@@ -26,13 +26,16 @@ Currently in early development. Please don't expect anything to work at this sta
 
 [TODO]
 
-## Background
-
-[TODO]
-
 ## Roadmap
 
-[TODO]
+Currently, we're only outlining the tasks we'll be performing, not the sequence in which they'll be completed. We're not providing a comprehensive to-do list, but rather listing the most interesting features only.
+
+- [ ] Stable node-based data pipeline
+- [ ] Spreadsheet view bound to pipeline
+- [ ] Interactive charts with linked views
+- [ ] Automatic pipeline execution
+- [ ] Self-hostable report export
+- [ ] Project versioning
 
 ## Build & Run
 
