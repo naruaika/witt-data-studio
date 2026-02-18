@@ -232,6 +232,9 @@ class CommandPalette(Adw.Bin):
 
         selected_item = self.Selection.get_selected_item()
 
+        if not selected_item:
+            return
+
         editor = window.get_selected_editor()
         editor.activate_action(selected_item.action_name,
                                selected_item.action_args)

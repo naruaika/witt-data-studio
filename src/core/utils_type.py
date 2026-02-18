@@ -75,13 +75,9 @@ def infer_dtype(value: str) -> Any:
 
 def isiterable(obj: Any) -> bool:
     """"""
-    if isinstance(obj, str):
-        return False
-    try:
-        iter(obj)
-        return True
-    except TypeError:
-        return False
+    from collections.abc import Sequence
+    return isinstance(obj, Sequence) and \
+           not isinstance(obj, (str, bytes, bytearray))
 
 
 def toboolean(string: str) -> bool:

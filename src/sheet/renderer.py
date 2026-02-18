@@ -25,6 +25,7 @@ from cairo import ImageSurface
 from datetime import datetime
 from datetime import date
 from datetime import time
+from datetime import timedelta
 from decimal import Decimal
 from gi.repository import Adw
 from gi.repository import Graphene
@@ -33,6 +34,8 @@ from gi.repository import Pango
 from gi.repository import PangoCairo
 from polars import Series
 import re
+
+from ..core.utils import print_timedelta
 
 from .document import SheetDocument
 from .display import SheetDisplay
@@ -658,9 +661,13 @@ class SheetRenderer():
                 # We don't natively support object types, but in any case the user has perfomed
                 # an operation that returned an object, we want to show it properly in minimal.
                 if _is_an_object:
-                    cell_value = f'[{_('Object')}]'
-                    if isinstance(cell_value, Series):
-                        cell_value = str(cell_value.to_list())
+                    match cell_value:
+                        case _ if isinstance(cell_value, Series):
+                            cell_value = str(cell_value.to_list())
+                        case _ if isinstance(cell_value, timedelta):
+                            cell_value = print_timedelta(cell_value)
+                        case __:
+                            cell_value = f'[{_("Object")}]'
 
                 if cell_value in {'', None}:
                     y += cell_height

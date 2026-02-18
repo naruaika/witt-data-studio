@@ -285,6 +285,7 @@ class SheetEditor(Gtk.Box):
         create_action('remove-duplicate-rows',  lambda *_: self._transform_table('remove-duplicate-rows'))
 
         create_action('sort-rows',              lambda *_: self._transform_table('sort-rows'))
+        create_action('filter-rows',            lambda *_: self._filter_rows())
 
         create_action('new-sheet',              lambda *_: self._add_new_workspace('new-sheet'))
         create_action('custom-formula',         lambda *_: self._write_custom_formula())
@@ -437,6 +438,7 @@ class SheetEditor(Gtk.Box):
         create_command('remove-duplicate-rows', f"{_('Table')}: {get_title_from_layout('remove-duplicate-rows')}...")
 
         create_command('sort-rows',             f"{_('Table')}: {get_title_from_layout('sort-rows')}...")
+        create_command('filter-rows',           f"{_('Table')}: {_('Filter Rows')}...")
 
         create_command('new-workspace',         '$placeholder',
                                                 context = None)
@@ -780,7 +782,7 @@ class SheetEditor(Gtk.Box):
         from polars import UInt32
 
         monitor = Gdk.Display.get_default().get_monitors()[0]
-        max_width = monitor.get_geometry().width // 12
+        max_width = monitor.get_geometry().width // 10
         sample_data = table.head(50).vstack(table.tail(50))
 
         context = self.Canvas.get_pango_context()
@@ -1012,6 +1014,81 @@ class SheetEditor(Gtk.Box):
                                       callback      = do_transform,
                                       transient_for = window,
                                       application   = application)
+        dialog.present()
+
+    def _filter_rows(self) -> None:
+        """"""
+        active = self.selection.current_active_cell
+
+        lcolumn = self.display.get_lcolumn_from_column(active.column)
+        lrow = self.display.get_lrow_from_row(active.row)
+
+        table = self.document.get_table_by_position(lcolumn, lrow)
+
+        table_schema = table.collect_schema()
+
+        if not isinstance(table, DataTable):
+            return False
+
+        window = self.get_root()
+        editor = window.node_editor
+
+        def do_transform(func_args: list[Any] = [],
+                         **kwargs:  dict,
+                         ) ->       bool:
+            """"""
+            window.history.grouping = True
+
+            # Find the related node content
+            contents = self.node.contents[1:-1]
+            for content in contents:
+                box = content.Widget
+                label = box.get_first_child()
+                label = label.get_label()
+                if label == table.tname:
+                    break
+
+            # Find the pair node socket
+            self_content = content
+            self_socket = self_content.Socket
+            link = self_socket.links[0]
+            pair_socket = link.in_socket
+            pair_node = pair_socket.Frame
+
+            # Create a new appropriate node
+            x = self.node.x - 175 - 50
+            y = pair_node.y
+            transformer = editor.create_node('filter-rows', x, y)
+            transformer.set_data(*func_args)
+            editor.add_node(transformer)
+            editor.select_by_click(transformer)
+
+            # Manipulate so that the transformer node seem to
+            # be reconnected to the sheet node
+            self_content.node_uid = id(transformer)
+
+            # Connect the pair node, new node, and self node
+            content = transformer.contents[0]
+            editor.add_link(content.Socket, self_socket)
+            content = transformer.contents[1]
+            editor.add_link(pair_socket, content.Socket)
+
+            editor.auto_arrange(self.node)
+
+            window.history.grouping = False
+
+            self.grab_focus()
+
+        subtitle = f'{self.title} – {table.tname}'
+
+        application = window.get_application()
+
+        from .filter_rows_window import SheetFilterRowsWindow
+        dialog = SheetFilterRowsWindow(subtitle      = subtitle,
+                                       table_schema  = table_schema,
+                                       callback      = do_transform,
+                                       transient_for = window,
+                                       application   = application)
         dialog.present()
 
     def _write_custom_formula(self) -> None:

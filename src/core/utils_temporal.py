@@ -17,6 +17,8 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+from datetime import timedelta
+
 # A comprehensive list of common date formats. Order can be important for
 # performance and ambiguity resolution; more specific formats should be
 # listed before more general ones.
@@ -142,3 +144,25 @@ def get_time_format_string(date_string: str) -> str:
             continue
 
     return None
+
+
+def print_timedelta(td: timedelta) -> str:
+        """"""
+        days = td.days
+        hours, remainder = divmod(td.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        microseconds = td.microseconds
+
+        parts = []
+        if days:
+            parts.append(f'{days}d')
+        if hours:
+            parts.append(f'{hours}h')
+        if minutes:
+            parts.append(f'{minutes}m')
+        if seconds:
+            parts.append(f'{seconds}s')
+        if microseconds:
+            parts.append(f'{microseconds}µs')
+
+        return ' '.join(parts) if parts else '0µs'

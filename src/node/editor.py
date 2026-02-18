@@ -285,6 +285,7 @@ class NodeEditor(Gtk.Overlay):
         create_action('remove-duplicate-rows',  lambda *_: create_node('remove-duplicate-rows'))
 
         create_action('sort-rows',              lambda *_: create_node('sort-rows'))
+        create_action('filter-rows',            lambda *_: create_node('filter-rows'))
 
         create_action('new-sheet',              lambda *_: create_node('new-sheet'))
         create_action('custom-formula',         lambda *_: create_node('custom-formula'))
@@ -449,6 +450,7 @@ class NodeEditor(Gtk.Overlay):
         create_command('remove-duplicate-rows', f"{_('Table')}: {_('Remove Duplicate Rows')}")
 
         create_command('sort-rows',             f"{_('Table')}: {_('Sort Rows')}")
+        create_command('filter-rows',           f"{_('Table')}: {_('Filter Rows')}")
 
         create_command('new-workspace',         '$placeholder')
         create_command('new-sheet',             f"{_('Create')}: {_('Sheet')}")
@@ -629,12 +631,9 @@ class NodeEditor(Gtk.Overlay):
         scroll_x_position = (canvas_width  - viewport_width)  / 2
         scroll_y_position = (canvas_height - viewport_height) / 2
 
-        # TODO: the geometry in the calculation should be made to be
-        # more representative of the actual geometry of the nodes
-
         offset = 175 / 2 + 50 / 2
         x_position = scroll_x_position + (viewport_width  - 175) / 2
-        y_position = scroll_y_position + (viewport_height - 111) / 2
+        y_position = scroll_y_position + (viewport_height - 125) / 2
 
         viewer = NodeViewer.new(x_position + offset, y_position)
         sheet = NodeSheet.new(x_position - offset, y_position)
@@ -751,8 +750,8 @@ class NodeEditor(Gtk.Overlay):
                     x += major_step
                 y += major_step
 
-        has_texture = self._dots_grid_texture is not None
-        zoom_changed = self._prev_zoom == self._curr_zoom
+        has_texture   = self._dots_grid_texture is not None
+        zoom_changed  = self._prev_zoom == self._curr_zoom
         style_changed = self._prev_dark == self._curr_dark
         if has_texture and zoom_changed and style_changed:
             do_draw()
@@ -981,7 +980,6 @@ class NodeEditor(Gtk.Overlay):
             target_center = target.y + (target.get_height() or 125) / 2
 
             y = target_center - group_height / 2
-            x = target.x - frame.get_width() - 50
 
             if root != target:
                 y = target.y
@@ -992,12 +990,14 @@ class NodeEditor(Gtk.Overlay):
                     y = frame.y
 
             for frame in frames:
+                x = target.x - frame.get_width() - 50
+
                 old_pos = (frame.x, frame.y)
                 new_pos = (min(frame.x, x), y)
-                if old_pos == new_pos:
-                    continue
-                positions = (old_pos, new_pos)
-                self.move_node(frame, positions)
+
+                if old_pos != new_pos:
+                    positions = (old_pos, new_pos)
+                    self.move_node(frame, positions)
 
                 y += (frame.get_height() or 125) + 50
 

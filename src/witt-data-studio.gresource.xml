@@ -45,6 +45,7 @@
     <file>node/socket-dark.css</file>
 
     <file preprocess="xml-stripblanks">sheet/editor.ui</file>
+    <file preprocess="xml-stripblanks">sheet/filter_rows_window.ui</file>
     <file preprocess="xml-stripblanks">sheet/transform_window.ui</file>
 
     <file>sheet/style.css</file>
@@ -58,6 +59,7 @@
   <gresource prefix="/com/macipra/witt/icons/scalable/actions/">
     <file preprocess="xml-stripblanks">box-dotted-symbolic.svg</file>
     <file preprocess="xml-stripblanks">check-round-outline-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">clock-alt-symbolic.svg</file>
     <file preprocess="xml-stripblanks">compass2-symbolic.svg</file>
     <file preprocess="xml-stripblanks">edit-find-symbolic.svg</file>
     <file preprocess="xml-stripblanks">exclamation-mark-symbolic.svg</file>
@@ -74,6 +76,7 @@
     <file preprocess="xml-stripblanks">user-home-symbolic.svg</file>
     <file preprocess="xml-stripblanks">value-increase-symbolic.svg</file>
     <file preprocess="xml-stripblanks">value-decrease-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">vcal-symbolic.svg</file>
     <file preprocess="xml-stripblanks">view-conceal-symbolic.svg</file>
     <file preprocess="xml-stripblanks">view-reveal-symbolic.svg</file>
     <file preprocess="xml-stripblanks">window-close-symbolic.svg</file>

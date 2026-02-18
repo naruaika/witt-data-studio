@@ -34,6 +34,70 @@ tabbar.inline tabbox {
     padding-bottom: 0;
 }
 
+calendar {
+    border: none;
+    background: none;
+}
+calendar > header {
+    border: none;
+}
+calendar > header label {
+    font-weight: bold;
+}
+calendar button {
+    border-radius: 50%;
+}
+calendar grid label {
+    min-height: 34px;
+    min-width: 34px;
+    padding: 0;
+    margin: 3px 0;
+    margin-right: 3px;
+    font-size: 10pt;
+    border-radius: 5px;
+}
+calendar grid .day-name {
+    font-weight: bold;
+    opacity: 0.5;
+}
+calendar grid .day-number {
+    border-radius: 50%;
+}
+calendar grid .day-number:not(:selected):hover {
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+}
+calendar grid .day-number.today {
+    box-shadow: none;
+}
+calendar grid .day-number.today:not(:selected) {
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+}
+calendar grid .week-number {
+    min-height: 24px;
+    min-width: 24px;
+    margin: 6px;
+    margin-right: 5px;
+    margin-left: 3px;
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+    font-weight: bold;
+    opacity: 0.5;
+}
+
+.time-picker label {
+    border-radius: 50%;
+    transition-duration: 0.2s;
+}
+.time-picker label:hover {
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+    transition-duration: 0.2s;
+}
+.time-picker button.toggle {
+    min-height: 34px;
+    min-width: 34px;
+    padding: 0;
+    border-radius: 50%;
+}
+
 .button-sm {
     padding: 2px;
     min-height: 20px;
@@ -68,17 +132,42 @@ tabbar.inline tabbox {
     padding-right: 12px;
 }
 
+.entry-separator {
+    min-width: 10px;
+    margin-right: 1px;
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+}
 .floating-sheet {
     background-color: RGB(from var(--shade-color) r g b / calc(alpha * 2));
 }
 
-.horizontal.linked > .vertical.linked button,
-.horizontal.linked > .vertical.linked entry {
+/*
+    This whole thing is very frustrating indeed.
+    This is especially true for the node layout.
+*/
+.horizontal.linked > .vertical.linked > button,
+.horizontal.linked > .vertical.linked > entry {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
 }
-
-.vertical.linked > *:last-child > button {
+.horizontal.linked > .vertical.linked > *:last-child > button {
     border-bottom-left-radius: 9px;
-    border-bottom-right-radius: 9px;
+}
+.vertical.linked > .vertical.linked > *:not(:last-child),
+.vertical.linked > .vertical.linked > *:only-child {
+    border-top-left-radius: 0;
+}
+
+/*
+    We have a specific problem where non-specific selectors
+    can introduce to unwanted styling inside a popover, etc.
+    At the moment, I have no time to properly fix the issue.
+*/
+.horizontal.linked > .vertical.linked > dropdown > button,
+.horizontal.linked > .vertical.linked > box > dropdown > button,
+.horizontal.linked > .vertical.linked > box > button,
+.horizontal.linked > .vertical.linked > box > box > button,
+.horizontal.linked > .vertical.linked > box > box > entry {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
 }

@@ -948,7 +948,7 @@
                                   <object class="GtkButton" id="ChangeDataTypeQButton">
                                     <property name="name">change-data-type</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Data Type</property>
+                                    <property name="tooltip-text" translatable="yes">Change Type</property>
                                     <property name="action-name">win.toolbar</property>
                                     <property name="action-target">'change-data-type'</property>
                                     <child>
@@ -962,7 +962,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Data Type</property>
+                                            <property name="label" translatable="yes">Change Type</property>
                                             <property name="vexpand">true</property>
                                           </object>
                                         </child>
@@ -1621,7 +1621,7 @@
                                   <object class="GtkButton" id="ChangeDataTypeButton">
                                     <property name="name">change-data-type</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Data Type</property>
+                                    <property name="tooltip-text" translatable="yes">Change Type</property>
                                     <property name="action-name">win.toolbar</property>
                                     <property name="action-target">'change-data-type'</property>
                                     <child>
@@ -1635,7 +1635,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Data Type</property>
+                                            <property name="label" translatable="yes">Change Type</property>
                                             <property name="vexpand">true</property>
                                           </object>
                                         </child>

@@ -29,9 +29,9 @@ import json
 from ..core.utils import isiterable
 from ..core.utils import toboolean
 
-class SheetOperationArg(GObject.Object):
+class SheetTransformOpsArg(GObject.Object):
 
-    __gtype_name__ = 'SheetOperationArg'
+    __gtype_name__ = 'SheetTransformOpsArg'
 
     value = GObject.Property(type = str, default = '')
     stype = GObject.Property(type = str, default = 'str')
@@ -72,10 +72,6 @@ class SheetTransformWindow(Adw.Window):
         # Make the window resize its height dynamically
         scrolled_window.set_max_content_height(640)
         scrolled_window.set_propagate_natural_height(True)
-
-        key_event_controller = Gtk.EventControllerKey()
-        key_event_controller.connect('key-pressed', self._on_key_pressed)
-        self.add_controller(key_event_controller)
 
         self.callback = callback
         self.kwargs   = kwargs
@@ -120,6 +116,10 @@ class SheetTransformWindow(Adw.Window):
         GLib.idle_add(self.WindowTitle.set_title, title)
         GLib.idle_add(self.WindowTitle.set_subtitle, subtitle)
 
+        controller = Gtk.EventControllerKey()
+        controller.connect('key-pressed', self._on_key_pressed)
+        self.add_controller(controller)
+
         self.ApplyButton.grab_focus()
 
     def _create_widget(self,
@@ -146,7 +146,7 @@ class SheetTransformWindow(Adw.Window):
         dtype = dtype.removesuffix(':indexed')
 
         if dtype != 'group':
-            ops_arg = SheetOperationArg()
+            ops_arg = SheetTransformOpsArg()
             self.op_args.append(ops_arg)
 
         match dtype:
@@ -203,7 +203,7 @@ class SheetTransformWindow(Adw.Window):
                           options:     dict,
                           default:     str,
                           custom:      bool,
-                          ops_arg:     SheetOperationArg,
+                          ops_arg:     SheetTransformOpsArg,
                           ) ->         None:
         """"""
         combo = Adw.ComboRow(title = title)
@@ -229,7 +229,7 @@ class SheetTransformWindow(Adw.Window):
             self.ContentContainer.add(combo)
 
         if custom:
-            custom_ops_arg = SheetOperationArg()
+            custom_ops_arg = SheetTransformOpsArg()
             entry = Adw.EntryRow(title = _('Custom'))
             group.add(entry)
 
@@ -274,7 +274,7 @@ class SheetTransformWindow(Adw.Window):
     def _create_entry_row(self,
                           title:   str,
                           default: str,
-                          ops_arg: SheetOperationArg,
+                          ops_arg: SheetTransformOpsArg,
                           ) ->     None:
         """"""
         entry = Adw.EntryRow(title = title)
@@ -308,7 +308,7 @@ class SheetTransformWindow(Adw.Window):
                          lower:       int,
                          upper:       int,
                          digits:      int,
-                         ops_arg:     SheetOperationArg,
+                         ops_arg:     SheetTransformOpsArg,
                          ) ->         None:
         """"""
         spin = Adw.SpinRow(title  = title,
@@ -327,7 +327,7 @@ class SheetTransformWindow(Adw.Window):
     def _create_switch_row(self,
                            title:       str,
                            description: str,
-                           ops_arg:     SheetOperationArg,
+                           ops_arg:     SheetTransformOpsArg,
                            ) ->         None:
         """"""
         switch = Adw.SwitchRow(title = title)
@@ -343,7 +343,7 @@ class SheetTransformWindow(Adw.Window):
                            options:     list[str],
                            defaults:    list[str],
                            indexed:     bool,
-                           ops_arg:     SheetOperationArg,
+                           ops_arg:     SheetTransformOpsArg,
                            ) ->         None:
         """"""
         def on_check_toggled(button: Gtk.CheckButton,
@@ -433,7 +433,7 @@ class SheetTransformWindow(Adw.Window):
     def _create_list_entry(self,
                            title:    str,
                            contents: list,
-                           ops_arg:  SheetOperationArg,
+                           ops_arg:  SheetTransformOpsArg,
                            ) ->      None:
         """"""
         group = Adw.PreferencesGroup()
@@ -452,7 +452,7 @@ class SheetTransformWindow(Adw.Window):
         class ItemData():
 
             def __init__(self,
-                         ops_arg: SheetOperationArg,
+                         ops_arg: SheetTransformOpsArg,
                          mdata:   list,
                          idata:   list,
                          index:   int,
@@ -476,40 +476,34 @@ class SheetTransformWindow(Adw.Window):
 
         def add_list_item() -> None:
             """"""
-            entry = Adw.EntryRow(title = title)
-            entry.add_css_class('custom-entry-row')
-            group.add(entry)
+            action = Adw.ActionRow()
+            action.add_css_class('custom-row')
+            group.add(action)
 
-            box = entry.get_first_child()
-            box.set_orientation(Gtk.Orientation.VERTICAL)
-            box.set_margin_top(6)
-            box.set_margin_bottom(6)
-            box.set_spacing(10)
-
-            prefixes = box.get_first_child()
-            editable = prefixes.get_next_sibling()
-            separator = Gtk.Separator(orientation = Gtk.Orientation.VERTICAL)
-            box.insert_child_after(separator, editable)
-
-            suffix = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
-                             spacing     = 6,
-                             homogeneous = True)
-            entry.add_suffix(suffix)
+            box = action.get_first_child()
+            suffixes = box.get_last_child()
+            title_box = suffixes.get_prev_sibling()
+            title_box.set_visible(False)
 
             idata = []
 
+            vbox = Gtk.Box(orientation   = Gtk.Orientation.VERTICAL,
+                           spacing       = 6,
+                           valign        = Gtk.Align.CENTER,
+                           margin_top    = 8,
+                           margin_bottom = 8)
+            action.add_suffix(vbox)
+
             idata.append('')
             item_data = ItemData(ops_arg, mdata, idata, 0)
+            entry = self._create_child_entry(item_data.get_data,
+                                             item_data.set_data)
+            vbox.append(entry)
 
-            def on_entry_changed(widget:     Gtk.Widget,
-                                 param_spec: GObject.ParamSpec,
-                                 item_data:  ItemData,
-                                 ) ->    None:
-                """"""
-                value = widget.get_text()
-                item_data.set_data(value)
-
-            entry.connect('notify::text', on_entry_changed, item_data)
+            container = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
+                                spacing     = 6,
+                                homogeneous = True)
+            vbox.append(container)
 
             for index, content in enumerate(contents):
                 if isiterable(content):
@@ -544,26 +538,27 @@ class SheetTransformWindow(Adw.Window):
                         dropdown = self._create_child_dropdown(item_data.get_data,
                                                                item_data.set_data,
                                                                options)
-                        suffix.append(dropdown)
+                        container.append(dropdown)
 
                     case 'entry':
-                        dropdown = self._create_child_entry(item_data.get_data,
-                                                            item_data.set_data)
-                        suffix.append(dropdown)
+                        entry = self._create_child_entry(item_data.get_data,
+                                                         item_data.set_data)
+                        container.append(entry)
 
             def on_delete_button_clicked(button: Gtk.Button) -> None:
                 """"""
-                group.remove(entry)
-                dat_index = mdata.index(idata)
-                del mdata[dat_index]
+                group.remove(action)
+                index = next(i for i, x in enumerate(mdata) if x is idata)
+                del mdata[index]
                 ops_arg.value = json.dumps(mdata)
 
-            delete_button = Gtk.Button(valign    = Gtk.Align.CENTER,
-                                       icon_name = 'user-trash-symbolic')
-            delete_button.add_css_class('flat')
+            delete_button = Gtk.Button(icon_name     = 'user-trash-symbolic',
+                                       margin_top    = 8,
+                                       margin_bottom = 8)
             delete_button.add_css_class('circular')
+            delete_button.add_css_class('error')
             delete_button.connect('clicked', on_delete_button_clicked)
-            entry.add_suffix(delete_button)
+            action.add_suffix(delete_button)
 
         add_button = Adw.ButtonRow(title           = f'{_('Add')} {title}',
                                    start_icon_name = 'list-add-symbolic')
@@ -581,10 +576,10 @@ class SheetTransformWindow(Adw.Window):
         add_button.activate()
 
     def _create_list_item(self,
-                          title:      str,
-                          contents:   list,
-                          ops_arg:    SheetOperationArg,
-                          ) ->        None:
+                          title:    str,
+                          contents: list,
+                          ops_arg:  SheetTransformOpsArg,
+                          ) ->      None:
         """"""
         group = Adw.PreferencesGroup()
         box = group.get_first_child()
@@ -602,7 +597,7 @@ class SheetTransformWindow(Adw.Window):
         class ItemData():
 
             def __init__(self,
-                         ops_arg: SheetOperationArg,
+                         ops_arg: SheetTransformOpsArg,
                          mdata:   list,
                          idata:   list,
                          index:   int,
@@ -685,14 +680,15 @@ class SheetTransformWindow(Adw.Window):
             def on_delete_button_clicked(button: Gtk.Button) -> None:
                 """"""
                 group.remove(action)
-                dat_index = mdata.index(idata)
-                del mdata[dat_index]
+                index = next(i for i, x in enumerate(mdata) if x is idata)
+                del mdata[index]
                 ops_arg.value = json.dumps(mdata)
 
-            delete_button = Gtk.Button(valign    = Gtk.Align.CENTER,
-                                       icon_name = 'user-trash-symbolic')
-            delete_button.add_css_class('flat')
+            delete_button = Gtk.Button(icon_name     = 'user-trash-symbolic',
+                                       margin_top    = 8,
+                                       margin_bottom = 8)
             delete_button.add_css_class('circular')
+            delete_button.add_css_class('error')
             delete_button.connect('clicked', on_delete_button_clicked)
             action.add_suffix(delete_button)
 
@@ -713,7 +709,7 @@ class SheetTransformWindow(Adw.Window):
 
     def _create_list_switch(self,
                             options: list[str],
-                            ops_arg: SheetOperationArg,
+                            ops_arg: SheetTransformOpsArg,
                             ) ->     None:
         """"""
         group = Adw.PreferencesGroup()
@@ -788,7 +784,7 @@ class SheetTransformWindow(Adw.Window):
             def on_selected(*args) -> None:
                 """"""
                 if do_select():
-                    value = next((key for key, val in options.items() if val == label), None)
+                    value = next((k for k, v in options.items() if v == label), None)
                     set_data(value)
 
             list_item.label.set_label(label)
@@ -844,7 +840,7 @@ class SheetTransformWindow(Adw.Window):
         """"""
         entry = Gtk.Entry(hexpand          = True,
                           valign           = Gtk.Align.CENTER,
-                          placeholder_text = _('Type here...'))
+                          placeholder_text = f'[{_('Empty')}]')
 
         def on_text_changed(entry:      Gtk.Entry,
                             param_spec: GObject.ParamSpec,

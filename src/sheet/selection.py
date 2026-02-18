@@ -165,17 +165,17 @@ class SheetSelection():
         """"""
         active_range = self.current_active_range
         range_column = active_range.column
-        range_row = active_range.row
+        range_row    = active_range.row
 
         # Automatically adjust when the entire sheet is selected
         if range_column == 0 and range_row == 0:
             return
 
         active_cell = self.current_active_cell
-
         cursor_cell = self.current_cursor_cell
+
         cursor_column = cursor_cell.column
-        cursor_row = cursor_cell.row
+        cursor_row    = cursor_cell.row
 
         col_1 = active_cell.column
         row_1 = active_cell.row

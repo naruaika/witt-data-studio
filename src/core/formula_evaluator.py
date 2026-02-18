@@ -270,6 +270,8 @@ class Evaluator():
                  ast.FloorDiv: operator.floordiv,
                  ast.Mod:      operator.mod,
                  ast.Pow:      operator.pow,
+                 ast.UAdd:     operator.pos,
+                 ast.USub:     operator.neg,
                  ast.BitXor:   operator.xor,
                  ast.BitAnd:   operator.and_,
                  ast.BitOr:    operator.or_,

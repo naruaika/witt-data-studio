@@ -288,7 +288,7 @@ class NodeDropdown(Gtk.DropDown):
                  options:  dict,
                  ) ->      None:
         """"""
-        super().__init__()
+        super().__init__(hexpand = True)
 
         def setup_factory(list_item_factory: Gtk.SignalListItemFactory,
                           list_item:         Gtk.ListItem,
@@ -386,7 +386,8 @@ class NodeEntry(Gtk.Button):
                  set_data: callable,
                  ) ->      None:
         """"""
-        default = get_data()
+        from ..core.arithmetic_evaluator import Evaluator
+        evaluator = Evaluator()
 
         box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
                       spacing     = 6)
@@ -399,7 +400,13 @@ class NodeEntry(Gtk.Button):
                               tooltip_text = title)
             box.append(label)
 
-        label = Gtk.Label(label     = default,
+        default = get_data()
+
+        is_empty = default == ''
+
+        text = default if not is_empty else f'[{_('Empty')}]'
+
+        label = Gtk.Label(label     = text,
                           xalign    = 1.0,
                           ellipsize = Pango.EllipsizeMode.END)
         box.append(label)
@@ -410,7 +417,7 @@ class NodeEntry(Gtk.Button):
                        label:  Gtk.Label,
                        ) ->    None:
             """"""
-            value = label.get_label()
+            value = label.get_label() if not is_empty else ''
             entry = Gtk.Entry(text             = value,
                               placeholder_text = title)
 
@@ -431,11 +438,14 @@ class NodeEntry(Gtk.Button):
 
             def do_apply(args: list[Any]) -> None:
                 """"""
+                nonlocal is_empty
+
                 container, button, label, entry = args
                 text = entry.get_text()
 
                 if isinstance(default, (int, float)):
                     try:
+                        text = evaluator.evaluate(text)
                         if isinstance(default, int):
                             text = int(text)
                         if isinstance(default, float):
@@ -443,14 +453,18 @@ class NodeEntry(Gtk.Button):
                     except:
                         return
 
-                label.set_label(str(text))
+                text = str(text)
+                is_empty = text == ''
+                text = text if not is_empty else f'[{_('Empty')}]'
+
+                label.set_label(text)
                 container.insert_child_after(button, entry)
                 entry.unparent()
                 set_data(text)
 
-            def on_activated(spin: Gtk.SpinButton,
-                             args: list[Any],
-                             ) ->  None:
+            def on_activated(entry: Gtk.Entry,
+                             args:  list[Any],
+                             ) ->   None:
                 """"""
                 do_apply(args)
 
@@ -472,20 +486,21 @@ class NodeEntry(Gtk.Button):
             controller.connect('key-pressed', on_key_pressed, args)
             entry.add_controller(controller)
 
-            if isinstance(default, (int, float)):
-                def on_changed(entry: Adw.EntryRow) -> None:
-                    """"""
-                    text = entry.get_text()
-                    try:
-                        if isinstance(default, int):
-                            int(text)
-                        if isinstance(default, float):
-                            float(text)
-                    except:
-                        entry.add_css_class('warning')
-                    else:
-                        entry.remove_css_class('warning')
+            def on_changed(entry: Gtk.Entry) -> None:
+                """"""
+                text = entry.get_text()
+                try:
+                    text = evaluator.evaluate(text)
+                    if isinstance(default, int):
+                        int(text)
+                    if isinstance(default, float):
+                        float(text)
+                except:
+                    entry.add_css_class('warning')
+                else:
+                    entry.remove_css_class('warning')
 
+            if isinstance(default, (int, float)):
                 entry.connect('changed', on_changed)
 
             def do_focus() -> bool:
@@ -545,6 +560,655 @@ class NodeFileChooser(Gtk.Button):
             label.set_label(_('Choose File...'))
             label.set_ellipsize(Pango.EllipsizeMode.END)
         self.set_tooltip_text(value)
+
+
+
+class NodeFilterBuilder(Gtk.Box):
+
+    __gtype_name__ = 'NodeFilterBuilder'
+
+    def __init__(self,
+                 get_data: callable,
+                 set_data: callable,
+                 tschema:  dict,
+                 ) ->      None:
+        """"""
+        super().__init__(orientation = Gtk.Orientation.VERTICAL,
+                         spacing     = 6)
+
+        self.clauses: list = deepcopy(get_data())
+
+        import datetime
+        import gc
+        import polars
+
+        class ItemData():
+
+            def __init__(self,
+                         clauses: list,
+                         clause:  list,
+                         index:   int,
+                         ) ->     None:
+                """"""
+                self.clauses = clauses
+                self.clause  = clause
+                self.index   = index
+
+            def get_data(self) -> str:
+                """"""
+                return self.clause[self.index]
+
+            def set_data(self,
+                         value: str,
+                         ) ->   None:
+                """"""
+                self.clause[self.index] = value
+                set_data(deepcopy(self.clauses))
+
+        def get_operators(dtype: polars.DataType) -> dict:
+            """"""
+            operators = {
+                'is-null':        _('Is Null'),
+                'is-not-null':    _('Is Not Null'),
+                'equals':         _('Equals'),
+                'does-not-equal': _('Does Not Equal'),
+            }
+
+            if dtype.is_(polars.String):
+                operators.update({
+                    'begins-with':         _('Begins With'),
+                    'does-not-begin-with': _('Does Not Begin With'),
+                    'ends-with':           _('Ends With'),
+                    'does-not-end-with':   _('Does Not End With'),
+                    'contains':            _('Contains'),
+                    'does-not-contain':    _('Does Not Contain'),
+                })
+
+            if dtype.is_numeric() or isinstance(dtype, polars.Duration):
+                operators.update({
+                    'is-greater-than':             _('Is Greater Than'),
+                    'is-greater-than-or-equal-to': _('Is Greater Than or Equal To'),
+                    'is-less-than':                _('Is Less Than'),
+                    'is-less-than-or-equal-to':    _('Is Less Than or Equal To'),
+                    'is-between':                  _('Is Between'),
+                    'is-not-between':              _('Is Not Between'),
+                })
+
+            if dtype.is_numeric():
+                operators.update({
+                    'above-average': _('Above Average'),
+                    'below-average': _('Below Average'),
+                })
+
+            if isinstance(dtype, polars.Datetime):
+                operators.update({
+                    'is-before':             _('Is Before'),
+                    'is-before-or-equal-to': _('Is Before or Equal To'),
+                    'is-after':              _('Is After'),
+                    'is-after-or-equal-to':  _('Is After or Equal To'),
+                    'is-between':            _('Is Between'),
+                    'is-not-between':        _('Is Not Between'),
+                    'is-in-the-next':        _('Is in the Next'),
+                    'is-in-the-previous':    _('Is in the Previous'),
+                    'is-earliest':           _('Is Earliest'),
+                    'is-latest':             _('Is Latest'),
+                    'is-not-earliest':       _('Is Not Earliest'),
+                    'is-not-latest':         _('Is Not Latest'),
+                    'is-in-year':            _('Is in Year'),
+                    'is-in-quarter':         _('Is in Quarter'),
+                    'is-in-month':           _('Is in Month'),
+                    'is-in-week':            _('Is in Week'),
+                    'is-in-day':             _('Is in Day'),
+                })
+
+            if dtype.is_(polars.Date):
+                operators.update({
+                    'is-before':             _('Is Before'),
+                    'is-before-or-equal-to': _('Is Before or Equal To'),
+                    'is-after':              _('Is After'),
+                    'is-after-or-equal-to':  _('Is After or Equal To'),
+                    'is-between':            _('Is Between'),
+                    'is-not-between':        _('Is Not Between'),
+                    'is-in-the-next':        _('Is in the Next'),
+                    'is-in-the-previous':    _('Is in the Previous'),
+                    'is-earliest':           _('Is Earliest'),
+                    'is-latest':             _('Is Latest'),
+                    'is-not-earliest':       _('Is Not Earliest'),
+                    'is-not-latest':         _('Is Not Latest'),
+                    'is-in-year':            _('Is in Year'),
+                    'is-in-quarter':         _('Is in Quarter'),
+                    'is-in-month':           _('Is in Month'),
+                    'is-in-week':            _('Is in Week'),
+                    'is-in-day':             _('Is in Day'),
+                })
+
+            if dtype.is_(polars.Time):
+                operators.update({
+                    'is-greater-than':             _('Is Greater Than'),
+                    'is-greater-than-or-equal-to': _('Is Greater Than or Equal To'),
+                    'is-less-than':                _('Is Less Than'),
+                    'is-less-than-or-equal-to':    _('Is Less Than or Equal To'),
+                    'is-between':                  _('Is Between'),
+                    'is-earliest':                 _('Is Earliest'),
+                    'is-latest':                   _('Is Latest'),
+                    'is-not-earliest':             _('Is Not Earliest'),
+                    'is-not-latest':               _('Is Not Latest'),
+                })
+
+            return operators
+
+        def get_subcontents(operator: str) -> list:
+            """"""
+            contents = {
+                'equals':                      [('entry')],
+                'does-not-equal':              [('entry')],
+
+                'begins-with':                 [('entry')],
+                'does-not-begin-with':         [('entry')],
+                'ends-with':                   [('entry')],
+                'does-not-end-with':           [('entry')],
+                'contains':                    [('entry')],
+                'does-not-contain':            [('entry')],
+
+                'is-greater-than':             [('entry')],
+                'is-greater-than-or-equal-to': [('entry')],
+                'is-less-than':                [('entry')],
+                'is-less-than-or-equal-to':    [('entry')],
+                'is-between':                  [('entry'), ('entry')],
+                'is-not-between':              [('entry'), ('entry')],
+
+                'is-before':                   [('entry')],
+                'is-before-or-equal-to':       [('entry')],
+                'is-after':                    [('entry')],
+                'is-after-or-equal-to':        [('entry')],
+                'is-in-the-next':              [('entry'),
+                                                ('dropdown', {'years':    _('Years'),
+                                                              'quarters': _('Quarters'),
+                                                              'months':   _('Months'),
+                                                              'weeks':    _('Weeks'),
+                                                              'days':     _('Days'),
+                                                              'hours':    _('Hours'),
+                                                              'minutes':  _('Minutes'),
+                                                              'seconds':  _('Seconds')})],
+                'is-in-the-previous':          [('entry'),
+                                                ('dropdown', {'years':    _('Years'),
+                                                              'quarters': _('Quarters'),
+                                                              'months':   _('Months'),
+                                                              'weeks':    _('Weeks'),
+                                                              'days':     _('Days'),
+                                                              'hours':    _('Hours'),
+                                                              'minutes':  _('Minutes'),
+                                                              'seconds':  _('Seconds')})],
+                'is-in-year':                  [('dropdown', {'last-year':    _('Last Year'),
+                                                              'this-year':    _('This Year'),
+                                                              'next-year':    _('Next Year'),
+                                                              'year-to-date': _('Year To Date')})],
+                'is-in-quarter':               [('dropdown', {'last-quarter': _('Last Quarter'),
+                                                              'this-quarter': _('This Quarter'),
+                                                              'next-quarter': _('Next Quarter'),
+                                                              'quarter-1':    _('Quarter 1'),
+                                                              'quarter-2':    _('Quarter 2'),
+                                                              'quarter-3':    _('Quarter 3'),
+                                                              'quarter-4':    _('Quarter 4')})],
+                'is-in-month':                 [('dropdown', {'last-month': _('Last Month'),
+                                                              'this-month': _('This Month'),
+                                                              'next-month': _('Next Month'),
+                                                              'january':    _('January'),
+                                                              'february':   _('February'),
+                                                              'march':      _('March'),
+                                                              'april':      _('April'),
+                                                              'may':        _('May'),
+                                                              'june':       _('June'),
+                                                              'july':       _('July'),
+                                                              'august':     _('August'),
+                                                              'september':  _('September'),
+                                                              'october':    _('October'),
+                                                              'november':   _('November'),
+                                                              'december':   _('December')})],
+                'is-in-week':                  [('dropdown', {'last-week': _('Last Week'),
+                                                              'this-week': _('This Week'),
+                                                              'next-week': _('Next Week')})],
+                'is-in-day':                   [('dropdown', {'yesterday': _('Yesterday'),
+                                                              'today':     _('Today'),
+                                                              'tomorrow':  _('Tomorrow')})],
+            }
+
+            if operator in contents:
+                return contents[operator]
+            return []
+
+        def create_child_widget(clause:    list,
+                                index:     int,
+                                content:   tuple,
+                                container: Gtk.Widget,
+                                ) ->       ItemData:
+            """"""
+            def on_operator_selected(row_data: ItemData,
+                                     value:    str,
+                                     ) ->      None:
+                """"""
+                index = next(i for i, x in enumerate(self.clauses) if x is row_data.clause)
+
+                while len(row_data.clause) > 3:
+                    row_data.clause.pop()
+
+                schemas = get_subcontents(value)
+
+                # Find the container where the operator widget is inside
+                row = self.get_first_child()
+                row_idx = 0
+                while row_idx < index:
+                    row = row.get_next_sibling()
+                    row_idx += 1
+                box = row.get_first_child()
+                subbox = box.get_first_child()
+                subbox = subbox.get_next_sibling()
+
+                # Remove the subcontent container if exists
+                container = subbox.get_next_sibling()
+                if container:
+                    box.remove(container)
+
+                if len(schemas) == 0:
+                    row_data.set_data(value)
+                    return
+
+                container = Gtk.Box(orientation = Gtk.Orientation.VERTICAL,
+                                    hexpand     = True)
+                container.add_css_class('linked')
+                box.append(container)
+
+                column_name = row_data.clause[1]
+                dtype = tschema[column_name]
+
+                # Create new blank subcontent widgets
+                for index, schema in enumerate(schemas):
+                    if isiterable(schema):
+                        __, options = schema
+                        default = next(iter(options.keys()))
+                        clause.append(default)
+
+                    if schema == ('entry'):
+                        match dtype:
+                            case __ if dtype.is_integer():
+                                clause.append(0)
+
+                            case __ if dtype.is_numeric():
+                                clause.append(0.0)
+
+                            case __ if isinstance(dtype, polars.Datetime):
+                                if value in {'is-in-the-next',
+                                             'is-in-the-previous'}:
+                                    clause.append(0)
+                                    schema = ('entry')
+                                else:
+                                    now = datetime.datetime.now()
+                                    clause.append(now)
+                                    schema = ('datetime')
+
+                            case __ if dtype.is_(polars.Date):
+                                if value in {'is-in-the-next',
+                                             'is-in-the-previous'}:
+                                    clause.append(0)
+                                    schema = ('entry')
+                                else:
+                                    today = datetime.date.today()
+                                    clause.append(today)
+                                    schema = ('date')
+
+                            case __ if dtype.is_(polars.Time):
+                                now = datetime.datetime.now()
+                                now = datetime.time(now.hour,
+                                                    now.minute,
+                                                    now.second)
+                                clause.append(now)
+                                schema = ('time')
+
+                            case __ if isinstance(dtype, polars.Duration):
+                                clause.append(0)
+                                schema = ('entry')
+
+                            case __ if dtype.is_(polars.Boolean):
+                                clause.append(True)
+                                schema = (
+                                    'radio',
+                                    {
+                                        True:  _('True'),
+                                        False: _('False'),
+                                    },
+                                )
+
+                            case __:
+                                clause.append('')
+
+                    create_child_widget(clause, index + 3, schema, container)
+
+                row_data.clause[row_data.index] = value
+                set_data(deepcopy(self.clauses))
+
+                gc.collect()
+
+            def on_column_selected(row_data: ItemData,
+                                   value:    str,
+                                   ) ->      None:
+                """"""
+                row_data.set_data(value)
+
+                dtype = tschema[value]
+                operators = get_operators(dtype)
+
+                index = next(i for i, x in enumerate(self.clauses) if x is row_data.clause)
+
+                # Find the container where the operator widget is inside
+                row = self.get_first_child()
+                row_idx = 0
+                while row_idx < index:
+                    row = row.get_next_sibling()
+                    row_idx += 1
+                box = row.get_first_child()
+                subbox = box.get_first_child()
+                subbox = subbox.get_next_sibling()
+
+                # Remove the existing operator widget if exists
+                dropdown = subbox.get_first_child()
+                dropdown = dropdown.get_next_sibling()
+                if dropdown:
+                    dropdown.unparent()
+
+                # Create a new operator widget
+                row_data = create_child_widget(clause    = row_data.clause,
+                                               index     = 2,
+                                               content   = ('operator', operators),
+                                               container = subbox)
+
+                # Reset the operator widget value if needed
+                value = row_data.get_data()
+                if value not in operators:
+                    value = next(iter(operators.keys()))
+
+                # Trigger the operator widget signal handler
+                # so that it'll create new subcontent widgets
+                on_operator_selected(row_data, value)
+
+            def restore_subcontents(row_data: ItemData) -> None:
+                """"""
+                value = row_data.get_data()
+                schemas = get_subcontents(value)
+
+                if len(schemas) == 0:
+                    return
+
+                container = Gtk.Box(orientation = Gtk.Orientation.VERTICAL,
+                                    hexpand     = True)
+                container.add_css_class('linked')
+
+                row = self.get_last_child()
+                box = row.get_first_child()
+                box.append(container)
+
+                column_name = row_data.clause[1]
+                dtype = tschema[column_name]
+
+                for index, schema in enumerate(schemas):
+                    if schema == ('entry'):
+                        match dtype:
+                            case __ if isinstance(dtype, polars.Datetime):
+                                if value in {'is-in-the-next',
+                                             'is-in-the-previous'}:
+                                    schema = ('entry')
+                                else:
+                                    schema = ('datetime')
+
+                            case __ if dtype.is_(polars.Date):
+                                if value in {'is-in-the-next',
+                                             'is-in-the-previous'}:
+                                    schema = ('entry')
+                                else:
+                                    schema = ('date')
+
+                            case __ if dtype.is_(polars.Time):
+                                schema = ('time')
+
+                            case __ if isinstance(dtype, polars.Duration):
+                                schema = ('entry')
+
+                            case __ if dtype.is_(polars.Boolean):
+                                schema = (
+                                    'radio',
+                                    {
+                                        True:  _('True'),
+                                        False: _('False'),
+                                    },
+                                )
+
+                    create_child_widget(row_data.clause, index + 3, schema, container)
+
+            wtype = content
+            if isiterable(wtype):
+                wtype, options = wtype
+
+            row_data = ItemData(self.clauses, clause, index)
+
+            match wtype:
+                case 'column':
+                    widget = NodeDropdown(row_data.get_data,
+                                          lambda v: on_column_selected(row_data, v),
+                                          options)
+                    container.append(widget)
+
+                case 'operator':
+                    widget = NodeDropdown(row_data.get_data,
+                                          lambda v: on_operator_selected(row_data, v),
+                                          options)
+                    container.append(widget)
+
+                    if self.is_restoring:
+                        restore_subcontents(row_data)
+
+                case 'date':
+                    widget = NodeDatePicker(row_data.get_data,
+                                            row_data.set_data)
+                    container.append(widget)
+
+                case 'time':
+                    widget = NodeTimePicker(row_data.get_data,
+                                            row_data.set_data)
+                    container.append(widget)
+
+                case 'datetime':
+                    widget = NodeDateTimePicker(row_data.get_data,
+                                                row_data.set_data)
+                    container.append(widget)
+
+                case 'dropdown':
+                    widget = NodeDropdown(row_data.get_data,
+                                          row_data.set_data,
+                                          options)
+                    container.append(widget)
+
+                case 'entry':
+                    widget = NodeEntry(None,
+                                       row_data.get_data,
+                                       row_data.set_data)
+                    container.append(widget)
+
+                case 'radio':
+                    widget = NodeDropdown(row_data.get_data,
+                                          row_data.set_data,
+                                          options)
+                    container.append(widget)
+
+            return row_data
+
+        def setup_uinterface() -> None:
+            """"""
+            dtype = next(iter(tschema.values()))
+
+            contents = [ # for new blank clause
+                (
+                    'radio',
+                    {
+                        'and': _('And'),
+                        'or':  _('Or'),
+                    },
+                ),
+                (
+                    'column',
+                    {c: c for c in list(tschema.keys())},
+                ),
+                (
+                    'operator',
+                    get_operators(dtype),
+                ),
+            ]
+
+            def hide_first_grouper() -> None:
+                """"""
+                if len(self.clauses) == 0:
+                    return
+                box = self.get_first_child()
+                subbox = box.get_first_child()
+                grouper = subbox.get_first_child()
+                grouper.set_visible(False)
+
+            def add_list_item(clause: list) -> None:
+                """"""
+                row = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL)
+                row.add_css_class('linked')
+                self.append(row)
+
+                box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL,
+                              hexpand     = True)
+                box.add_css_class('linked')
+                row.append(box)
+
+                # For the grouper radio buttons
+                subbox = Gtk.Box(hexpand = True)
+                box.append(subbox)
+
+                # Populate the new row with blank widgets
+                if not clause:
+                    for index, content in enumerate(contents):
+                        # Fill the data holder with default valuess
+                        _, options = content
+                        value = next(iter(options.keys()))
+                        clause.append(value)
+
+                        create_child_widget(clause, index, content, subbox)
+
+                        # For the column and operator dropdown buttons
+                        if index == 0:
+                            subbox = Gtk.Box(orientation = Gtk.Orientation.VERTICAL,
+                                             hexpand     = True)
+                            subbox.add_css_class('linked')
+                            box.append(subbox)
+
+                    self.clauses.append(clause)
+
+                # Create widgets based on the given clause data
+                else:
+                    _dtype = tschema.get(clause[1], dtype)
+                    _contents = contents[:-1]
+                    _contents.append(('operator', get_operators(_dtype)))
+
+                    for index, content in enumerate(_contents):
+                        create_child_widget(clause, index, content, subbox)
+
+                        # For the column and operator dropdown buttons
+                        if index == 0:
+                            subbox = Gtk.Box(orientation = Gtk.Orientation.VERTICAL,
+                                             hexpand     = True)
+                            subbox.add_css_class('linked')
+                            box.append(subbox)
+
+                    # Other widgets will be generated automatically after
+                    # creating the operator dropdown button
+
+                def on_delete_button_clicked(button: Gtk.Button) -> None:
+                    """"""
+                    self.remove(row)
+                    index = next(i for i, x in enumerate(self.clauses) if x is clause)
+                    del self.clauses[index]
+                    hide_first_grouper()
+                    set_data(deepcopy(self.clauses))
+
+                delete_button = Gtk.Button(icon_name = 'user-trash-symbolic')
+                delete_button.add_css_class('error')
+                delete_button.connect('clicked', on_delete_button_clicked)
+                row.append(delete_button)
+
+            self.is_restoring = True
+
+            for clause in self.clauses:
+                add_list_item(clause)
+
+            if self.clauses:
+                hide_first_grouper()
+
+            self.is_restoring = False
+
+            content = Adw.ButtonContent(label     = f'{_('Add')} {_('Clause')}',
+                                        icon_name = 'list-add-symbolic')
+            add_button = Gtk.Button(child = content)
+            self.append(add_button)
+
+            def on_add_button_clicked(button: Gtk.Button) -> None:
+                """"""
+                add_list_item([])
+                self.remove(add_button)
+                self.append(add_button)
+                hide_first_grouper()
+                set_data(deepcopy(self.clauses))
+
+            add_button.connect('clicked', on_add_button_clicked)
+
+        setup_uinterface()
+
+
+
+class NodeFormulaEditor(Gtk.Button):
+
+    __gtype_name__ = 'NodeFormulaEditor'
+
+    def __init__(self,
+                 get_data: callable,
+                 set_data: callable,
+                 ) ->      None:
+        """"""
+        label = Gtk.Label(label            = get_data(),
+                          xalign           = 0.0,
+                          ellipsize        = Pango.EllipsizeMode.END,
+                          single_line_mode = True)
+        label.add_css_class('monospace')
+
+        super().__init__(child = label)
+
+        def do_apply(formula: str) -> None:
+            """"""
+            set_data(formula)
+            self.set_data(formula)
+
+        def on_clicked(button: Gtk.Button) -> None:
+            """"""
+            window = self.get_root()
+            application = window.get_application()
+
+            from ..formula_editor_window import FormulaEditorWindow
+            editor_window = FormulaEditorWindow(subtitle      = None,
+                                                callback      = do_apply,
+                                                transient_for = window,
+                                                application   = application,
+                                                text          = get_data())
+            editor_window.present()
+
+        self.connect('clicked', on_clicked)
+
+    def set_data(self,
+                 value: str,
+                 ) ->   None:
+        """"""
+        label = self.get_child()
+        label.set_label(str(value))
 
 
 
@@ -668,11 +1332,12 @@ class NodeListEntry(Gtk.Box):
             def on_delete_button_clicked(button: Gtk.Button) -> None:
                 """"""
                 self.remove(box)
-                dat_index = self._data.index(idata)
-                del self._data[dat_index]
+                index = next(i for i, x in enumerate(self._data) if x is idata)
+                del self._data[index]
                 set_data(deepcopy(self._data))
 
             delete_button = Gtk.Button(icon_name = 'user-trash-symbolic')
+            delete_button.add_css_class('error')
             delete_button.connect('clicked', on_delete_button_clicked)
             box.append(delete_button)
 
@@ -709,7 +1374,7 @@ class NodeListItem(Gtk.Box):
         super().__init__(orientation = Gtk.Orientation.VERTICAL,
                          spacing     = 6)
 
-        self._data = deepcopy(get_data())
+        self._data: list = deepcopy(get_data())
 
         class ItemData():
 
@@ -741,11 +1406,11 @@ class NodeListItem(Gtk.Box):
             self.append(box)
 
             subbox = Gtk.Box(orientation = Gtk.Orientation.VERTICAL,
-                             homogeneous = True,
                              hexpand     = True)
             subbox.add_css_class('linked')
             box.append(subbox)
 
+            # Fill the data holder with default values
             if not idata:
                 for index, content in enumerate(contents):
                     if isiterable(content):
@@ -767,6 +1432,7 @@ class NodeListItem(Gtk.Box):
 
                 self._data.append(idata)
 
+            # Populate the new row with blank widgets
             for index, content in enumerate(contents):
                 if isiterable(content):
                     dtype, options = content
@@ -791,16 +1457,17 @@ class NodeListItem(Gtk.Box):
             def on_delete_button_clicked(button: Gtk.Button) -> None:
                 """"""
                 self.remove(box)
-                dat_index = self._data.index(idata)
-                del self._data[dat_index]
+                index = next(i for i, x in enumerate(self._data) if x is idata)
+                del self._data[index]
                 set_data(deepcopy(self._data))
 
             delete_button = Gtk.Button(icon_name = 'user-trash-symbolic')
+            delete_button.add_css_class('error')
             delete_button.connect('clicked', on_delete_button_clicked)
             box.append(delete_button)
 
-        for __data in self._data:
-            add_list_item(__data)
+        for idata in self._data:
+            add_list_item(idata)
 
         content = Adw.ButtonContent(label     = f'{_('Add')} {title}',
                                     icon_name = 'list-add-symbolic')
@@ -810,11 +1477,54 @@ class NodeListItem(Gtk.Box):
         def on_add_button_clicked(button: Gtk.Button) -> None:
             """"""
             add_list_item([])
-            set_data(deepcopy(self._data))
             self.remove(add_button)
             self.append(add_button)
+            set_data(deepcopy(self._data))
 
         add_button.connect('clicked', on_add_button_clicked)
+
+
+
+class NodeRadio(Gtk.Box):
+
+    __gtype_name__ = 'NodeRadio'
+
+    def __init__(self,
+                 get_data: callable,
+                 set_data: callable,
+                 options:  dict,
+                 ) ->      None:
+        """"""
+        super().__init__(orientation = Gtk.Orientation.VERTICAL,
+                         homogeneous = True,
+                         hexpand     = True)
+
+        self.add_css_class('linked')
+
+        self.handler_ids = []
+
+        primary_button = None
+
+        def on_toggled(check_button: Gtk.CheckButton) -> None:
+            """"""
+            if check_button.get_active():
+                value = check_button.get_label()
+                key = next((k for k, v in options.items() if v == value), None)
+                set_data(key)
+
+        for key, val in options.items():
+            check_button = Gtk.CheckButton(label   = val,
+                                           hexpand = True)
+            check_button.connect('toggled', on_toggled)
+            self.append(check_button)
+
+            if primary_button:
+                check_button.set_group(primary_button)
+            else:
+                primary_button = check_button
+
+            if key == get_data():
+                check_button.set_active(True)
 
 
 
@@ -937,46 +1647,412 @@ class NodeSpinButton(Gtk.Button):
 
 
 
-class NodeFormulaEditor(Gtk.Button):
+class NodeDatePicker(Gtk.Button):
 
-    __gtype_name__ = 'NodeFormulaEditor'
+    __gtype_name__ = 'NodeDatePicker'
 
     def __init__(self,
                  get_data: callable,
                  set_data: callable,
                  ) ->      None:
         """"""
-        label = Gtk.Label(label            = get_data(),
-                          xalign           = 0.0,
-                          ellipsize        = Pango.EllipsizeMode.END,
-                          single_line_mode = True)
-        label.add_css_class('monospace')
+        import datetime
 
-        super().__init__(child = label)
+        entry = Gtk.Entry()
+        entry.add_css_class('node-widget')
 
-        def do_apply(formula: str) -> None:
+        from ..date_picker import DatePicker
+        picker = DatePicker(halign            = Gtk.Align.CENTER,
+                            show_week_numbers = True,
+                            margin_top        = 5,
+                            margin_bottom     = 5,
+                            margin_start      = 5,
+                            margin_end        = 5)
+        popover = Gtk.Popover(child = picker)
+
+        def on_icon_pressed(entry:    Gtk.Entry,
+                            icon_pos: Gtk.EntryIconPosition,
+                            ) ->      None:
             """"""
-            set_data(formula)
-            self.set_data(formula)
+            if icon_pos == Gtk.EntryIconPosition.SECONDARY:
+                rect = entry.get_icon_area(icon_pos)
+                popover.set_pointing_to(rect)
+                popover.popup()
 
-        def on_clicked(button: Gtk.Button) -> None:
+        entry.set_icon_from_icon_name(icon_pos  = Gtk.EntryIconPosition.SECONDARY,
+                                      icon_name = 'vcal-symbolic')
+        entry.connect('icon-press', on_icon_pressed)
+
+        _get_data = lambda: get_data().strftime('%Y-%m-%d')
+
+        def _set_data(value:  str,
+                      submit: bool,
+                      ) ->    None:
             """"""
-            window = self.get_root()
-            application = window.get_application()
+            try:
+                value = datetime.date.fromisoformat(value)
+            except:
+                entry.add_css_class('warning')
+            else:
+                entry.remove_css_class('warning')
+                picker.set_year(value.year)
+                picker.set_month(value.month - 1)
+                picker.set_day(value.day)
+                if submit:
+                    set_data(value)
 
-            from ..formula_editor_window import FormulaEditorWindow
-            editor_window = FormulaEditorWindow(subtitle      = None,
-                                                callback      = do_apply,
-                                                transient_for = window,
-                                                application   = application,
-                                                text          = get_data())
-            editor_window.present()
+        popover.set_parent(entry)
 
-        self.connect('clicked', on_clicked)
+        default = get_data()
+
+        is_empty = default == ''
+
+        box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
+                      spacing     = 6)
+
+        label = Gtk.Label(label     = default or f'[{_('Empty')}]',
+                          xalign    = 1.0,
+                          ellipsize = Pango.EllipsizeMode.END)
+        box.append(label)
+
+        if isinstance(default, datetime.date):
+            picker.set_year(default.year)
+            picker.set_month(default.month)
+            picker.set_day(default.day)
+
+        def on_calendar_updated(widget: DatePicker) -> None:
+            """"""
+            value: datetime.date = get_data()
+            value = value.replace(widget.get_year(),
+                                  widget.get_month() + 1,
+                                  widget.get_day())
+            value = value.strftime('%Y-%m-%d')
+
+            if entry.get_text() != value:
+                entry.remove_css_class('warning')
+                entry.set_text(value)
+
+        picker.connect('day-selected', on_calendar_updated)
+        picker.connect('next-month', on_calendar_updated)
+        picker.connect('next-year', on_calendar_updated)
+        picker.connect('prev-month', on_calendar_updated)
+        picker.connect('prev-year', on_calendar_updated)
+
+        super().__init__(child = box)
+
+        if self.has_css_class('before-socket'):
+            entry.add_css_class('before-socket')
+        if self.has_css_class('after-socket'):
+            entry.add_css_class('after-socket')
+
+        def on_clicked(button: Gtk.Button,
+                       label:  Gtk.Label,
+                       ) ->    None:
+            """"""
+            value = label.get_label() if not is_empty else ''
+            entry.set_text(value)
+
+            container = button.get_parent()
+            container.insert_child_after(entry, button)
+            button.unparent()
+
+            args = (container, button, label, entry)
+
+            def do_apply(args: list[Any]) -> None:
+                """"""
+                nonlocal is_empty
+
+                container, button, label, entry = args
+                text = entry.get_text()
+
+                text = str(text)
+                is_empty = text == ''
+
+                label.set_label(text or f'[{_('Empty')}]')
+                container.insert_child_after(button, entry)
+                entry.unparent()
+                _set_data(text, True)
+
+            def on_activated(entry: Gtk.Entry,
+                             args:  list[Any],
+                             ) ->   None:
+                """"""
+                do_apply(args)
+
+            entry.connect('activate', on_activated, args)
+
+            def on_key_pressed(event:   Gtk.EventControllerKey,
+                               keyval:  int,
+                               keycode: int,
+                               state:   Gdk.ModifierType,
+                               args:    list[Any],
+                               ) ->     bool:
+                """"""
+                if keyval == Gdk.KEY_Escape:
+                    do_apply(args)
+                    return Gdk.EVENT_STOP
+                return Gdk.EVENT_PROPAGATE
+
+            controller = Gtk.EventControllerKey()
+            controller.connect('key-pressed', on_key_pressed, args)
+            entry.add_controller(controller)
+
+            def on_changed(entry: Gtk.Entry) -> None:
+                """"""
+                text = entry.get_text()
+                _set_data(str(text), False)
+
+            entry.connect('changed', on_changed)
+
+            def do_focus() -> bool:
+                """"""
+                entry.grab_focus()
+                return Gdk.EVENT_PROPAGATE
+
+            GLib.timeout_add(50, do_focus)
+
+        self.connect('clicked', on_clicked, label)
 
     def set_data(self,
                  value: str,
                  ) ->   None:
         """"""
-        label = self.get_child()
+        box = self.get_child()
+        label = box.get_last_child()
         label.set_label(str(value))
+
+
+
+class NodeTimePicker(Gtk.Button):
+
+    __gtype_name__ = 'NodeTimePicker'
+
+    def __init__(self,
+                 get_data: callable,
+                 set_data: callable,
+                 ) ->      None:
+        """"""
+        import datetime
+
+        entry = Gtk.Entry()
+        entry.add_css_class('node-widget')
+
+        from ..time_picker import TimePicker
+        picker = TimePicker(halign = Gtk.Align.CENTER,
+                            valign = Gtk.Align.CENTER)
+        popover = Gtk.Popover(child = picker)
+
+        def on_icon_pressed(entry:    Gtk.Entry,
+                            icon_pos: Gtk.EntryIconPosition,
+                            ) ->      None:
+            """"""
+            if icon_pos == Gtk.EntryIconPosition.SECONDARY:
+                picker.set_mode(picker.MODE_HOUR)
+                rect = entry.get_icon_area(icon_pos)
+                popover.set_pointing_to(rect)
+                popover.popup()
+
+        entry.set_icon_from_icon_name(icon_pos  = Gtk.EntryIconPosition.SECONDARY,
+                                      icon_name = 'clock-alt-symbolic')
+        entry.connect('icon-press', on_icon_pressed)
+
+        _get_data = lambda: get_data().strftime('%H:%M:%S')
+
+        def _set_data(value:  str,
+                      submit: bool,
+                      ) ->    None:
+            """"""
+            try:
+                value = datetime.time.fromisoformat(value)
+            except:
+                entry.add_css_class('warning')
+            else:
+                entry.remove_css_class('warning')
+                picker.set_hour(value.hour)
+                picker.set_minute(value.minute)
+                picker.set_second(value.second)
+                if submit:
+                    set_data(value)
+
+        popover.set_parent(entry)
+
+        default = get_data()
+
+        is_empty = default == ''
+
+        box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
+                      spacing     = 6)
+
+        label = Gtk.Label(label     = default or f'[{_('Empty')}]',
+                          xalign    = 1.0,
+                          ellipsize = Pango.EllipsizeMode.END)
+        box.append(label)
+
+        if isinstance(default, datetime.time):
+            picker.set_hour(default.hour)
+            picker.set_minute(default.minute)
+            picker.set_second(default.second)
+
+        def on_time_updated(widget: TimePicker) -> None:
+            """"""
+            value: datetime.time = get_data()
+            value = value.replace(widget.get_hour(),
+                                  widget.get_minute(),
+                                  widget.get_second())
+            value = value.strftime('%H:%M:%S')
+
+            if entry.get_text() != value:
+                entry.remove_css_class('warning')
+                entry.set_text(value)
+
+        picker.connect('time-updated', on_time_updated)
+
+        super().__init__(child = box)
+
+        if self.has_css_class('before-socket'):
+            entry.add_css_class('before-socket')
+        if self.has_css_class('after-socket'):
+            entry.add_css_class('after-socket')
+
+        def on_clicked(button: Gtk.Button,
+                       label:  Gtk.Label,
+                       ) ->    None:
+            """"""
+            value = label.get_label() if not is_empty else ''
+            entry.set_text(value)
+
+            container = button.get_parent()
+            container.insert_child_after(entry, button)
+            button.unparent()
+
+            args = (container, button, label, entry)
+
+            def do_apply(args: list[Any]) -> None:
+                """"""
+                nonlocal is_empty
+
+                container, button, label, entry = args
+                text = entry.get_text()
+
+                text = str(text)
+                is_empty = text == ''
+
+                label.set_label(text or f'[{_('Empty')}]')
+                container.insert_child_after(button, entry)
+                entry.unparent()
+                _set_data(text, True)
+
+            def on_activated(entry: Gtk.Entry,
+                             args:  list[Any],
+                             ) ->   None:
+                """"""
+                do_apply(args)
+
+            entry.connect('activate', on_activated, args)
+
+            def on_key_pressed(event:   Gtk.EventControllerKey,
+                               keyval:  int,
+                               keycode: int,
+                               state:   Gdk.ModifierType,
+                               args:    list[Any],
+                               ) ->     bool:
+                """"""
+                if keyval == Gdk.KEY_Escape:
+                    do_apply(args)
+                    return Gdk.EVENT_STOP
+                return Gdk.EVENT_PROPAGATE
+
+            controller = Gtk.EventControllerKey()
+            controller.connect('key-pressed', on_key_pressed, args)
+            entry.add_controller(controller)
+
+            def on_changed(entry: Gtk.Entry) -> None:
+                """"""
+                text = entry.get_text()
+                _set_data(str(text), False)
+
+            entry.connect('changed', on_changed)
+
+            def do_focus() -> bool:
+                """"""
+                entry.grab_focus()
+                return Gdk.EVENT_PROPAGATE
+
+            GLib.timeout_add(50, do_focus)
+
+        self.connect('clicked', on_clicked, label)
+
+    def set_data(self,
+                 value: str,
+                 ) ->   None:
+        """"""
+        box = self.get_child()
+        label = box.get_last_child()
+        label.set_label(str(value))
+
+
+
+class NodeDateTimePicker(Gtk.Box):
+
+    __gtype_name__ = 'NodeDateTimePicker'
+
+    def __init__(self,
+                 get_data: callable,
+                 set_data: callable,
+                 ) ->      None:
+        """"""
+        import datetime
+
+        default: datetime.datetime = get_data()
+
+        super().__init__(orientation = Gtk.Orientation.VERTICAL,
+                         hexpand     = True)
+        self.add_css_class('linked')
+
+        current_date = default.date()
+        current_time = default.time()
+
+        def update_datetime() -> None:
+            """"""
+            try:
+                new_datetime = datetime.datetime.combine(current_date,
+                                                         current_time)
+            except:
+                return
+
+            set_data(new_datetime)
+
+        def get_date() -> datetime.date:
+            """"""
+            return current_date
+
+        def set_date(new_date: datetime.date) -> None:
+            """"""
+            nonlocal current_date
+            current_date = new_date
+            update_datetime()
+
+        def get_time() -> datetime.time:
+            """"""
+            return current_time
+
+        def set_time(new_time: datetime.time) -> None:
+            """"""
+            nonlocal current_time
+            current_time = new_time
+            update_datetime()
+
+        self._date = NodeDatePicker(get_date, set_date)
+        self._time = NodeTimePicker(get_time, set_time)
+
+        self.append(self._date)
+        self.append(self._time)
+
+    def set_data(self,
+                 value: str,
+                 ) ->   None:
+        """"""
+        from datetime import datetime
+        value = datetime.fromisoformat(value)
+        self._date.set_data(value.date().isoformat())
+        self._time.set_data(value.time().isoformat())

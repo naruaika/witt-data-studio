@@ -354,23 +354,23 @@ class FileImportWindow(Adw.Window):
             sheet = NodeSheet.new(*target_position)
             editor.add_node(sheet)
 
-        # Create a new reader node
-        target_position = (sheet.x - 175 - 50, sheet.y)
-        reader = NodeReadFile.new(*target_position)
-        editor.add_node(reader)
-
         # Link the sheet to the viewer node if needed
         if not sheet.has_view():
             in_socket = sheet.contents[0].Socket
             out_socket = viewer.contents[-1].Socket
             editor.add_link(in_socket, out_socket)
 
+        editor.auto_arrange(viewer)
+
+        # Create a new reader node
+        target_position = (sheet.x - 175 - 50, sheet.y)
+        reader = NodeReadFile.new(*target_position)
+        editor.add_node(reader)
+
         # Link the reader to the sheet node
         in_socket = reader.contents[0].Socket
         out_socket = sheet.contents[-1].Socket
         editor.add_link(in_socket, out_socket)
-
-        editor.auto_arrange(viewer)
 
         window.activate_action('win.focus-editor')
         # TODO: go to the tab if reusing a sheet
@@ -447,7 +447,7 @@ class FileImportWindow(Adw.Window):
         # version of the file, so it'll be a huge benefit sometimes.
         if dataframe is None:
             kwargs = self._get_current_settings(read_only)
-            dataframe = FileManager.read_file(self.file_path,
+            dataframe = FileManager.read_file(file_path   = self.file_path,
                                               sample_size = self.DATA_SAMPLE_SIZE,
                                               u_kwargs    = self.u_kwargs,
                                               eager_load  = True,
