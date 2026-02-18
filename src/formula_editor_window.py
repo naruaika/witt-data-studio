@@ -22,7 +22,7 @@ from gi.repository import Gdk
 from gi.repository import Gtk
 from gi.repository import GtkSource
 
-@Gtk.Template(resource_path = '/com/macipra/witt/formula_editor_window.ui')
+@Gtk.Template(resource_path = '/com/wittara/studio/formula_editor_window.ui')
 class FormulaEditorWindow(Adw.Window):
 
     __gtype_name__ = 'FormulaEditorWindow'

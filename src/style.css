@@ -1,10 +1,10 @@
-@import url('resource://com/macipra/witt/command-palette.css');
-@import url('resource://com/macipra/witt/status-bar.css');
-@import url('resource://com/macipra/witt/toolbar.css');
-@import url('resource://com/macipra/witt/window.css');
+@import url('resource://com/wittara/studio/command-palette.css');
+@import url('resource://com/wittara/studio/status-bar.css');
+@import url('resource://com/wittara/studio/toolbar.css');
+@import url('resource://com/wittara/studio/window.css');
 
-@import url('resource://com/macipra/witt/node/style.css');
-@import url('resource://com/macipra/witt/sheet/style.css');
+@import url('resource://com/wittara/studio/node/style.css');
+@import url('resource://com/wittara/studio/sheet/style.css');
 
 flowbox.navigation-sidebar {
     padding: 0 2px;

@@ -22,7 +22,7 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
 
-@Gtk.Template(resource_path = '/com/macipra/witt/chart/editor.ui')
+@Gtk.Template(resource_path = '/com/wittara/studio/chart/editor.ui')
 class ChartEditor(Gtk.Overlay):
 
     __gtype_name__ = 'ChartEditor'

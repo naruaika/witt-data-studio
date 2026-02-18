@@ -33,7 +33,7 @@ class Application(Adw.Application):
     WIBOOK_VERSION = '1.0'
 
     def __init__(self,
-                 app_id:  str = 'com.macipra.witt',
+                 app_id:  str = 'com.wittara.studio',
                  version: str = '0.1.0',
                  ) ->     None:
         """"""
@@ -43,7 +43,7 @@ class Application(Adw.Application):
         flags = Gio.ApplicationFlags.HANDLES_COMMAND_LINE | Gio.ApplicationFlags.HANDLES_OPEN
         super().__init__(application_id     = self.APP_ID,
                          flags              = flags,
-                         resource_base_path = '/com/macipra/witt')
+                         resource_base_path = '/com/wittara/studio')
 
         self._setup_actions()
         self._setup_controllers()

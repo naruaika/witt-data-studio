@@ -49,7 +49,7 @@ class SheetFilterRowData():
         self.clause[self.index] = value
 
 
-@Gtk.Template(resource_path = '/com/macipra/witt/sheet/filter_rows_window.ui')
+@Gtk.Template(resource_path = '/com/wittara/studio/sheet/filter_rows_window.ui')
 class SheetFilterRowsWindow(Adw.Window):
 
     __gtype_name__ = 'SheetFilterRowsWindow'

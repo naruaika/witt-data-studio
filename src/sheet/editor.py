@@ -57,7 +57,7 @@ FLOAT_TYPES    = {Float32, Float64}
 INTEGER_TYPES  = {Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64}
 TEMPORAL_TYPES = {Date, Time, Datetime, Duration}
 
-@Gtk.Template(resource_path = '/com/macipra/witt/sheet/editor.ui')
+@Gtk.Template(resource_path = '/com/wittara/studio/sheet/editor.ui')
 class SheetEditor(Gtk.Box):
 
     __gtype_name__ = 'SheetEditor'

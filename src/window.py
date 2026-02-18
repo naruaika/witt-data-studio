@@ -39,7 +39,7 @@ Editor: TypeAlias = NodeEditor  | \
                     ChartEditor | \
                     SheetEditor
 
-@Gtk.Template(resource_path = '/com/macipra/witt/window.ui')
+@Gtk.Template(resource_path = '/com/wittara/studio/window.ui')
 class Window(Adw.ApplicationWindow):
 
     __gtype_name__ = 'Window'

@@ -65,7 +65,7 @@ def load_excel_file(excel_reader: ExcelReader,
 
 
 
-@Gtk.Template(resource_path = '/com/macipra/witt/file_import_window.ui')
+@Gtk.Template(resource_path = '/com/wittara/studio/file_import_window.ui')
 class FileImportWindow(Adw.Window):
 
     __gtype_name__ = 'FileImportWindow'

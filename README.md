@@ -1,4 +1,4 @@
-<img src="data/icons/hicolor/scalable/apps/com.macipra.witt.svg" width="115px" align="left">
+<img src="data/icons/hicolor/scalable/apps/com.wittara.studio.svg" width="115px" align="left">
 
 # Witt Data Studio
 
@@ -38,7 +38,7 @@ Currently, we're only outlining the tasks we'll be performing, not the sequence 
 
 ## Build & Run
 
-The recommended way to build and run this project is using [GNOME Builder](https://apps.gnome.org/Builder/). Select the default manifest file (`com.macipra.witt.json`) and click the `Run` button.
+The recommended way to build and run this project is using [GNOME Builder](https://apps.gnome.org/Builder/). Select the default manifest file (`com.wittara.studio.json`) and click the `Run` button.
 
 ## Development
 
@@ -54,7 +54,7 @@ Execute the following commands in the terminal to install the dependencies (on F
 sudo dnf install flatpak flatpak-builder --assumeyes
 ```
 
-Select the `com.macipra.witt.Devel.json` manifest file by typing in the command palette (<kbd>F1</kbd> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>) and running `Flatpak: Select or Change Active Manifest`.
+Select the `com.wittara.studio.Devel.json` manifest file by typing in the command palette (<kbd>F1</kbd> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>) and running `Flatpak: Select or Change Active Manifest`.
 
 Create the `run.sh` file in the `build-aux/` directory:
 
@@ -123,7 +123,7 @@ source .pyenv/bin/activate
 pip install -r build-aux/requirements-devel.txt
 ```
 
-To add new dependencies using [`pip`](https://packaging.python.org/en/latest/key_projects/#pip) to the [`flatpak-builder`](https://docs.flatpak.org/en/latest/flatpak-builder.html) manifest json file, you can use the [`flatpak-pip-generator`](https://github.com/flatpak/flatpak-builder-tools/tree/master/pip). Either adding the reference to the `com.macipra.witt*.json` files or copy-pasting the content directly into the manifest files and delete the generated file. Do not forget to update the `requirements*.txt` files as well.
+To add new dependencies using [`pip`](https://packaging.python.org/en/latest/key_projects/#pip) to the [`flatpak-builder`](https://docs.flatpak.org/en/latest/flatpak-builder.html) manifest json file, you can use the [`flatpak-pip-generator`](https://github.com/flatpak/flatpak-builder-tools/tree/master/pip). Either adding the reference to the `com.wittara.studio*.json` files or copy-pasting the content directly into the manifest files and delete the generated file. Do not forget to update the `requirements*.txt` files as well.
 
 When it comes to the plugin development, usually I do the following steps:
 
@@ -145,7 +145,7 @@ Do not forget to run `Run Flatpak: Update Dependencies` in the command palette b
 We can use `journalctl` to debug the release version of the application, for example:
 
 ```sh
-journalctl --user -f | grep -E "flatpak|portal|gnome|com.macipra.witt"
+journalctl --user -f | grep -E "flatpak|portal|gnome|com.wittara.studio"
 ```
 
 Open and interact with the application to trigger the error and watch the console for the messages.
@@ -153,7 +153,7 @@ Open and interact with the application to trigger the error and watch the consol
 We also can benefit from `busctl` when debugging the D-Bus connections, for instance:
 
 ```sh
-busctl --user monitor com.macipra.witt
+busctl --user monitor com.wittara.studio
 ```
 
 ## Licenses

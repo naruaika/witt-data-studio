@@ -1,4 +1,4 @@
-@import url('resource://com/macipra/witt/toolbar.css');
+@import url('resource://com/wittara/studio/toolbar.css');
 
 .mtoolbar-view {
     background-color: var(--headerbar-bg-color);

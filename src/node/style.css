@@ -1,5 +1,5 @@
-@import url('resource://com/macipra/witt/node/editor.css');
-@import url('resource://com/macipra/witt/node/canvas.css');
-@import url('resource://com/macipra/witt/node/frame.css');
-@import url('resource://com/macipra/witt/node/content.css');
-@import url('resource://com/macipra/witt/node/socket.css');
+@import url('resource://com/wittara/studio/node/editor.css');
+@import url('resource://com/wittara/studio/node/canvas.css');
+@import url('resource://com/wittara/studio/node/frame.css');
+@import url('resource://com/wittara/studio/node/content.css');
+@import url('resource://com/wittara/studio/node/socket.css');

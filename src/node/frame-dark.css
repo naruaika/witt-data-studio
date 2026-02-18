@@ -1,4 +1,4 @@
-@import url('resource://com/macipra/witt/node/frame.css');
+@import url('resource://com/wittara/studio/node/frame.css');
 
 .node-frame {
     background-color: var(--sidebar-bg-color);

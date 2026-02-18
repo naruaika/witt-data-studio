@@ -25,7 +25,7 @@ from .node.editor import NodeEditor
 from .chart.editor import ChartEditor
 from .sheet.editor import SheetEditor
 
-@Gtk.Template(resource_path = '/com/macipra/witt/toolbar.ui')
+@Gtk.Template(resource_path = '/com/wittara/studio/toolbar.ui')
 class Toolbar(Gtk.Box):
 
     __gtype_name__ = 'Toolbar'

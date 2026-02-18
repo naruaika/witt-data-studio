@@ -34,7 +34,7 @@ class NodeFrameType(Enum):
     TARGET = 2
 
 
-@Gtk.Template(resource_path = '/com/macipra/witt/node/frame.ui')
+@Gtk.Template(resource_path = '/com/wittara/studio/node/frame.ui')
 class NodeFrame(Adw.Bin):
 
     __gtype_name__ = 'NodeFrame'

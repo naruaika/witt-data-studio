@@ -37,7 +37,7 @@ class SheetTransformOpsArg(GObject.Object):
     stype = GObject.Property(type = str, default = 'str')
 
 
-@Gtk.Template(resource_path = '/com/macipra/witt/sheet/transform_window.ui')
+@Gtk.Template(resource_path = '/com/wittara/studio/sheet/transform_window.ui')
 class SheetTransformWindow(Adw.Window):
 
     __gtype_name__ = 'SheetTransformWindow'

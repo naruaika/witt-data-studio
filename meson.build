@@ -14,7 +14,7 @@ else
   profile = ''
 endif
 
-base_application_id = 'com.macipra.witt'
+base_application_id = 'com.wittara.studio'
 application_id      = base_application_id + profile
 
 pkgdatadir = get_option('prefix') / get_option('datadir') / meson.project_name()

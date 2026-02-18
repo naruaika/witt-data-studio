@@ -26,7 +26,7 @@ from .sheet.editor import SheetEditor
 
 from .core.datatable import DataTable
 
-@Gtk.Template(resource_path = '/com/macipra/witt/status_bar.ui')
+@Gtk.Template(resource_path = '/com/wittara/studio/status_bar.ui')
 class StatusBar(Gtk.Box):
 
     __gtype_name__ = 'StatusBar'

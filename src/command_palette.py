@@ -58,7 +58,7 @@ class CommandListItem(GObject.Object):
         self.is_recent_item = is_recent_item
 
 
-@Gtk.Template(resource_path = '/com/macipra/witt/command_palette.ui')
+@Gtk.Template(resource_path = '/com/wittara/studio/command_palette.ui')
 class CommandPalette(Adw.Bin):
 
     __gtype_name__ = 'CommandPalette'

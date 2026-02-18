@@ -62,7 +62,7 @@ class NodeEditorGroup():
 
 
 
-@Gtk.Template(resource_path = '/com/macipra/witt/node/editor.ui')
+@Gtk.Template(resource_path = '/com/wittara/studio/node/editor.ui')
 class NodeEditor(Gtk.Overlay):
 
     __gtype_name__ = 'NodeEditor'

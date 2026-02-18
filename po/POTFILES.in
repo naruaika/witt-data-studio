@@ -1,8 +1,8 @@
 # List of source files containing translatable strings.
 # Please keep this file sorted alphabetically.
-data/com.macipra.witt.desktop.in
-data/com.macipra.witt.metainfo.xml.in
-data/com.macipra.witt.gschema.xml
+data/com.wittara.studio.desktop.in
+data/com.wittara.studio.metainfo.xml.in
+data/com.wittara.studio.gschema.xml
 src/main.py
 src/window.py
 src/window.ui
