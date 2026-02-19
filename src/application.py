@@ -195,6 +195,7 @@ class Application(Adw.Application):
         from .node.canvas import NodeCanvas
         from .node.minimap import NodeMinimap
         from .sheet.canvas import SheetCanvas
+        from .sheet.formula_bar import SheetFormulaBar
 
         GObject.type_register(GtkSource.View)
         GObject.type_register(WebKit.WebView)
@@ -204,6 +205,7 @@ class Application(Adw.Application):
         GObject.type_register(NodeCanvas)
         GObject.type_register(NodeMinimap)
         GObject.type_register(SheetCanvas)
+        GObject.type_register(SheetFormulaBar)
 
         Config.set_tbl_width_chars(-1)
         Config.set_fmt_str_lengths(20)

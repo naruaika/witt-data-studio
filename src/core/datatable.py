@@ -68,19 +68,21 @@ class BoundingBox():
 class DataTable(DataFrame):
 
     def __init__(self,
-                 tname:        str,
-                 content:      DataFrame,
-                 with_header:  bool,
-                 bounding_box: BoundingBox,
-                 placeholder:  bool  = False,
-                 query_plan:   bytes = None,
-                 ) ->          None:
+                 tname:         str,
+                 content:       DataFrame,
+                 with_header:   bool,
+                 bounding_box:  BoundingBox,
+                 placeholder:   bool  = False,
+                 query_plan:    bytes = None,
+                 error_message: str   = None,
+                 ) ->           None:
         """"""
         super().__init__(content)
 
-        self.content      = content
-        self.tname        = tname
-        self.with_header  = with_header
-        self.bounding_box = bounding_box
-        self.placeholder  = placeholder
-        self.query_plan   = query_plan
+        self.content       = content
+        self.tname         = tname
+        self.with_header   = with_header
+        self.bounding_box  = bounding_box
+        self.placeholder   = placeholder
+        self.query_plan    = query_plan
+        self.error_message = error_message

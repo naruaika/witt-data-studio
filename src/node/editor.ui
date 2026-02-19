@@ -53,6 +53,7 @@
       </object>
     </child>
     <style>
+      <class name="editor-view"/>
       <class name="node-editor"/>
     </style>
   </template>

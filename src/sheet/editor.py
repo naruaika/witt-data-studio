@@ -63,6 +63,7 @@ class SheetEditor(Gtk.Box):
     __gtype_name__ = 'SheetEditor'
 
     Container           = Gtk.Template.Child()
+    FormulaBar          = Gtk.Template.Child()
     Canvas              = Gtk.Template.Child()
     HorizontalScrollbar = Gtk.Template.Child()
     VerticalScrollbar   = Gtk.Template.Child()
@@ -125,11 +126,6 @@ class SheetEditor(Gtk.Box):
                    refresh: bool = True,
                    ) ->     None:
         """"""
-        # TODO: this potentially introduces unnecessary re-rendering
-        # unless we can unsure that it does nothing when the scrolls
-        # unchanged.
-        self.view.update_by_scroll()
-
         from ..window import Window
         window = self.get_root()
 
@@ -142,6 +138,8 @@ class SheetEditor(Gtk.Box):
                 GLib.idle_add(window.Toolbar.populate)
             GLib.idle_add(window.StatusBar.populate)
 
+        self.view.update_by_scroll()
+        self.update_formula_bar()
         self.queue_draw(refresh)
 
     def cleanup(self) -> None:
@@ -154,7 +152,7 @@ class SheetEditor(Gtk.Box):
         """"""
         if refresh:
             self.Canvas.cleanup()
-        self.Canvas.queue_draw()
+            self.Canvas.queue_draw()
 
     def queue_resize(self) -> None:
         """"""
@@ -172,9 +170,9 @@ class SheetEditor(Gtk.Box):
 
         variables = {}
 
-        active_cell = self.selection.current_active_cell
-        lcolumn = self.display.get_lcolumn_from_column(active_cell.column)
-        lrow = self.display.get_lrow_from_row(active_cell.row)
+        active = self.selection.current_active_cell
+        lcolumn = self.display.get_lcolumn_from_column(active.column)
+        lrow = self.display.get_lrow_from_row(active.row)
 
         table, column_name = self.document.get_table_column_by_position(lcolumn, lrow)
         table_focus = isinstance(table, DataTable) and not table.placeholder
@@ -768,6 +766,50 @@ class SheetEditor(Gtk.Box):
     def reposition_sheet_widgets(self) -> None:
         """"""
         self.document.reposition_table_widgets()
+
+    def update_formula_bar(self) -> None:
+        """"""
+        from datetime import datetime
+        from datetime import date
+        from datetime import time
+        from datetime import timedelta
+        from decimal import Decimal
+        from polars import Series
+
+        from ..core.utils import print_timedelta
+
+        active = self.selection.current_active_cell
+        lcolumn = self.display.get_lcolumn_from_column(active.column)
+        lrow = self.display.get_lrow_from_row(active.row)
+        table = self.document.get_table_by_position(lcolumn, lrow)
+
+        cell_data = self.selection.current_cell_data
+
+        if table is not None and table.error_message:
+            cell_data = table.error_message
+
+        cell_data = '' if cell_data is None else cell_data
+
+        # We don't natively support object types, but in any case the user has perfomed
+        # an operation that returned an object, we want to show it properly in minimal.
+        if not isinstance(cell_data, (str, int, float, Decimal, date, time, datetime)):
+            match cell_data:
+                case _ if isinstance(cell_data, Series):
+                    cell_data = cell_data.to_list()
+                case _ if isinstance(cell_data, timedelta):
+                    cell_data = print_timedelta(cell_data)
+                case __:
+                    cell_data = f'[{_('Object')}]'
+
+        cell_name  = self.selection.current_cell_name
+        cell_data  = str(cell_data)
+        cell_dtype = self.selection.current_cell_dtype
+
+        if table is not None and table.error_message:
+            cell_dtype = ''
+
+        parameter = GLib.Variant('as', [cell_name, cell_data, cell_dtype])
+        self.activate_action('formula.update-formula-bar', parameter)
 
     def _readjust_column_widths_by_table(self,
                                          table: DataTable,

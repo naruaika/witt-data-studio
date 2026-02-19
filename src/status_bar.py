@@ -35,6 +35,7 @@ class StatusBar(Gtk.Box):
     SceneSelections = Gtk.Template.Child()
     SceneStatistics = Gtk.Template.Child()
     FileStatus      = Gtk.Template.Child()
+    Notification    = Gtk.Template.Child()
 
     def __init__(self) -> None:
         """"""
@@ -120,11 +121,14 @@ class StatusBar(Gtk.Box):
             n_rows = table.bounding_box.row_span
             n_cols = table.bounding_box.column_span
             row_unit = _('rows') if n_rows else _('row')
-            col_unit = _('columns') if n_cols else _('row')
+            col_unit = _('columns') if n_cols else _('column')
 
-            n_row = f'{format_string('%d', n_rows, grouping = True)} {row_unit}'
-            n_col = f'{format_string('%d', n_cols, grouping = True)} {col_unit}'
-            label = f'{table.tname} ({n_row} x {n_col})'
+            if not table.placeholder:
+                n_row = f'{format_string('%d', n_rows, grouping = True)} {row_unit}'
+                n_col = f'{format_string('%d', n_cols, grouping = True)} {col_unit}'
+                label = f'{table.tname} ({n_row} x {n_col})'
+            else:
+                label = f'{table.tname} ({_('Unknown size')})'
             self.BoundaryContext.set_label(label)
 
     def _refresh_scene_selections(self) -> None:

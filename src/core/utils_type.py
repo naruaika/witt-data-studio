@@ -26,7 +26,7 @@ from typing import Any
 def get_dtype(value: Any) -> str:
     """"""
     if isinstance(value, str):
-        return 'String'
+        return 'Text'
     if isinstance(value, int):
         return 'Int'
     if isinstance(value, float):

@@ -70,8 +70,8 @@
 }
 .mtoolbar-tab toggle:hover {
     background-color: color-mix(in srgb, currentColor 5%, transparent);
-    box-shadow: 0 -3px color-mix(in srgb, currentColor 5%, transparent),
-                0 3px color-mix(in srgb, currentColor 20%, transparent);
+    box-shadow: 0 -3px color-mix(in srgb, currentColor  5%, transparent),
+                0  3px color-mix(in srgb, currentColor 20%, transparent);
     opacity: 1.0;
 }
 .mtoolbar-tab toggle:checked {
@@ -80,5 +80,5 @@
 }
 .mtoolbar-tab toggle:checked:hover {
     box-shadow: 0 -3px color-mix(in srgb, currentColor 5%, transparent),
-                0 3px var(--accent-bg-color);
+                0  3px var(--accent-bg-color);
 }

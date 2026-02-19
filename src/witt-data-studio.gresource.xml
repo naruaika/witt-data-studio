@@ -46,17 +46,23 @@
 
     <file preprocess="xml-stripblanks">sheet/editor.ui</file>
     <file preprocess="xml-stripblanks">sheet/filter_rows_window.ui</file>
+    <file preprocess="xml-stripblanks">sheet/formula_bar.ui</file>
     <file preprocess="xml-stripblanks">sheet/transform_window.ui</file>
 
     <file>sheet/style.css</file>
     <file>sheet/style-dark.css</file>
     <file>sheet/editor.css</file>
     <file>sheet/editor-dark.css</file>
+    <file>sheet/formula-bar.css</file>
+    <file>sheet/formula-bar-dark.css</file>
     <file>sheet/canvas.css</file>
     <file>sheet/canvas-dark.css</file>
+    <file>sheet/transform-window.css</file>
+    <file>sheet/transform-window-dark.css</file>
   </gresource>
 
   <gresource prefix="/com/wittara/studio/icons/scalable/actions/">
+    <file preprocess="xml-stripblanks">bell-outline-symbolic.svg</file>
     <file preprocess="xml-stripblanks">box-dotted-symbolic.svg</file>
     <file preprocess="xml-stripblanks">check-round-outline-symbolic.svg</file>
     <file preprocess="xml-stripblanks">clock-alt-symbolic.svg</file>
@@ -78,6 +84,7 @@
     <file preprocess="xml-stripblanks">value-decrease-symbolic.svg</file>
     <file preprocess="xml-stripblanks">vcal-symbolic.svg</file>
     <file preprocess="xml-stripblanks">view-conceal-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">view-fullscreen-symbolic.svg</file>
     <file preprocess="xml-stripblanks">view-reveal-symbolic.svg</file>
     <file preprocess="xml-stripblanks">window-close-symbolic.svg</file>
 

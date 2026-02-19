@@ -127,8 +127,8 @@ class SheetDocument(Document):
             column_name = table.columns[column]
             dtype = table.schema[column_name]
             dtype = str(dtype.__class__.__name__)
-            # Turns out accessing the dataframe
-            # schema is quite expensive
+            if dtype == 'String':
+                dtype = 'Text'
 
         if table.with_header:
             if row == 0:
@@ -216,27 +216,28 @@ class SheetDocument(Document):
 
         self._update_bounding_box(bounding_box)
 
-        self.repopulate_table_widgets()
+        if not is_lazyframe:
+            self.repopulate_table_widgets()
 
         async def do_load(old_table: DataTable,
                           lazyframe: LazyFrame,
                           ) ->       None:
             """"""
-            has_error = False
+            error_message = None
 
             try:
                 dataframe = await lazyframe.collect_async()
             except Exception as e:
                 dataframe = DataFrame({'#ERROR!': None}).head(0)
-                has_error = True
-                print(e) # TODO: show errors to user
+                error_message = str(e)
 
             for tindex, table in enumerate(self.tables):
                 if table is old_table:
                     self.replace_table(dataframe, tindex)
                     table = self.tables[tindex]
-                    if has_error:
+                    if error_message:
                         table.placeholder = True
+                        table.error_message = error_message
                     else:
                         table.query_plan = lazyframe.serialize()
                     on_finish(table)
@@ -503,7 +504,7 @@ class SheetDocument(Document):
             del widgets[0]
 
         for table in self.tables:
-            if table.width <= 1 and table.height == 0:
+            if table.height == 0:
                 continue
             bbox = table.bounding_box
             y = self.display.get_cell_y_from_row(bbox.row)

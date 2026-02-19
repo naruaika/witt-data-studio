@@ -76,7 +76,7 @@ class SheetCanvas(Gtk.Overlay):
         if isinstance(widget, SheetTableFilter):
             allocation.x = widget.x
             allocation.y = widget.y - 1
-            allocation.width = widget.WIDTH
+            allocation.width  = widget.WIDTH
             allocation.height = widget.HEIGHT
             return Gdk.EVENT_STOP
         return Gdk.EVENT_PROPAGATE
@@ -84,7 +84,8 @@ class SheetCanvas(Gtk.Overlay):
     def get_editor(self) -> 'SheetEditor':
         """"""
         overlay = self.get_parent()
-        editor = overlay.get_parent()
+        box = overlay.get_parent()
+        editor = box.get_parent()
         return editor
 
 from .editor import SheetEditor

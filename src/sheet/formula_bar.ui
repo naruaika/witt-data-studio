@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="SheetFormulaBar" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <property name="spacing">6</property>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">horizontal</property>
+        <property name="spacing">6</property>
+        <property name="margin-top">6</property>
+        <property name="margin-start">6</property>
+        <property name="margin-end">6</property>
+        <child>
+          <object class="GtkEntry" id="NameBox">
+            <property name="tooltip-text" translatable="yes">Name Box</property>
+            <property name="halign">fill</property>
+            <property name="valign">start</property>
+            <signal name="activate" handler="_on_name_box_activated" swapped="no" />
+            <style>
+              <class name="name-box"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkOverlay">
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">horizontal</property>
+                <child>
+                  <object class="GtkEntry" id="FormulaBox">
+                    <property name="tooltip-text" translatable="yes">Formula Bar</property>
+                    <property name="halign">fill</property>
+                    <property name="hexpand">true</property>
+                    <property name="editable">false</property>
+                    <property name="visible">true</property>
+                    <signal name="changed" handler="_on_formula_box_changed" swapped="no" />
+                    <signal name="delete-text" handler="_on_formula_box_deleted" swapped="no" />
+                    <signal name="activate" handler="_on_formula_box_activated" swapped="no" />
+                    <style>
+                      <class name="formula-box"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow" id="MultilineFormulaBar">
+                    <property name="valign">fill</property>
+                    <property name="halign">fill</property>
+                    <property name="hexpand">true</property>
+                    <property name="height-request">145</property>
+                    <property name="visible">false</property>
+                    <child>
+                      <object class="GtkSourceView" id="MultilineFormulaBox">
+                        <property name="tooltip-text" translatable="yes">Formula Bar</property>
+                        <property name="halign">fill</property>
+                        <property name="hexpand">true</property>
+                        <property name="wrap-mode">word</property>
+                        <property name="tab-width">4</property>
+                        <property name="editable">false</property>
+                        <style>
+                          <class name="multiline-formula-box"/>
+                        </style>
+                      </object>
+                    </child>
+                    <style>
+                      <class name="multiline-formula-bar"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkToggleButton" id="FormulaBarToggleButton">
+                    <property name="valign">start</property>
+                    <property name="icon-name">view-fullscreen-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Toggle Formula Bar</property>
+                    <signal name="toggled" handler="_on_toggle_formula_bar_toggled" swapped="no" />
+                  </object>
+                </child>
+                <style>
+                  <class name="linked"/>
+                </style>
+              </object>
+            </child>
+            <child type="overlay">
+              <object class="GtkLabel" id="FormulaBarDataType">
+                <property name="halign">end</property>
+                <property name="valign">center</property>
+                <property name="label" translatable="yes"></property>
+                <property name="visible">false</property>
+                <style>
+                  <class name="formula-bar-data-type"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkSeparator">
+        <property name="orientation">horizontal</property>
+      </object>
+    </child>
+  </template>
+</interface>

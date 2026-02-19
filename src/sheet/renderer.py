@@ -667,7 +667,7 @@ class SheetRenderer():
                         case _ if isinstance(cell_value, timedelta):
                             cell_value = print_timedelta(cell_value)
                         case __:
-                            cell_value = f'[{_("Object")}]'
+                            cell_value = f'[{_('Object')}]'
 
                 if cell_value in {'', None}:
                     y += cell_height

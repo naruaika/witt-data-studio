@@ -3,31 +3,45 @@
   <requires lib="gtk" version="4.0"/>
   <template class="SheetEditor" parent="GtkBox">
     <property name="orientation">vertical</property>
-    <property name="overflow">hidden</property>
     <child>
-      <object class="GtkOverlay" id="Container">
-        <property name="hexpand">true</property>
-        <property name="vexpand">true</property>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
         <child>
-          <object class="SheetCanvas" id="Canvas"/>
+          <object class="SheetFormulaBar" id="FormulaBar"/>
         </child>
-        <child type="overlay">
-          <object class="GtkScrollbar" id="HorizontalScrollbar">
-            <property name="orientation">horizontal</property>
-            <property name="valign">end</property>
+        <child>
+          <object class="GtkOverlay" id="Container">
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+            <property name="overflow">hidden</property>
+            <child>
+              <object class="SheetCanvas" id="Canvas">
+                <property name="hexpand">true</property>
+                <property name="vexpand">true</property>
+              </object>
+            </child>
+            <child type="overlay">
+              <object class="GtkScrollbar" id="HorizontalScrollbar">
+                <property name="orientation">horizontal</property>
+                <property name="valign">end</property>
+                <style>
+                  <class name="bottom"/>
+                  <class name="overlay-indicator"/>
+                </style>
+              </object>
+            </child>
+            <child type="overlay">
+              <object class="GtkScrollbar" id="VerticalScrollbar">
+                <property name="orientation">vertical</property>
+                <property name="halign">end</property>
+                <style>
+                  <class name="right"/>
+                  <class name="overlay-indicator"/>
+                </style>
+              </object>
+            </child>
             <style>
-              <class name="bottom"/>
-              <class name="overlay-indicator"/>
-            </style>
-          </object>
-        </child>
-        <child type="overlay">
-          <object class="GtkScrollbar" id="VerticalScrollbar">
-            <property name="orientation">vertical</property>
-            <property name="halign">end</property>
-            <style>
-              <class name="right"/>
-              <class name="overlay-indicator"/>
+              <class name="editor-view"/>
             </style>
           </object>
         </child>

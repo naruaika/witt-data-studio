@@ -206,13 +206,13 @@ class SheetView():
 #           input_text = chr(keyval)
 #           widget = event.get_widget()
 #           parameter = GLib.Variant('s', input_text)
-#           widget.activate_action('input-formula-box', parameter)
+#           widget.activate_action('formula.input-formula-box', parameter)
 #           return Gdk.EVENT_STOP
 
 #       if keyval == Gdk.KEY_BackSpace:
 #           widget = event.get_widget()
 #           parameter = GLib.Variant('s', '')
-#           widget.activate_action('input-formula-box', parameter)
+#           widget.activate_action('formula.input-formula-box', parameter)
 #           return Gdk.EVENT_STOP
 
 #       if keyval == Gdk.KEY_Delete:
@@ -320,8 +320,8 @@ class SheetView():
 
         bounding_box = self.document.bounding_box
 
-        content_height = bounding_box.row_span * self.display.DEFAULT_CELL_HEIGHT
-        content_width = bounding_box.column_span * self.display.DEFAULT_CELL_WIDTH
+        content_height = bounding_box.row_span    * self.display.DEFAULT_CELL_HEIGHT
+        content_width  = bounding_box.column_span * self.display.DEFAULT_CELL_WIDTH
 
         if len(self.display.crow_heights):
             content_height = self.display.crow_heights[-1]
@@ -336,10 +336,10 @@ class SheetView():
             content_width += n_remaining_columns * self.display.DEFAULT_CELL_WIDTH
 
         content_height += self.display.top_locator_height + 50
-        content_width += self.display.left_locator_width + 50
+        content_width  += self.display.left_locator_width + 50
 
         new_y_upper = max(content_height, scroll_y_position + self.Canvas.get_height())
-        new_x_upper = max(content_width, scroll_x_position + self.Canvas.get_width())
+        new_x_upper = max(content_width,  scroll_x_position + self.Canvas.get_width())
 
         vadjustment.set_upper(new_y_upper)
         hadjustment.set_upper(new_x_upper)

@@ -83,6 +83,69 @@ calendar grid .week-number {
     opacity: 0.5;
 }
 
+.sourceview,
+.sourceview border,
+.sourceview border gutter,
+.sourceview text {
+    background-color: transparent;
+}
+.sourceview {
+    padding: 8px 0;
+    color: #000;
+    caret-color: #000;
+}
+
+.button-sm {
+    padding: 2px;
+    min-height: 20px;
+    min-width: 20px;
+}
+
+.menu .separator.title {
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.entry-separator {
+    min-width: 10px;
+    margin-right: 1px;
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+}
+.floating-sheet {
+    background-color: RGB(from var(--shade-color) r g b / calc(alpha * 2));
+}
+
+/*
+This whole thing is very frustrating indeed.
+This is especially true for the node layout.
+*/
+.horizontal.linked > .vertical.linked > button,
+.horizontal.linked > .vertical.linked > entry {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.horizontal.linked > .vertical.linked > *:last-child > button {
+    border-bottom-left-radius: 9px;
+}
+.vertical.linked > .vertical.linked > *:not(:last-child),
+.vertical.linked > .vertical.linked > *:only-child {
+    border-top-left-radius: 0;
+}
+
+/*
+We have a specific problem where non-specific selectors
+can introduce to unwanted styling inside a popover, etc.
+At the moment, I have no time to properly fix the issue.
+*/
+.horizontal.linked > .vertical.linked > dropdown > button,
+.horizontal.linked > .vertical.linked > box > dropdown > button,
+.horizontal.linked > .vertical.linked > box > button,
+.horizontal.linked > .vertical.linked > box > box > button,
+.horizontal.linked > .vertical.linked > box > box > entry {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
 .time-picker label {
     border-radius: 50%;
     transition-duration: 0.2s;
@@ -96,12 +159,6 @@ calendar grid .week-number {
     min-width: 34px;
     padding: 0;
     border-radius: 50%;
-}
-
-.button-sm {
-    padding: 2px;
-    min-height: 20px;
-    min-width: 20px;
 }
 
 .rotate-90deg {
@@ -125,49 +182,4 @@ calendar grid .week-number {
 }
 .right-1px {
     margin-right: -1px;
-}
-
-.menu .separator.title {
-    padding-left: 12px;
-    padding-right: 12px;
-}
-
-.entry-separator {
-    min-width: 10px;
-    margin-right: 1px;
-    background-color: color-mix(in srgb, currentColor 10%, transparent);
-}
-.floating-sheet {
-    background-color: RGB(from var(--shade-color) r g b / calc(alpha * 2));
-}
-
-/*
-    This whole thing is very frustrating indeed.
-    This is especially true for the node layout.
-*/
-.horizontal.linked > .vertical.linked > button,
-.horizontal.linked > .vertical.linked > entry {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-}
-.horizontal.linked > .vertical.linked > *:last-child > button {
-    border-bottom-left-radius: 9px;
-}
-.vertical.linked > .vertical.linked > *:not(:last-child),
-.vertical.linked > .vertical.linked > *:only-child {
-    border-top-left-radius: 0;
-}
-
-/*
-    We have a specific problem where non-specific selectors
-    can introduce to unwanted styling inside a popover, etc.
-    At the moment, I have no time to properly fix the issue.
-*/
-.horizontal.linked > .vertical.linked > dropdown > button,
-.horizontal.linked > .vertical.linked > box > dropdown > button,
-.horizontal.linked > .vertical.linked > box > button,
-.horizontal.linked > .vertical.linked > box > box > button,
-.horizontal.linked > .vertical.linked > box > box > entry {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
 }

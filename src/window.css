@@ -10,11 +10,11 @@
     margin-right: 6px;
 }
 
-.mwindow .mtabview {
+.mwindow .mtabview .editor-view {
     margin: 0 2px;
     transition-duration: 0.2s;
 }
-.mwindow .mtabview:focus-visible {
+.mwindow .mtabview .editor-view:focus-visible {
     outline: 2px solid var(--accent-bg-color);
     transition: outline;
     transition-duration: 0.2s;

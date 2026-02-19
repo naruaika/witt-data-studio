@@ -90,6 +90,7 @@ sheet_sources = [
   'sheet/document.py',
   'sheet/editor.py',
   'sheet/filter_rows_window.py',
+  'sheet/formula_bar.py',
   'sheet/renderer.py',
   'sheet/selection.py',
   'sheet/transform_layout.py',

@@ -1,0 +1,31 @@
+.name-box,
+.formula-box,
+.multiline-formula-bar {
+    font-family: monospace;
+}
+
+.formula-bar {
+    font-feature-settings: "tnum" 1;
+}
+
+.formula-bar-data-type {
+    margin-right: 39px;
+    padding: 3px 6px;
+    font-size: 12px;
+    font-weight: bold;
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+    border-radius: 6px;
+}
+
+.multiline-formula-bar {
+    padding: 0 7px;
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+    border-top-left-radius: 9px;
+    border-bottom-left-radius: 9px;
+    border-bottom-right-radius: 9px;
+}
+
+.formula-box + button,
+.multiline-formula-bar + button {
+    margin-left: 0;
+}

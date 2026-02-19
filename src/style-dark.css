@@ -2,3 +2,8 @@
 
 @import url('resource://com/wittara/studio/node/style-dark.css');
 @import url('resource://com/wittara/studio/sheet/style-dark.css');
+
+.sourceview {
+    color: #fff;
+    caret-color: #fff;
+}
