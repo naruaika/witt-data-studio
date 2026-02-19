@@ -42,6 +42,8 @@ class NodeFrame(Adw.Bin):
     Head         = Gtk.Template.Child()
     Title        = Gtk.Template.Child()
     Body         = Gtk.Template.Child()
+
+    ErrorButton  = Gtk.Template.Child()
     ActiveToggle = Gtk.Template.Child()
 
     def __init__(self,

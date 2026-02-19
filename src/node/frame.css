@@ -16,7 +16,7 @@
     background-color: color-mix(in srgb, currentColor 5%, transparent);
 }
 
-.node-head .active-toggle {
+.node-head button {
     border-radius: 50%;
 }
 
@@ -178,8 +178,11 @@
     box-shadow: 0 0 0 1px var(--accent-color),
                 0 0 20px 0 var(--shade-color);
 }
-
 .selected .node-head {
     color: var(--light-1);
     background-color: var(--accent-color);
+}
+.selected .node-head .error,
+.selected .node-head .warning {
+    color: inherit;
 }

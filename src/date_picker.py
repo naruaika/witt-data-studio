@@ -54,11 +54,3 @@ class DatePicker(Gtk.Calendar):
 
         day_name = day_name.get_next_sibling()
         day_name.set_label('S')
-
-        # Disable scroll-to-change month value
-        # FIXME: parent still unable to scroll
-        controller = Gtk.EventControllerScroll.new(
-            Gtk.EventControllerScrollFlags.VERTICAL
-        )
-        controller.connect('scroll', lambda *_: Gdk.EVENT_STOP)
-        self.add_controller(controller)

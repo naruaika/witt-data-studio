@@ -361,7 +361,7 @@
                                   <object class="GtkButton" id="RecentSourcesButton">
                                     <property name="name">recent-sources</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Recent</property>
+                                    <property name="tooltip-text" translatable="yes">Recent Sources</property>
                                     <property name="action-name">win.toolbar</property>
                                     <property name="action-target">'recent-sources'</property>
                                     <child>

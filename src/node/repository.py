@@ -39,11 +39,10 @@ from ..core.utils import generate_uuid
 from ..core.utils import isiterable
 from ..core.utils import unique_name
 
-from .action import ActionEditNode
+from .content import NodeContent
 from .data_type import Sheet
 from .frame import NodeFrame
 from .frame import NodeFrameType
-from .content import NodeContent
 from .socket import NodeSocket
 from .socket import NodeSocketType
 from .widget import NodeCheckButton
@@ -160,6 +159,8 @@ def _take_snapshot(node:     'NodeTemplate',
                    **kwargs: 'dict',
                    ) ->      'None':
     """"""
+    from .action import ActionEditNode
+
     old_data = node.do_save()
     callback(*args, **kwargs)
     new_data = node.do_save()
@@ -264,8 +265,11 @@ class NodeBoolean(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -331,8 +335,11 @@ class NodeDecimal(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -398,8 +405,11 @@ class NodeInteger(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -467,8 +477,11 @@ class NodeString(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -588,6 +601,7 @@ class NodeReadFile(NodeTemplate):
         del kwargs['columns']
 
         has_error = False
+        self.frame.ErrorButton.set_visible(False)
 
         # Read file at the given path with pre-processed args
         from polars import LazyFrame
@@ -596,6 +610,10 @@ class NodeReadFile(NodeTemplate):
             result = FileManager.read_file(file_path, **kwargs)
             if isinstance(result, LazyFrame):
                 result.head(1_000).collect()
+        except FileNotFoundError:
+            self.frame.ErrorButton.set_tooltip_text(f'{_('File not found')}: {file_path}')
+            self.frame.ErrorButton.set_visible(True)
+            return
         except:
             has_error = True
 
@@ -619,8 +637,9 @@ class NodeReadFile(NodeTemplate):
                 if isinstance(result, LazyFrame):
                     result.head(1_000).collect()
                 has_error = False
-            except:
-                pass # TODO: show errors to user
+            except Exception as e:
+                self.frame.ErrorButton.set_tooltip_text(str(e))
+                self.frame.ErrorButton.set_visible(True)
 
         if has_error:
             # We use non-standard parameters to force loading the entire file contents
@@ -635,8 +654,9 @@ class NodeReadFile(NodeTemplate):
                 if isinstance(result, LazyFrame):
                     result.head(1_000).collect()
                 has_error = False
-            except:
-                pass # TODO: show errors to user
+            except Exception as e:
+                self.frame.ErrorButton.set_tooltip_text(str(e))
+                self.frame.ErrorButton.set_visible(True)
 
         if has_error:
             result = DataFrame()
@@ -701,8 +721,11 @@ class NodeReadFile(NodeTemplate):
             all_columns = value['all-columns']
             kwargs      = value['kwargs']
             self.set_data(file_path, all_columns, **kwargs)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output_table(self) -> None:
         """"""
@@ -1157,8 +1180,11 @@ class NodeSheet(NodeTemplate):
                 else:
                     tables = self.frame.data['replace-tables']
                     tables[index] = value
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
         self.frame.do_execute(backward = False)
 
@@ -1367,7 +1393,7 @@ class NodeViewer(NodeTemplate):
 
     SUPPORTED_VIEWS = {Sheet}
 
-    PRIMITIVE_TYPES = {bool, float, int, str, list, dict, tuple, None}
+    PRIMITIVE_TYPES = {bool, float, int, str, list, dict, tuple}
 
     @staticmethod
     def new(x:   int = 0,
@@ -1454,6 +1480,9 @@ class NodeViewer(NodeTemplate):
                         value = e
                 label.set_label(str(value))
 
+            elif value is None:
+                label.set_label(f'[{_('None')}]')
+
             else:
                 label.set_label(f'[{_('Object')}]')
 
@@ -1474,8 +1503,11 @@ class NodeViewer(NodeTemplate):
             for index, value in enumerate(values):
                 titles = self.frame.data['replace-titles']
                 titles[index] = value
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_input(self) -> None:
         """"""
@@ -1659,8 +1691,11 @@ class NodeCustomFormula(NodeTemplate):
                 variables = {'value': value}
                 value = Evaluator(variables).evaluate(formula)
                 out_socket.data_type = type(value)
-            except:
-                pass # TODO: show errors to user
+            except Exception as e:
+                self.frame.ErrorButton.set_tooltip_text(str(e))
+                self.frame.ErrorButton.set_visible(True)
+            else:
+                self.frame.ErrorButton.set_visible(False)
 
         # Make compatible with existing nodes
         if out_socket.data_type == LazyFrame:
@@ -1678,8 +1713,11 @@ class NodeCustomFormula(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -1823,8 +1861,11 @@ class NodeChooseColumns(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -2010,8 +2051,11 @@ class NodeRemoveColumns(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -2206,8 +2250,11 @@ class NodeKeepTopKRows(NodeTemplate):
         try:
             self.set_data(value['n-rows'],
                           value['columns'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -2428,8 +2475,11 @@ class NodeKeepBottomKRows(NodeTemplate):
         try:
             self.set_data(value['n-rows'],
                           value['columns'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -2633,8 +2683,11 @@ class NodeKeepFirstKRows(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -2775,8 +2828,11 @@ class NodeKeepLastKRows(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -2928,8 +2984,11 @@ class NodeKeepRangeOfRows(NodeTemplate):
         try:
             self.set_data(value['offset'],
                           value['n-rows'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -3110,8 +3169,11 @@ class NodeKeepEveryNthRows(NodeTemplate):
         try:
             self.set_data(value['nth-row'],
                           value['offset'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -3283,8 +3345,11 @@ class NodeKeepDuplicateRows(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -3464,8 +3529,11 @@ class NodeRemoveFirstKRows(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -3606,8 +3674,11 @@ class NodeRemoveLastKRows(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -3761,8 +3832,11 @@ class NodeRemoveRangeOfRows(NodeTemplate):
         try:
             self.set_data(value['offset'],
                           value['n-rows'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -3965,8 +4039,11 @@ class NodeRemoveDuplicateRows(NodeTemplate):
             self.set_data(value['keep-rows'],
                           value['keep-order'],
                           value['columns'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -4231,8 +4308,11 @@ class NodeSortRows(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -4863,8 +4943,11 @@ class NodeFilterRows(NodeTemplate):
         """"""
         try:
             self.set_data(*_deserialize_data(value))
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -5096,8 +5179,11 @@ class NodeGroupBy(NodeTemplate):
         try:
             self.set_data(value['groupings'],
                           value['aggregations'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -5329,8 +5415,11 @@ class NodeTransposeTable(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -5598,8 +5687,11 @@ class NodeChangeDataType(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -5814,8 +5906,11 @@ class NodeRenameColumns(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -6148,8 +6243,11 @@ class NodeReplaceValues(NodeTemplate):
                           value['replace'],
                           value['options'],
                           value['columns'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -6559,8 +6657,11 @@ class NodeFillBlankCells(NodeTemplate):
         try:
             self.set_data(value['strategy'],
                           value['columns'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -6840,8 +6941,11 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
                           value['delimiter'],
                           value['n-columns'],
                           value['split-at'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -7166,8 +7270,11 @@ class NodeSplitColumnByNumberOfCharacters(NodeTemplate):
             self.set_data(value['column'],
                           value['n-chars'],
                           value['strategy'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -7427,8 +7534,11 @@ class NodeSplitColumnByPositions(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['positions'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -7637,8 +7747,11 @@ class NodeSplitColumnByLowercaseToUppercase(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -7817,8 +7930,11 @@ class NodeSplitColumnByUppercaseToLowercase(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -7997,8 +8113,11 @@ class NodeSplitColumnByDigitToNonDigit(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -8177,8 +8296,11 @@ class NodeSplitColumnByNonDigitToDigit(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -8344,8 +8466,11 @@ class NodeChangeCaseToLowercase(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -8511,8 +8636,11 @@ class NodeChangeCaseToUppercase(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -8678,8 +8806,11 @@ class NodeChangeCaseToTitleCase(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -8875,8 +9006,11 @@ class NodeTrimContents(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['character'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -9141,8 +9275,11 @@ class NodeCleanContents(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['to-keeps'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -9387,8 +9524,11 @@ class NodeAddPrefix(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['prefix'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -9629,8 +9769,11 @@ class NodeAddSuffix(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['suffix'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -9905,8 +10048,11 @@ class NodeMergeColumns(NodeTemplate):
             self.set_data(value['columns'],
                           value['separator'],
                           value['alias'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -10172,8 +10318,11 @@ class NodeExtractTextLength(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -10360,8 +10509,11 @@ class NodeExtractFirstCharacters(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['n-chars'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -10571,8 +10723,11 @@ class NodeExtractLastCharacters(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['n-chars'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -10791,8 +10946,11 @@ class NodeExtractTextInRange(NodeTemplate):
             self.set_data(value['column'],
                           value['from-index'],
                           value['n-chars'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -11026,8 +11184,11 @@ class NodeExtractTextBeforeDelimiter(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['delimiter'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -11272,8 +11433,11 @@ class NodeExtractTextAfterDelimiter(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['delimiter'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -11533,8 +11697,11 @@ class NodeExtractTextBetweenDelimiters(NodeTemplate):
             self.set_data(value['column'],
                           value['start'],
                           value['end'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -11813,8 +11980,11 @@ class NodeCalculateMinimum(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -11979,8 +12149,11 @@ class NodeCalculateMaximum(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -12145,8 +12318,11 @@ class NodeCalculateSummation(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -12311,8 +12487,11 @@ class NodeCalculateMedian(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -12477,8 +12656,11 @@ class NodeCalculateAverage(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -12643,8 +12825,11 @@ class NodeCalculateStandardDeviation(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -12809,8 +12994,11 @@ class NodeCountValues(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -12972,8 +13160,11 @@ class NodeCountValues(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -13136,8 +13327,11 @@ class NodeCountDistinctValues(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -13317,8 +13511,11 @@ class NodeCalculateAddition(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['value'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -13555,8 +13752,11 @@ class NodeCalculateMultiplication(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['value'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -13793,8 +13993,11 @@ class NodeCalculateSubtraction(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['value'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -14031,8 +14234,11 @@ class NodeCalculateDivision(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['value'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -14269,8 +14475,11 @@ class NodeCalculateIntegerDivision(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['value'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -14507,8 +14716,11 @@ class NodeCalculateModulo(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['value'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -14745,8 +14957,11 @@ class NodeCalculatePercentage(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['value'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -14983,8 +15198,11 @@ class NodeCalculatePercentOf(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['value'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -15204,8 +15422,11 @@ class NodeCalculateAbsolute(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -15371,8 +15592,11 @@ class NodeCalculateSquareRoot(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -15538,8 +15762,11 @@ class NodeCalculateSquare(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -15705,8 +15932,11 @@ class NodeCalculateCube(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -15889,8 +16119,11 @@ class NodeCalculatePowerK(NodeTemplate):
         try:
             self.set_data(value['column'],
                           value['value'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -16110,8 +16343,11 @@ class NodeCalculateExponent(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -16277,8 +16513,11 @@ class NodeCalculateBase10(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -16444,8 +16683,11 @@ class NodeCalculateNatural(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -16611,8 +16853,11 @@ class NodeCalculateSine(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -16778,8 +17023,11 @@ class NodeCalculateCosine(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -16945,8 +17193,11 @@ class NodeCalculateTangent(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -17112,8 +17363,11 @@ class NodeCalculateArcsine(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -17279,8 +17533,11 @@ class NodeCalculateArccosine(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -17446,8 +17703,11 @@ class NodeCalculateArctangent(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -17647,8 +17907,11 @@ class NodeRoundValue(NodeTemplate):
             self.set_data(value['column'],
                           value['decimals'],
                           value['mode'])
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -17859,8 +18122,11 @@ class NodeCalculateIsEven(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -18026,8 +18292,11 @@ class NodeCalculateIsOdd(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
@@ -18193,8 +18462,11 @@ class NodeExtractValueSign(NodeTemplate):
         """"""
         try:
             self.set_data(value)
-        except:
-            pass # TODO: show errors to user
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
     def _add_output(self) -> None:
         """"""
