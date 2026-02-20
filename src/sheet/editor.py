@@ -417,6 +417,17 @@ class SheetEditor(Gtk.Box):
                        context     = None,
                        prefix      = 'app')
 
+        create_command(action_name = 'focus-name-box',
+                       title       = _('Focus Name Box'),
+                       shortcuts   = ['<Primary>g'],
+                       context     = None,
+                       prefix      = 'formula')
+        create_command(action_name = 'focus-formula-box',
+                       title       = _('Focus Formula Box'),
+                       shortcuts   = ['F2'],
+                       context     = None,
+                       prefix      = 'formula')
+
         create_command('choose-columns',        f"{_('Table')}: {get_title_from_layout('choose-columns')}...")
         create_command('remove-columns',        f"{_('Table')}: {get_title_from_layout('remove-columns')}...")
 
@@ -799,14 +810,14 @@ class SheetEditor(Gtk.Box):
                 case _ if isinstance(cell_data, timedelta):
                     cell_data = print_timedelta(cell_data)
                 case __:
-                    cell_data = f'[{_('Object')}]'
+                    cell_data = 'Object'
 
         cell_name  = self.selection.current_cell_name
         cell_data  = str(cell_data)
         cell_dtype = self.selection.current_cell_dtype
 
         if table is not None and table.error_message:
-            cell_dtype = ''
+            cell_dtype = 'Error'
 
         parameter = GLib.Variant('as', [cell_name, cell_data, cell_dtype])
         self.activate_action('formula.update-formula-bar', parameter)

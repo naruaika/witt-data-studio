@@ -235,11 +235,15 @@ class CommandPalette(Adw.Bin):
         if not selected_item:
             return
 
+        if 'focus-' in selected_item.action_name:
+            self.popdown()
+
         editor = window.get_selected_editor()
         editor.activate_action(selected_item.action_name,
                                selected_item.action_args)
 
-        window.activate_action('win.focus-editor')
+        if 'focus-' not in selected_item.action_name:
+            window.activate_action('win.focus-editor')
 
     @Gtk.Template.Callback()
     def _on_entry_changed(self,

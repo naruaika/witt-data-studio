@@ -28,4 +28,5 @@
 .formula-box + button,
 .multiline-formula-bar + button {
     margin-left: 0;
+    transition-duration: 0;
 }
