@@ -604,7 +604,7 @@ class SheetEditor(Gtk.Box):
                                                 context = 'table_focus and numeric_focus')
 
     def set_data(self,
-                 tables: Tables = [],
+                 tables: Tables = {},
                  sparse: Sparse = {},
                  ) ->    None:
         """"""
@@ -616,13 +616,13 @@ class SheetEditor(Gtk.Box):
 
         # Get cached dataframes by query plan
         cache_hits = []
-        for index, (coordinate, table) in enumerate(tables):
+        for index, (tname, (coord, table)) in enumerate(tables.items()):
             if not isinstance(table, LazyFrame):
                 continue
             query_plan = table.serialize()
             for t in self.document.tables:
                 if t.query_plan == query_plan:
-                    tables[index] = (coordinate, t.content)
+                    tables[tname] = (coord, t.content)
                     cache_hits.append((index, query_plan))
                     break
 
@@ -663,11 +663,12 @@ class SheetEditor(Gtk.Box):
             self.refresh_ui()
 
         # Setup tables
-        for coordinate, table in tables:
+        for tname, (coord, table) in tables.items():
             table_index = self.document.create_table(table,
                                                      with_header = True,
-                                                     column      = coordinate[0],
-                                                     row         = coordinate[1],
+                                                     column      = coord[0],
+                                                     row         = coord[1],
+                                                     table_name  = tname,
                                                      prefer_sync = self.configs['prefer-synchro'],
                                                      on_finish   = do_finish)
 
@@ -676,10 +677,10 @@ class SheetEditor(Gtk.Box):
                 self._readjust_column_widths_by_table(table)
 
         # Setup sparse
-        for coordinate, value in sparse.items():
+        for coord, value in sparse.items():
             self.document.create_or_update_sparse(value,
-                                                  column = coordinate[0],
-                                                  row    = coordinate[1])
+                                                  column = coord[0],
+                                                  row    = coord[1])
 
             if self.configs['adjust-columns']:
                 self._readjust_column_widths_by_value(value)

@@ -21,10 +21,12 @@ from polars import DataFrame
 from typing import Any
 from typing import TypeAlias
 
+Name:       TypeAlias = str
 Row:        TypeAlias = int
 Column:     TypeAlias = int
 Coordinate: TypeAlias = tuple[Row, Column]
-Tables:     TypeAlias = tuple[Coordinate, DataFrame]
+Table:      TypeAlias = tuple[Coordinate, DataFrame]
+Tables:     TypeAlias = dict[Name, Table]
 Sparse:     TypeAlias = dict[Coordinate, Any]
 
 class Sheet():

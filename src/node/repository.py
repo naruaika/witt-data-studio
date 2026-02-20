@@ -1134,7 +1134,7 @@ class NodeSheet(NodeTemplate):
                    ) ->          None:
         """"""
         value = self.frame.data['value']
-        value.tables = []
+        value.tables = {}
 
         for self_content in self.frame.contents[1:-1]:
             box = self_content.Widget
@@ -1149,7 +1149,7 @@ class NodeSheet(NodeTemplate):
                 pcontent = psocket.Content
                 table = pcontent.get_data()
                 coordinate = self.frame.data[title]
-                value.tables.append((coordinate, table))
+                value.tables[title] = (coordinate, table)
 
     def do_save(self) -> list:
         """"""

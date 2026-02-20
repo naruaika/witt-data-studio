@@ -28,6 +28,7 @@
 .mtoolbar-view {
     margin: 6px;
     background-color: color-mix(in srgb, currentColor 5%, transparent);
+    box-shadow: 0 0 5px var(--card-shade-color);
     border-radius: 9px;
 }
 .mtoolbar-view > scrolledwindow > viewport > * {

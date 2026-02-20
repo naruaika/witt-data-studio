@@ -159,6 +159,7 @@ class SheetDocument(Document):
                      with_header: bool,
                      column:      int      = 1,
                      row:         int      = 1,
+                     table_name:  str      = '',
                      prefer_sync: bool     = False,
                      on_finish:   callable = None,
                      ) ->         int:
@@ -200,7 +201,7 @@ class SheetDocument(Document):
         bounding_box = BoundingBox(column, row, column_span, row_span)
 
         table_names = [table.tname for table in self.tables]
-        new_name = unique_name(_('Table'), table_names)
+        new_name = unique_name(_('Table'), table_names, table_name)
 
         new_table = DataTable(tname        = new_name,
                               content      = content,
