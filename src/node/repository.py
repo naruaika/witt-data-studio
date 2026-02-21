@@ -1163,6 +1163,7 @@ class NodeSheet(NodeTemplate):
         """"""
         value = self.frame.data['value']
         value.tables = {}
+        value.sparse = {} # TODO: preserve manual input
 
         for self_content in self.frame.contents[1:-1]:
             box = self_content.Widget
@@ -1175,9 +1176,12 @@ class NodeSheet(NodeTemplate):
             if links := self_socket.links:
                 psocket = links[0].in_socket
                 pcontent = psocket.Content
-                table = pcontent.get_data()
-                coordinate = self.frame.data[title]
-                value.tables[title] = (coordinate, table)
+                pdata = pcontent.get_data()
+                coord = self.frame.data[title]
+                if isinstance(pdata, (DataFrame, LazyFrame)):
+                    value.tables[title] = (coord, pdata)
+                else:
+                    value.sparse[coord] = pdata
 
     def do_save(self) -> list:
         """"""
@@ -1242,7 +1246,7 @@ class NodeSheet(NodeTemplate):
         widget = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
         widget.set_data = lambda *args: None
 
-        label = NodeLabel(_('Table'))
+        label = NodeLabel(_('Value'))
         label.set_xalign(0.0)
         label.set_opacity(0.0)
         widget.append(label)
@@ -1250,7 +1254,6 @@ class NodeSheet(NodeTemplate):
         socket_type = NodeSocketType.INPUT
         content = self.frame.add_content(widget      = widget,
                                          socket_type = socket_type,
-                                         data_type   = DataFrame,
                                          placeholder = True,
                                          auto_remove = True)
 
@@ -1309,12 +1312,19 @@ class NodeSheet(NodeTemplate):
 
             # Auto-generate the socket label if needed
             if not self_content.is_freezing:
-                titles = [
-                    content.Widget.get_first_child().get_label()
-                    for content in self.frame.contents[1:-1]
-                    if content != self_content
-                ]
-                new_title = unique_name(_('Table'), titles)
+                pdata = pair_socket.Content.get_data()
+
+                if isinstance(pdata, (DataFrame, LazyFrame)):
+                    titles = [
+                        content.Widget.get_first_child().get_label()
+                        for content in self.frame.contents[1:-1]
+                        if content != self_content
+                    ]
+                    new_title = unique_name(_('Table'), titles)
+
+                else:
+                    new_title = _('Value')
+
                 label.set_label(new_title)
                 label.set_opacity(1.0)
 
@@ -1325,7 +1335,24 @@ class NodeSheet(NodeTemplate):
                 return
 
             if _isreconnected(pair_socket, self_content):
+                pdata = pair_socket.Content.get_data()
+
+                # Rename the socket label if needed
+                if old_title == _('Value') \
+                        and isinstance(pdata, (DataFrame, LazyFrame)):
+                    titles = [
+                        content.Widget.get_first_child().get_label()
+                        for content in self.frame.contents[1:-1]
+                        if content != self_content
+                    ]
+                    old_title = unique_name(_('Table'), titles)
+
+                if old_title.startswith(_('Table')) \
+                        and not isinstance(pdata, (DataFrame, LazyFrame)):
+                    old_title = _('Value')
+
                 label.set_label(old_title)
+
                 return # skip if the pending socket to be removed
                        # get connected again to the previous node
 

@@ -178,5 +178,6 @@ class StatusBar(Gtk.Box):
             self.SceneStatistics.set_label(label)
 
         if isinstance(editor, SheetEditor):
-            label = f'{_('Tables')}: {format_string('%d', len(editor.document.tables), grouping = True)}'
+            label = f'{_('Tables')}: {format_string('%d', len(editor.document.tables), grouping = True)}, ' \
+                    f'{_('Values')}: {format_string('%d', len(editor.document.sparse), grouping = True)}'
             self.SceneStatistics.set_label(label)

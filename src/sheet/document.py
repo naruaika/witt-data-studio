@@ -107,7 +107,9 @@ class SheetDocument(Document):
         table = self.get_table_by_position(column, row)
 
         if not isinstance(table, DataTable):
-            if content := self.sparse.get((row, column)):
+            coord = (row, column)
+            if coord in self.sparse:
+                content = self.sparse.get(coord)
                 if with_dtype:
                     dtype = get_dtype(content)
                     return content, dtype

@@ -140,6 +140,7 @@ At the moment, I have no time to properly fix the issue.
 .horizontal.linked > .vertical.linked > dropdown > button,
 .horizontal.linked > .vertical.linked > box > dropdown > button,
 .horizontal.linked > .vertical.linked > box > button,
+.horizontal.linked > .vertical.linked > box > entry,
 .horizontal.linked > .vertical.linked > box > box > button,
 .horizontal.linked > .vertical.linked > box > box > entry {
     border-top-right-radius: 0;

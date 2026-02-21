@@ -279,8 +279,9 @@ class NodeFrame(Adw.Bin):
                                      initiator    = False)
                     visited_frames.append(frame)
 
+        # Collect data from parent frames and
+        # build output data for child frames.
         if not self.is_with_cache:
-            # Collect data from parent frames
             self.is_processing = True
             for content in self.contents:
                 if not (self_socket := content.Socket):
@@ -297,7 +298,6 @@ class NodeFrame(Adw.Bin):
                 content.set_data(value)
             self.is_processing = False
 
-            # Build output data for child frames
             self.do_process(pair_socket, self_content)
 
         # Collect all target frames and prevent

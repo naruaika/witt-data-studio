@@ -32,7 +32,6 @@ from gi.repository import Graphene
 from gi.repository import Gtk
 from gi.repository import Pango
 from gi.repository import PangoCairo
-from polars import Series
 import re
 
 from ..core.utils import print_timedelta
@@ -662,12 +661,10 @@ class SheetRenderer():
                 # an operation that returned an object, we want to show it properly in minimal.
                 if _is_an_object:
                     match cell_value:
-                        case _ if isinstance(cell_value, Series):
-                            cell_value = str(cell_value.to_list())
                         case _ if isinstance(cell_value, timedelta):
                             cell_value = print_timedelta(cell_value)
                         case __:
-                            cell_value = f'[{_('Object')}]'
+                            cell_value = '#VALUE!' # f'[<{type(cell_value).__name__}>]'
 
                 if cell_value in {'', None}:
                     y += cell_height

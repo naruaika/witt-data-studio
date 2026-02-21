@@ -784,12 +784,7 @@ class SheetEditor(Gtk.Box):
 
     def update_formula_bar(self) -> None:
         """"""
-        from datetime import datetime
-        from datetime import date
-        from datetime import time
         from datetime import timedelta
-        from decimal import Decimal
-        from polars import Series
 
         from ..core.utils import print_timedelta
 
@@ -807,14 +802,8 @@ class SheetEditor(Gtk.Box):
 
         # We don't natively support object types, but in any case the user has perfomed
         # an operation that returned an object, we want to show it properly in minimal.
-        if not isinstance(cell_data, (str, int, float, Decimal, date, time, datetime)):
-            match cell_data:
-                case _ if isinstance(cell_data, Series):
-                    cell_data = cell_data.to_list()
-                case _ if isinstance(cell_data, timedelta):
-                    cell_data = print_timedelta(cell_data)
-                case __:
-                    cell_data = 'Object'
+        if isinstance(cell_data, timedelta):
+            cell_data = print_timedelta(cell_data)
 
         cell_name  = self.selection.current_cell_name
         cell_data  = str(cell_data)
