@@ -1,0 +1,17 @@
+{
+    "name": "python3-connectorx",
+    "buildsystem": "simple",
+    "build-commands": [
+        "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"connectorx\" --no-build-isolation"
+    ],
+    "sources": [
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/0a/9d/3bae67718e0bfbefba41959f2f1dc0a5765392aea311b02d98457c8efd34/connectorx-0.4.5-cp313-cp313-manylinux_2_28_x86_64.whl",
+            "sha256": "ab1d62a26350055c5e901daa4d6dddb75b11addb923797158c809dffc4f0ac9e"
+        }
+    ],
+    "only-arches": [
+        "x86_64"
+    ]
+}

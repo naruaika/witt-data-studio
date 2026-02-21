@@ -23,11 +23,13 @@ from datetime import date
 from datetime import time
 from difflib import get_close_matches
 from functools import reduce
+from sys import executable
 from typing import Any
 import ast
 import operator
 import polars
 import polars.selectors
+import subprocess
 
 class _AttrProxyMeta(type):
     def __getattr__(cls, name):
@@ -104,7 +106,7 @@ class _PolarsSource(_AttrProxy):
         'read_clipboard':        polars.read_clipboard,
         'read_csv':              polars.read_csv,
         'scan_csv':              polars.scan_csv,
-        'read_database':         polars.read_database,
+#       'read_database':         polars.read_database,
         'read_database_uri':     polars.read_database_uri,
         'read_delta':            polars.read_delta,
         'scan_delta':            polars.scan_delta,
@@ -359,6 +361,18 @@ class Evaluator():
             func = self._visit(node.func)
             args = [self._visit(a) for a in node.args]
             kwargs = {k.arg: self._visit(k.value) for k in node.keywords}
+
+            # Validate database URI in advance
+            if isinstance(node.func, ast.Attribute):
+                if node.func.attr == 'read_database_uri':
+                    uri = ''
+                    if len(args) >= 2:
+                        uri = args[1]
+                    if 'uri' in kwargs:
+                        uri = kwargs['uri']
+                    if e := self._check_database_uri(uri):
+                        raise Exception(e)
+
             return func(*args, **kwargs)
 
         if isinstance(node, ast.Attribute):
@@ -419,6 +433,31 @@ class Evaluator():
 
         return do_create
 
+    def _check_database_uri(self,
+                            uri:     str,
+                            timeout: int = 5,
+                            ) ->     str:
+        """"""
+        code = f"import connectorx as cx; " \
+               f"cx.read_sql({uri!r}, 'SELECT 1', return_type = 'arrow')"
+
+        proc = subprocess.Popen(args   = [executable, '-c', code],
+                                stderr = subprocess.PIPE,
+                                stdout = subprocess.DEVNULL,
+                                text   = True)
+
+        try:
+            for line in proc.stderr:
+                if 'ERROR r2d2' in line:
+                    proc.kill()
+                    return line.split('{')[1] \
+                               .split('}')[0] \
+                               .strip()
+            proc.wait(timeout = timeout)
+            return None
+        except:
+            proc.kill()
+            return _('Database connection timeout')
 
 
 def initialize() -> None:

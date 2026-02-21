@@ -2,6 +2,7 @@ asyncio==4.0.0
 certifi==2026.1.4
 cffi==2.0.0
 charset-normalizer==3.4.4
+connectorx==0.4.5
 cryptography==46.0.5
 debugpy==1.8.20
 docutils==0.22.4
@@ -24,6 +25,7 @@ packaging==26.0
 pluggy==1.6.0
 polars==1.38.1
 polars-runtime-32==1.38.1
+pyarrow==23.0.1
 pycairo==1.29.0
 pycparser==3.0
 Pygments==2.19.2

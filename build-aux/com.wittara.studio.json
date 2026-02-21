@@ -11,6 +11,7 @@
         "--socket=fallback-x11",
         "--socket=wayland",
         "--filesystem=host",
+        "--talk-name=org.freedesktop.secrets",
         "--env=GSK_RENDERER=gl"
     ],
     "cleanup" : [
@@ -26,11 +27,17 @@
     ],
     "modules" : [
         "python3-asyncio.json",
+        "python3-keyring-aarch64.json",
+        "python3-keyring-x86_64.json",
         "python3-python-dateutil.json",
         "python3-numpy-aarch64.json",
         "python3-numpy-x86_64.json",
         "python3-polars-aarch64.json",
         "python3-polars-x86_64.json",
+        "python3-connectorx-aarch64.json",
+        "python3-connectorx-x86_64.json",
+        "python3-pyarrow-aarch64.json",
+        "python3-pyarrow-x86_64.json",
         "python3-fastexcel-aarch64.json",
         "python3-fastexcel-x86_64.json",
         "python3-pykdtree-aarch64.json",
