@@ -1013,7 +1013,8 @@ class SheetFilterRowsWindow(Adw.Window):
                         state:   Gdk.ModifierType,
                         ) ->     bool:
         """"""
-#       if keyval == Gdk.KEY_Escape:
-#           self.close()
-#           return Gdk.EVENT_STOP
+        if state & Gdk.ModifierType.CONTROL_MASK and \
+                keyval == Gdk.KEY_Escape:
+            self.close()
+            return Gdk.EVENT_STOP
         return Gdk.EVENT_PROPAGATE

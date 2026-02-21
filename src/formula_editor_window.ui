@@ -46,7 +46,7 @@
             <property name="visible">true</property>
             <property name="end-widget">
               <object class="GtkButton" id="ApplyButton">
-                <property name="label" translatable="yes">Apply</property>
+                <property name="label" translatable="yes">Apply (F5)</property>
                 <signal name="clicked" handler="_on_apply_button_clicked" swapped="no"/>
                 <style>
                   <class name="pill"/>

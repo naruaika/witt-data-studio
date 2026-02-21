@@ -82,15 +82,25 @@ class FormulaEditorWindow(Adw.Window):
                         state:   Gdk.ModifierType,
                         ) ->     bool:
         """"""
-#       if keyval == Gdk.KEY_Escape:
-#           self.close()
-#           return Gdk.EVENT_STOP
+        if state & Gdk.ModifierType.CONTROL_MASK and \
+                keyval == Gdk.KEY_Escape:
+            self.close()
+            return Gdk.EVENT_STOP
+
+        if keyval == Gdk.KEY_F5:
+            self._apply()
+            return Gdk.EVENT_STOP
+
         return Gdk.EVENT_PROPAGATE
 
     @Gtk.Template.Callback()
     def _on_apply_button_clicked(self,
                                  button: Gtk.Button,
                                  ) ->    None:
+        """"""
+        self._apply()
+
+    def _apply(self) -> None:
         """"""
         start_iter = self.SourceBuffer.get_start_iter()
         end_iter = self.SourceBuffer.get_end_iter()
