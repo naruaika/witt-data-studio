@@ -18,6 +18,7 @@
 
 .node-head button {
     border-radius: 50%;
+    -gtk-icon-size: 14px;
 }
 
 .node-body {

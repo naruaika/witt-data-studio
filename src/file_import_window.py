@@ -240,7 +240,7 @@ class FileImportWindow(Adw.Window):
         self.MainContainer.append(self.TopSeparator)
 
         from .sheet.editor import SheetEditor
-        tables = [((1, 1), dataframe)]
+        tables = {_('Table'): ((1, 1), dataframe)}
         configs = {'prefer-synchro': True,
                    'view-read-only': True}
         self.Editor = SheetEditor(tables  = tables,

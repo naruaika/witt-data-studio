@@ -85,6 +85,7 @@
     <file preprocess="xml-stripblanks">vcal-symbolic.svg</file>
     <file preprocess="xml-stripblanks">view-conceal-symbolic.svg</file>
     <file preprocess="xml-stripblanks">view-fullscreen-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">view-refresh-symbolic.svg</file>
     <file preprocess="xml-stripblanks">view-reveal-symbolic.svg</file>
     <file preprocess="xml-stripblanks">window-close-symbolic.svg</file>
 

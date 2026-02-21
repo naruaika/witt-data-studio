@@ -44,6 +44,7 @@ class NodeFrame(Adw.Bin):
     Body         = Gtk.Template.Child()
 
     ErrorButton  = Gtk.Template.Child()
+    CacheButton  = Gtk.Template.Child()
     ActiveToggle = Gtk.Template.Child()
 
     def __init__(self,
@@ -63,6 +64,7 @@ class NodeFrame(Adw.Bin):
         self.y         = y
         self.parent    = parent
         self.node_type = node_type or NodeFrameType.BRANCH
+        self.data      = [] # for internal use only
 
         self.contents:    list['NodeContent'] = []
         self.in_points:   list['Point2D']     = []
@@ -75,6 +77,7 @@ class NodeFrame(Adw.Bin):
         self.is_clicking = False
 
         self.is_processing = False
+        self.is_with_cache = False
 
         self._setup_controllers()
 
@@ -243,6 +246,9 @@ class NodeFrame(Adw.Bin):
         if self.is_processing:
             return
 
+        if self.is_with_cache:
+            backward = False
+
         if self_content:
             self_socket = self_content.Socket
 
@@ -273,24 +279,26 @@ class NodeFrame(Adw.Bin):
                                      initiator    = False)
                     visited_frames.append(frame)
 
-        # Get data from parent frames
-        self.is_processing = True
-        for content in self.contents:
-            if not (self_socket := content.Socket):
-                continue
-            if not self_socket.is_input():
-                continue
-            if not (links := self_socket.links):
-                continue
-            if not links[0].compatible:
-                continue
-            psocket = links[0].in_socket
-            pcontent = psocket.Content
-            value = pcontent.get_data()
-            content.set_data(value)
-        self.is_processing = False
+        if not self.is_with_cache:
+            # Collect data from parent frames
+            self.is_processing = True
+            for content in self.contents:
+                if not (self_socket := content.Socket):
+                    continue
+                if not self_socket.is_input():
+                    continue
+                if not (links := self_socket.links):
+                    continue
+                if not links[0].compatible:
+                    continue
+                psocket = links[0].in_socket
+                pcontent = psocket.Content
+                value = pcontent.get_data()
+                content.set_data(value)
+            self.is_processing = False
 
-        self.do_process(pair_socket, self_content)
+            # Build output data for child frames
+            self.do_process(pair_socket, self_content)
 
         # Collect all target frames and prevent
         # them from being processed right away.
@@ -549,8 +557,9 @@ class NodeFrame(Adw.Bin):
             return None
 
         viewport = canvas.get_parent()
-        scrolled_window = viewport.get_parent()
-        editor = scrolled_window.get_parent()
+        window = viewport.get_parent()
+        box = window.get_parent()
+        editor = box.get_parent()
 
         return editor
 

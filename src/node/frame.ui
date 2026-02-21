@@ -15,6 +15,7 @@
         <child>
           <object class="GtkBox" id="Head">
             <property name="orientation">horizontal</property>
+            <property name="spacing">6</property>
             <child>
               <object class="GtkLabel" id="Title">
                 <property name="xalign">0.0</property>
@@ -22,7 +23,6 @@
                 <property name="margin-top">5</property>
                 <property name="margin-bottom">5</property>
                 <property name="margin-start">10</property>
-                <property name="margin-end">10</property>
                 <property name="ellipsize">end</property>
                 <style>
                   <class name="node-title"/>
@@ -31,7 +31,6 @@
             </child>
             <child>
               <object class="GtkBox">
-                <property name="margin-end">2</property>
                 <child>
                   <object class="GtkButton" id="ErrorButton">
                     <property name="valign">center</property>
@@ -46,9 +45,22 @@
                   </object>
                 </child>
                 <child>
+                  <object class="GtkButton" id="CacheButton">
+                    <property name="valign">center</property>
+                    <property name="icon-name">view-refresh-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Refresh</property>
+                    <property name="visible">false</property>
+                    <style>
+                      <class name="button-sm"/>
+                      <class name="flat"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
                   <object class="GtkButton" id="ActiveToggle">
                     <property name="valign">center</property>
                     <property name="icon-name">view-conceal-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Activate</property>
                     <property name="visible">false</property>
                     <style>
                       <class name="button-sm"/>

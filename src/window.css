@@ -15,7 +15,7 @@
     transition-duration: 0.2s;
 }
 .mwindow .mtabview .editor-view:focus-visible {
-    outline: 2px solid var(--accent-bg-color);
+    outline: 2px solid color-mix(in srgb, var(--accent-color) 50%, transparent);
     transition: outline;
     transition-duration: 0.2s;
 }

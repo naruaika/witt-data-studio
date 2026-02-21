@@ -30,3 +30,10 @@
     margin-left: 0;
     transition-duration: 0;
 }
+
+.multiline-formula-bar:focus-within {
+    outline: 2px solid color-mix(in srgb, var(--accent-color) 50%, transparent);
+    outline-offset: -2px;
+    transition: outline;
+    transition-duration: 0.2s;
+}

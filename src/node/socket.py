@@ -169,11 +169,7 @@ class NodeSocket(Gtk.Widget):
 
     def get_editor(self) -> 'NodeEditor':
         """"""
-        canvas = self.get_canvas()
-        viewport = canvas.get_parent()
-        scrolled_window = viewport.get_parent()
-        editor = scrolled_window.get_parent()
-        return editor
+        return self.Frame.get_editor()
 
 from .editor import NodeEditor
 from .canvas import NodeCanvas

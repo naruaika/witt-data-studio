@@ -113,6 +113,9 @@ class SheetEditor(Gtk.Box):
 
         self.set_data(tables, sparse)
 
+        if self.configs['view-read-only']:
+            self.FormulaBar.set_visible(False)
+
     def setup(self) -> None:
         """"""
         pass
@@ -817,8 +820,11 @@ class SheetEditor(Gtk.Box):
         cell_data  = str(cell_data)
         cell_dtype = self.selection.current_cell_dtype
 
-        if table is not None and table.error_message:
-            cell_dtype = 'Error'
+        if table is not None:
+            if table.placeholder:
+                cell_dtype = ''
+            if table.error_message:
+                cell_dtype = 'Error'
 
         parameter = GLib.Variant('as', [cell_name, cell_data, cell_dtype])
         self.activate_action('formula.update-formula-bar', parameter)
@@ -982,11 +988,21 @@ class SheetEditor(Gtk.Box):
             # be reconnected to the sheet node
             self_content.node_uid = id(transformer)
 
+            # Freeze pair node to prevent from rebuilding data
+            # table from the source
+            pair_node.is_with_cache = True
+            value = pair_node.data['table']
+            pair_node.data['table'] = table
+
             # Connect the pair node, new node, and self node
             content = transformer.contents[0]
             editor.add_link(content.Socket, self_socket)
             content = transformer.contents[1]
             editor.add_link(pair_socket, content.Socket)
+
+            # Restore the pair node state
+            pair_node.is_with_cache = False
+            pair_node.data['table'] = value
 
             editor.auto_arrange(self.node)
 

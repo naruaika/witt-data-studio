@@ -4,16 +4,26 @@
   <template class="NodeEditor" parent="GtkOverlay">
     <property name="overflow">hidden</property>
     <child>
-      <object class="GtkScrolledWindow" id="ScrolledWindow">
-        <property name="hexpand">true</property>
-        <property name="vexpand">true</property>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
         <child>
-          <object class="NodeCanvas" id="Canvas">
-            <property name="height-request">16384</property>
-            <property name="width-request">16384</property>
-            <style>
-              <class name="node-canvas"/>
-            </style>
+          <object class="GtkSeparator">
+            <property name="orientation">horizontal</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="ScrolledWindow">
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+            <child>
+              <object class="NodeCanvas" id="Canvas">
+                <property name="height-request">16384</property>
+                <property name="width-request">16384</property>
+                <style>
+                  <class name="node-canvas"/>
+                </style>
+              </object>
+            </child>
           </object>
         </child>
       </object>
@@ -43,6 +53,7 @@
           <object class="GtkToggleButton" id="MinimapToggle">
             <property name="valign">start</property>
             <property name="icon-name">compass2-symbolic</property>
+            <property name="tooltip-text" translatable="yes">Toggle Minimap</property>
             <style>
               <class name="view"/>
               <class name="frame"/>

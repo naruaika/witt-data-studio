@@ -8,7 +8,6 @@
       <object class="GtkBox">
         <property name="orientation">horizontal</property>
         <property name="spacing">6</property>
-        <property name="margin-top">6</property>
         <property name="margin-start">6</property>
         <property name="margin-end">6</property>
         <child>

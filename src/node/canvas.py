@@ -316,8 +316,9 @@ class NodeCanvas(Gtk.Fixed):
     def get_editor(self) -> 'NodeEditor':
         """"""
         viewport = self.get_parent()
-        scrolled_window = viewport.get_parent()
-        editor = scrolled_window.get_parent()
+        window = viewport.get_parent()
+        box = window.get_parent()
+        editor = box.get_parent()
         return editor
 
 from .editor import NodeEditor

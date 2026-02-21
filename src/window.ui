@@ -102,11 +102,6 @@
                       <object class="Toolbar" id="Toolbar"/>
                     </child>
                     <child>
-                      <object class="GtkSeparator">
-                        <property name="orientation">horizontal</property>
-                      </object>
-                    </child>
-                    <child>
                       <object class="AdwTabView" id="TabView">
                         <property name="valign">fill</property>
                         <property name="halign">fill</property>

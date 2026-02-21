@@ -530,9 +530,16 @@ class NodeReadFile(NodeTemplate):
         self.frame.data['refresh-columns']  = False
         self.frame.data['column-expanded']  = False
         self.frame.data['limiter-expanded'] = False
+        self.frame.data['refresh-cache']    = True
 
         self._add_output_table()
         self._add_file_chooser()
+
+        def on_refresh(button: Gtk.Button) -> None:
+            """"""
+            self.frame.data['refresh-cache'] = True
+            self.frame.do_execute(backward = False)
+        self.frame.CacheButton.connect('clicked', on_refresh)
 
         return self.frame
 
@@ -553,8 +560,6 @@ class NodeReadFile(NodeTemplate):
         while len(self.frame.contents) > 2:
             content = self.frame.contents[-1]
             self.frame.remove_content(content)
-
-        # TODO: re-link all previous sockets
 
         if not file_path:
             self.frame.data['table'] = DataFrame()
@@ -582,6 +587,8 @@ class NodeReadFile(NodeTemplate):
 #           case _ if file_format in SPREADSHEET_FILES:
 #               ...
 
+        self.frame.data['refresh-cache'] = True
+
         self.frame.do_execute(backward = False)
 
     def do_process(self,
@@ -592,6 +599,9 @@ class NodeReadFile(NodeTemplate):
         file_path = self.frame.data.get('file-path')
 
         if not file_path:
+            return
+
+        if not self.frame.data['refresh-cache']:
             return
 
         kwargs = self.frame.data['kwargs']
@@ -669,9 +679,6 @@ class NodeReadFile(NodeTemplate):
         table_columns = result.collect_schema().names()
         self.frame.data['all-columns'] = table_columns
 
-        # TODO: if the workflow is run on schedule and the source
-        # seems has changed, stop the process and notify the user
-
         cur_columns = self.frame.data['kwargs']['columns']
 
         if table_columns and cur_columns:
@@ -703,6 +710,9 @@ class NodeReadFile(NodeTemplate):
         self.frame.data['refresh-columns'] = False
 
         self.frame.data['table'] = result
+
+        self.frame.data['refresh-cache'] = False
+        self.frame.CacheButton.set_visible(True)
 
     def do_save(self) -> dict:
         """"""
@@ -798,6 +808,7 @@ class NodeReadFile(NodeTemplate):
                 """"""
                 self.frame.data['kwargs']['separator'] = value
                 self.frame.data['refresh-columns'] = True
+                self.frame.data['refresh-cache'] = True
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
@@ -821,6 +832,7 @@ class NodeReadFile(NodeTemplate):
                 """"""
                 self.frame.data['kwargs']['quote_char'] = value
                 self.frame.data['refresh-columns'] = True
+                self.frame.data['refresh-cache'] = True
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
@@ -844,6 +856,7 @@ class NodeReadFile(NodeTemplate):
                 """"""
                 self.frame.data['kwargs']['decimal_comma'] = value
                 self.frame.data['refresh-columns'] = True
+                self.frame.data['refresh-cache'] = True
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
@@ -879,6 +892,7 @@ class NodeReadFile(NodeTemplate):
             def callback(value: int) -> None:
                 """"""
                 self.frame.data['kwargs']['n_rows'] = value or None
+                self.frame.data['refresh-cache'] = True
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
@@ -908,6 +922,8 @@ class NodeReadFile(NodeTemplate):
 
             self.frame.data['bk.n_rows'] = content.get_data()
 
+            self.frame.data['refresh-cache'] = True
+
             self.frame.do_execute(pair_socket, self_content)
 
         content.do_link = do_link
@@ -921,6 +937,8 @@ class NodeReadFile(NodeTemplate):
 
             if 'bk.n_rows' in self.frame.data:
                 content.set_data(self.frame.data['bk.n_rows'])
+
+            self.frame.data['refresh-cache'] = True
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -938,6 +956,7 @@ class NodeReadFile(NodeTemplate):
             def callback(value: int) -> None:
                 """"""
                 self.frame.data['kwargs']['skip_rows'] = value - 1
+                self.frame.data['refresh-cache'] = True
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
@@ -967,6 +986,8 @@ class NodeReadFile(NodeTemplate):
 
             self.frame.data['bk.skip_rows'] = content.get_data()
 
+            self.frame.data['refresh-cache'] = True
+
             self.frame.do_execute(pair_socket, self_content)
 
         content.do_link = do_link
@@ -980,6 +1001,8 @@ class NodeReadFile(NodeTemplate):
 
             if 'bk.skip_rows' in self.frame.data:
                 content.set_data(self.frame.data['bk.skip_rows'])
+
+            self.frame.data['refresh-cache'] = True
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -999,6 +1022,7 @@ class NodeReadFile(NodeTemplate):
                 if self.frame.data['kwargs']['has_header'] != value:
                     self.frame.data['kwargs']['has_header'] = value
                     self.frame.data['refresh-columns'] = True
+                    self.frame.data['refresh-cache'] = True
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
@@ -1026,6 +1050,8 @@ class NodeReadFile(NodeTemplate):
 
             self.frame.data['bk.has_header'] = content.get_data()
 
+            self.frame.data['refresh-cache'] = True
+
             self.frame.do_execute(pair_socket, self_content)
 
         content.do_link = do_link
@@ -1041,6 +1067,7 @@ class NodeReadFile(NodeTemplate):
                 content.set_data(self.frame.data['bk.has_header'])
 
             self.frame.data['kwargs']['columns'] = []
+            self.frame.data['refresh-cache'] = True
 
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
@@ -1058,6 +1085,7 @@ class NodeReadFile(NodeTemplate):
             def callback(value: list[str]) -> None:
                 """"""
                 self.frame.data['kwargs']['columns'] = value
+                self.frame.data['refresh-cache'] = True
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 
