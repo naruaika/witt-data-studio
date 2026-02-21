@@ -1704,11 +1704,18 @@ class NodeCustomFormula(NodeTemplate):
         self.frame.do_save    = self.do_save
         self.frame.do_restore = self.do_restore
 
-        self.frame.data['formula'] = 'value'
+        self.frame.data['formula']   = 'value'
+        self.frame.data['signature'] = None
 
         self._add_output()
         self._add_input()
         self._add_formula()
+
+        def on_refresh(button: Gtk.Button) -> None:
+            """"""
+            self.frame.data['refresh-cache'] = True
+            self.frame.do_execute(backward = False)
+        self.frame.CacheButton.connect('clicked', on_refresh)
 
         return self.frame
 
@@ -1718,6 +1725,8 @@ class NodeCustomFormula(NodeTemplate):
 
         widget = self.frame.contents[2].Widget
         widget.set_data(args[0])
+
+        self.frame.data['signature'] = None
 
         self.frame.do_execute(backward = False)
 
@@ -1731,30 +1740,52 @@ class NodeCustomFormula(NodeTemplate):
         out_content = self.frame.contents[0]
         out_socket = out_content.Socket
 
+        is_isolated = len(out_content.Socket.links) == 0 and \
+                      len(in_content.Socket.links)  == 0
+
+        if is_isolated:
+            self.frame.data['value'] = None
+            out_socket.data_type = None
+            return
+
         value = None
-        self.frame.data['value'] = value
-        out_socket.data_type = None
 
         if links := in_content.Socket.links:
             pair_content = links[0].in_socket.Content
             value = pair_content.get_data()
             out_socket.data_type = type(value)
 
-        if formula := self.frame.data['formula']:
-            from ..core.formula_evaluator import Evaluator
-            try:
-                variables = {'value': value}
-                value = Evaluator(variables).evaluate(formula)
-                out_socket.data_type = type(value)
-            except Exception as e:
-                self.frame.ErrorButton.set_tooltip_text(str(e))
-                self.frame.ErrorButton.set_visible(True)
-            else:
-                self.frame.ErrorButton.set_visible(False)
+        formula = self.frame.data['formula']
+
+        if not formula:
+            self.frame.data['value'] = value
+            return
+
+        signature = (id(value), formula)
+
+        if self.frame.data['signature'] == signature:
+            return
+
+        from ..core.formula_evaluator import Evaluator
+        try:
+            variables = {'value': value}
+            value = Evaluator(variables).evaluate(formula)
+            out_socket.data_type = type(value)
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
 
         # Make compatible with existing nodes
         if out_socket.data_type == LazyFrame:
             out_socket.data_type = DataFrame
+
+        if isinstance(value, DataFrame):
+            self.frame.data['signature'] = signature
+            self.frame.CacheButton.set_visible(True)
+        else:
+            self.frame.CacheButton.set_visible(False)
 
         self.frame.data['value'] = value
 
@@ -1808,12 +1839,16 @@ class NodeCustomFormula(NodeTemplate):
             if not _iscompatible(pair_socket, self_content):
                 return
 
+            self.frame.data['signature'] = None
+
             self.frame.do_execute(pair_socket, self_content)
 
         content.do_link = do_link
 
         def do_unlink(socket: NodeSocket) -> None:
             """"""
+            self.frame.data['signature'] = None
+
             self.frame.do_execute(self_content = socket.Content,
                                   backward     = False)
 
@@ -1830,6 +1865,7 @@ class NodeCustomFormula(NodeTemplate):
             def callback(value: str) -> None:
                 """"""
                 self.frame.data['formula'] = value
+                self.frame.data['signature'] = None
                 self.frame.do_execute(backward = False)
             _take_snapshot(self, callback, value)
 

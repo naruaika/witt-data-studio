@@ -912,6 +912,7 @@ class SheetTransformWindow(Adw.Window):
             self.kwargs['new_sheet'] = self.options['new_sheet'].get_active()
 
         self.close() # close first to properly handle the focus
+
         self.callback(self._get_callback_args(), **self.kwargs)
 
     def _on_input_activated(self,

@@ -108,6 +108,6 @@ class FormulaEditorWindow(Adw.Window):
         formula = self.SourceBuffer.get_text(start_iter, end_iter, True)
         formula = formula.strip()
 
-        self.callback(formula)
-
         self.close()
+
+        self.callback(formula)
