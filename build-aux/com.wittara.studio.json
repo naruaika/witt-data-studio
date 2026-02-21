@@ -11,6 +11,9 @@
         "--socket=fallback-x11",
         "--socket=wayland",
         "--filesystem=host",
+        "--filesystem=xdg-run/gvfs",
+        "--filesystem=xdg-run/gvfsd",
+        "--talk-name=org.gtk.vfs.*",
         "--talk-name=org.freedesktop.secrets",
         "--env=GSK_RENDERER=gl"
     ],
