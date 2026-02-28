@@ -215,6 +215,7 @@ class Window(Adw.ApplicationWindow):
                                             shortcuts = ['<Primary>s'])
         create_command('win.save-as',       _('Save As...'),
                                             shortcuts = ['<Shift><Primary>s'])
+
     def _on_command_palette_action(self,
                                    action:    Gio.SimpleAction,
                                    parameter: GLib.Variant,

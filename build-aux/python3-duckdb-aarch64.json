@@ -1,0 +1,17 @@
+{
+    "name": "python3-duckdb",
+    "buildsystem": "simple",
+    "build-commands": [
+        "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"duckdb\" --no-build-isolation"
+    ],
+    "sources": [
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/09/5b/3e7aa490841784d223de61beb2ae64e82331501bf5a415dc87a0e27b4663/duckdb-1.4.4-cp313-cp313-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl",
+            "sha256": "0d636ceda422e7babd5e2f7275f6a0d1a3405e6a01873f00d38b72118d30c10b"
+        }
+    ],
+    "only-arches": [
+        "aarch64"
+    ]
+}

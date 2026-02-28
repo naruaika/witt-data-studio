@@ -268,6 +268,7 @@ class SheetEditor(Gtk.Box):
                 controller.add_shortcut(shortcut)
 
         create_action('open-file',              lambda *_: self.activate_action('app.open-file'))
+        create_action('open-database',          lambda *_: self.activate_action('app.open-database'))
 
         create_action('choose-columns',         lambda *_: self._transform_table('choose-columns'))
         create_action('remove-columns',         lambda *_: self._transform_table('remove-columns'))
@@ -414,22 +415,26 @@ class SheetEditor(Gtk.Box):
             title, _ = get_layout(action_name)
             return title
 
-        create_command(action_name = 'open-file',
-                       title       = _('Open File...'),
-                       shortcuts   = ['<Primary>o'],
-                       context     = None,
-                       prefix      = 'app')
+        create_command('open-source',           '$placeholder',
+                                                context = None)
 
-        create_command(action_name = 'focus-name-box',
-                       title       = _('Focus Name Box'),
-                       shortcuts   = ['<Primary>g'],
-                       context     = None,
-                       prefix      = 'formula')
-        create_command(action_name = 'focus-formula-box',
-                       title       = _('Focus Formula Box'),
-                       shortcuts   = ['F2'],
-                       context     = None,
-                       prefix      = 'formula')
+        create_command('open-file',             title     = _('Open File...'),
+                                                shortcuts = ['<Primary>o'],
+                                                context   = None,
+                                                prefix    = 'app')
+        create_command('open-database',         title     = _('Open Database...'),
+                                                shortcuts = ['<Shift><Primary>o'],
+                                                context   = None,
+                                                prefix    = 'app')
+
+        create_command('focus-name-box',        title     = _('Focus Name Box'),
+                                                shortcuts = ['<Primary>g'],
+                                                context   = None,
+                                                prefix    = 'formula')
+        create_command('focus-formula-box',     title     = _('Focus Formula Box'),
+                                                shortcuts = ['F2'],
+                                                context   = None,
+                                                prefix    = 'formula')
 
         create_command('choose-columns',        f"{_('Table')}: {get_title_from_layout('choose-columns')}...")
         create_command('remove-columns',        f"{_('Table')}: {get_title_from_layout('remove-columns')}...")
@@ -977,11 +982,19 @@ class SheetEditor(Gtk.Box):
             # be reconnected to the sheet node
             self_content.node_uid = id(transformer)
 
+            data_key = ''
+            if 'value' in pair_node.data:
+                data_key = 'value'
+            if 'table' in pair_node.data:
+                data_key = 'table'
+            keep_cache = data_key != ''
+
             # Freeze pair node to prevent from rebuilding data
             # table from the source
-            pair_node.is_with_cache = True
-            value = pair_node.data['table']
-            pair_node.data['table'] = table
+            if keep_cache:
+                pair_node.is_with_cache = True
+                value = pair_node.data[data_key]
+                pair_node.data[data_key] = table
 
             # Connect the pair node, new node, and self node
             content = transformer.contents[0]
@@ -990,8 +1003,9 @@ class SheetEditor(Gtk.Box):
             editor.add_link(pair_socket, content.Socket)
 
             # Restore the pair node state
-            pair_node.is_with_cache = False
-            pair_node.data['table'] = value
+            if keep_cache:
+                pair_node.is_with_cache = False
+                pair_node.data[data_key] = value
 
             editor.auto_arrange(self.node)
 
@@ -1062,7 +1076,7 @@ class SheetEditor(Gtk.Box):
         for ridx in range(len(win_layout)):
             do_evaluate(ridx, win_layout)
 
-        subtitle = f'{self.title} – {table.tname}'
+        subtitle = f'{table.tname} – {self.title}'
 
         application = window.get_application()
 
@@ -1126,11 +1140,30 @@ class SheetEditor(Gtk.Box):
             # be reconnected to the sheet node
             self_content.node_uid = id(transformer)
 
+            data_key = ''
+            if 'value' in pair_node.data:
+                data_key = 'value'
+            if 'table' in pair_node.data:
+                data_key = 'table'
+            keep_cache = data_key != ''
+
+            # Freeze pair node to prevent from rebuilding data
+            # table from the source
+            if keep_cache:
+                pair_node.is_with_cache = True
+                value = pair_node.data[data_key]
+                pair_node.data[data_key] = table
+
             # Connect the pair node, new node, and self node
             content = transformer.contents[0]
             editor.add_link(content.Socket, self_socket)
             content = transformer.contents[1]
             editor.add_link(pair_socket, content.Socket)
+
+            # Restore the pair node state
+            if keep_cache:
+                pair_node.is_with_cache = False
+                pair_node.data[data_key] = value
 
             editor.auto_arrange(self.node)
 
@@ -1138,7 +1171,7 @@ class SheetEditor(Gtk.Box):
 
             self.grab_focus()
 
-        subtitle = f'{self.title} – {table.tname}'
+        subtitle = f'{table.tname} – {self.title}'
 
         application = window.get_application()
 
@@ -1211,7 +1244,7 @@ class SheetEditor(Gtk.Box):
 
         application = window.get_application()
 
-        subtitle = f'{self.title} – {table.tname}'
+        subtitle = f'{table.tname} – {self.title}'
 
         from ..formula_editor_window import FormulaEditorWindow
         editor_window = FormulaEditorWindow(subtitle      = subtitle,

@@ -37,7 +37,7 @@ class NodeSocket(Gtk.Widget):
     def __init__(self,
                  content:     'NodeContent',
                  socket_type: 'NodeSocketType',
-                 data_type:   'Any',
+                 data_type:   'Any'  = None,
                  placeholder: 'bool' = False,
                  auto_remove: 'bool' = False,
                  ) ->         'None':
@@ -65,6 +65,8 @@ class NodeSocket(Gtk.Widget):
         self.Frame:       'NodeFrame'        = content.Frame
         self.placeholder: 'bool'             = placeholder
         self.auto_remove: 'bool'             = auto_remove
+
+        self.set_data_type(data_type)
 
         self._setup_controllers()
 
@@ -152,6 +154,22 @@ class NodeSocket(Gtk.Widget):
         """"""
         editor = self.get_editor()
         editor.end_future_link()
+
+    def set_data_type(self,
+                      value: Any,
+                      ) ->   None:
+        """"""
+        from .repository import iscompatible
+
+        self.data_type = value
+
+        if value:
+            self.set_tooltip_text(value.__name__)
+        else:
+            self.set_tooltip_text(None)
+
+        for link in self.links:
+            iscompatible(link.out_socket, self.Content)
 
     def is_input(self) -> bool:
         """"""

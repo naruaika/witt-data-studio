@@ -45,6 +45,8 @@
         "python3-connectorx-x86_64.json",
         "python3-pyarrow-aarch64.json",
         "python3-pyarrow-x86_64.json",
+        "python3-duckdb-aarch64.json",
+        "python3-duckdb-x86_64.json",
         "python3-fastexcel-aarch64.json",
         "python3-fastexcel-x86_64.json",
         "python3-pykdtree-aarch64.json",

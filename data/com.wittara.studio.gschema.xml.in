@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<schemalist gettext-domain="witt-data-studio">
-	<schema id="@APP_ID@" path="/com/wittara/studio/">
-	</schema>
-</schemalist>

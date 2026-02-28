@@ -19,10 +19,12 @@
 
 from argparse import ArgumentParser
 from gi.repository import Adw
+from gi.repository import Gdk
 from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
+from logging import error
 from typing import Callable
 
 from .window import Window
@@ -90,6 +92,23 @@ class Application(Adw.Application):
 
         self.activate()
 
+    def do_shutdown(self) -> None:
+        """"""
+        import glob
+        import os
+        import tempfile
+
+        dir_path = tempfile.gettempdir()
+        pattern = os.path.join(dir_path, '*.wisnap')
+
+        for file_path in glob.glob(pattern):
+            try:
+                os.remove(file_path)
+            except:
+                pass
+
+        Gio.Application.do_shutdown(self)
+
     def create_action(self,
                       name:       str,
                       callback:   Callable,
@@ -105,22 +124,39 @@ class Application(Adw.Application):
 
     def _setup_actions(self) -> None:
         """"""
-        self.create_action('about',         self._on_about_action,
-                                            ['F12'])
-        self.create_action('exit',          self._on_exit_action,
-                                            ['<Primary>q'])
+        self.create_action('copy-string',    callback   = self._on_copy_string_action,
+                                             param_type = GLib.VariantType('s'))
 
-        self.create_action('new-window',    self._on_new_window_action,
-                                            ['<Shift><Primary>N'])
+        self.create_action('about',          self._on_about_action,
+                                             ['F12'])
+        self.create_action('exit',           self._on_exit_action,
+                                             ['<Primary>q'])
 
-        self.create_action('open-file',     self._on_open_file_action,
-                                            ['<Primary>o'])
+        self.create_action('new-window',     self._on_new_window_action,
+                                             ['<Shift><Primary>N'])
+
+        self.create_action('open-file',      self._on_open_file_action,
+                                             ['<Primary>o'])
+        self.create_action('open-database',  self._on_open_database_action,
+                                             ['<Shift><Primary>o'])
+
+    def _on_copy_string_action(self,
+                               action:    Gio.SimpleAction,
+                               parameter: GLib.Variant,
+                               ) ->       None:
+        """"""
+        string = parameter.get_string()
+        display = Gdk.Display.get_default()
+        clipboard = display.get_clipboard()
+        clipboard.set(GObject.Value(str, string))
 
     def _on_about_action(self,
                          action:    Gio.SimpleAction,
                          parameter: GLib.Variant,
                          ) ->       None:
         """"""
+        window = self.get_active_main_window()
+
         repository_url = 'https://github.com/naruaika/witt-data-studio'
         dialog = Adw.AboutDialog(application_name   = 'Witt Data Studio',
                                  application_icon   = self.APP_ID,
@@ -135,7 +171,6 @@ class Application(Adw.Application):
                                  support_url        = f'{repository_url}/discussions',
                                  translator_credits = _('translator-credits'),
                                  website            = repository_url)
-        window = self.get_active_main_window()
         dialog.present(window)
 
     def _on_exit_action(self,
@@ -159,9 +194,22 @@ class Application(Adw.Application):
                              parameter: GLib.Variant,
                              ) ->       None:
         """"""
-        from .file_manager import FileManager
         window = self.get_active_main_window()
+
+        from .file_manager import FileManager
         FileManager.open_file(window)
+
+    def _on_open_database_action(self,
+                                 action:    Gio.SimpleAction,
+                                 parameter: GLib.Variant,
+                                 ) ->       None:
+        """"""
+        window = self.get_active_main_window()
+
+        from .database_import_window import DatabaseImportWindow
+        import_window = DatabaseImportWindow(transient_for = window,
+                                             application   = self)
+        import_window.present()
 
     def _setup_controllers(self) -> None:
         """"""
@@ -265,8 +313,8 @@ class Application(Adw.Application):
                     node.do_restore(schema['contents'])
                     nodes.append(node)
                     nodes_map[schema['id']] = node
-                except:
-                    pass # TODO: show errors to user
+                except Exception as e:
+                    error(e)
 
         links = []
         if 'links' in content:
@@ -287,8 +335,8 @@ class Application(Adw.Application):
 
                     link = NodeLink(content1.Socket, content2.Socket).link()
                     links.append(link)
-                except:
-                    pass # TODO: show errors to user
+                except Exception as e:
+                    error(e)
 
         # Close the current blank window
         if not on_startup:
@@ -328,6 +376,7 @@ class Application(Adw.Application):
         """"""
         from .node.repository import NodeViewer
 
+        # TODO: save user timezone and locale code
         save_data = {'version': self.WIBOOK_VERSION}
 
         editor = window.node_editor
@@ -365,7 +414,7 @@ class Application(Adw.Application):
                 'target': target,
             })
 
-        sort_key = lambda l: l['target']['content']
+        sort_key = lambda link: link['target']['content']
         save_data['links'] = sorted(save_data['links'], key = sort_key)
 
         def do_finish(success:   bool,

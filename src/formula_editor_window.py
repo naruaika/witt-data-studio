@@ -36,7 +36,7 @@ class FormulaEditorWindow(Adw.Window):
                  callback:      callable,
                  transient_for: Gtk.Window,
                  application:   Gtk.Application,
-                 text:          str = None,
+                 formula:       str = None,
                  ) ->           None:
         """"""
         super().__init__(transient_for = transient_for,
@@ -50,24 +50,33 @@ class FormulaEditorWindow(Adw.Window):
         self._setup_source_view()
         self._setup_controllers()
 
-        self.SourceBuffer.set_text(text or 'value')
+        self.SourceBuffer.set_text(formula or 'value')
 
     def _setup_source_view(self) -> None:
         """"""
-        self.SourceBuffer = GtkSource.Buffer()
-        self.SourceBuffer.set_highlight_syntax(True)
-
         language_manager = GtkSource.LanguageManager.get_default()
-        sql_language = language_manager.get_language('python')
-        self.SourceBuffer.set_language(sql_language)
+        language = language_manager.get_language('python')
 
+        self.SourceBuffer = GtkSource.Buffer(language         = language,
+                                             highlight_syntax = True)
+        self.SourceView.set_buffer(self.SourceBuffer)
+
+        settings = Gtk.Settings.get_default()
+        settings.connect('notify::gtk-application-prefer-dark-theme',
+                         self._on_prefer_dark_theme_changed)
+
+        self._on_prefer_dark_theme_changed(None, None)
+
+    def _on_prefer_dark_theme_changed(self,
+                                      settings:     Gtk.Settings,
+                                      gparamstring: str,
+                                      ) ->          None:
+        """"""
         scheme_manager = GtkSource.StyleSchemeManager.get_default()
         prefers_dark = Adw.StyleManager().get_dark()
         color_scheme = 'Adwaita-dark' if prefers_dark else 'Adwaita'
         style_scheme = scheme_manager.get_scheme(color_scheme)
         self.SourceBuffer.set_style_scheme(style_scheme)
-
-        self.SourceView.set_buffer(self.SourceBuffer)
 
     def _setup_controllers(self) -> None:
         """"""

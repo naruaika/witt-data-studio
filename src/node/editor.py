@@ -239,7 +239,8 @@ class NodeEditor(Gtk.Overlay):
             """"""
             self.activate_action('node.create', GLib.Variant('s', name))
 
-        create_action('open-file',              callback   = lambda *_: self.activate_action('app.open-file'))
+        create_action('open-file',              lambda *_: self.activate_action('app.open-file'))
+        create_action('open-database',          lambda *_: self.activate_action('app.open-database'))
 
         create_action('create',                 callback   = self._on_create_action,
                                                 param_type = GLib.VariantType('s'))
@@ -267,6 +268,7 @@ class NodeEditor(Gtk.Overlay):
 #                                               shortcuts  = ['h'])
 
         create_action('read-file',              lambda *_: create_node('read-file'))
+        create_action('read-database',          lambda *_: create_node('read-database'))
 
         create_action('choose-columns',         lambda *_: create_node('choose-columns'))
         create_action('remove-columns',         lambda *_: create_node('remove-columns'))
@@ -428,8 +430,11 @@ class NodeEditor(Gtk.Overlay):
         create_command('open-file',             _('Open File...'),
                                                 shortcuts = ['<Primary>o'],
                                                 prefix    = 'app')
+        create_command('open-database',         _('Open Database...'),
+                                                shortcuts = ['<Shift><Primary>o'],
+                                                prefix    = 'app')
 
-        create_command('read-file',             f"{_('Create')}: {_('Read File')}")
+        create_command('read-source',           '$placeholder')
 
         create_command('choose-columns',        f"{_('Table')}: {_('Choose Columns')}")
         create_command('remove-columns',        f"{_('Table')}: {_('Remove Columns')}")

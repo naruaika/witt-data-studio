@@ -36,7 +36,7 @@ DECIMAL_COMMA_OPTS = {False: _('Period'),
                       True:  _('Comma')}
 
 
-class FileImportCsvView(GObject.Object):
+class FileImportCSVView(GObject.Object):
 
     __gtype_name__ = 'FileImportCsvView'
 

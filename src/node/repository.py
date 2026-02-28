@@ -27,6 +27,7 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Pango
+from logging import error
 from polars import DataFrame
 from polars import LazyFrame
 from polars import Series
@@ -34,6 +35,7 @@ from polars import DataType
 from polars import Expr
 from typing import Any
 import gc
+import os
 
 from ..core.utils import generate_uuid
 from ..core.utils import isiterable
@@ -48,8 +50,9 @@ from .socket import NodeSocketType
 from .widget import NodeCheckButton
 from .widget import NodeCheckGroup
 from .widget import NodeComboButton
+from .widget import NodeDatabaseReader
 from .widget import NodeEntry
-from .widget import NodeFileChooser
+from .widget import NodeFileReader
 from .widget import NodeFormulaEditor
 from .widget import NodeFilterBuilder
 from .widget import NodeLabel
@@ -57,13 +60,13 @@ from .widget import NodeListEntry
 from .widget import NodeListItem
 from .widget import NodeSpinButton
 
-def _iscompatible(pair_socket:  NodeSocket,
-                  self_content: NodeContent,
-                  ) ->          bool:
+def iscompatible(pair_socket:  NodeSocket,
+                 self_content: NodeContent,
+                 ) ->          bool:
     """"""
     self_socket = self_content.Socket
 
-    if not (pair_socket.data_type and self_socket.data_type):
+    if pair_socket.data_type == Any or self_socket.data_type == Any:
         compatible = True
     else:
         pair_types = set(pair_socket.data_type) if isiterable(pair_socket.data_type) \
@@ -78,9 +81,9 @@ def _iscompatible(pair_socket:  NodeSocket,
     return compatible
 
 
-def _isreconnected(pair_socket:  NodeSocket,
-                   self_content: NodeContent,
-                   ) ->          bool:
+def isreconnected(pair_socket:  NodeSocket,
+                  self_content: NodeContent,
+                  ) ->          bool:
     """"""
     incoming_node_uid = id(pair_socket.Frame)
 
@@ -90,6 +93,11 @@ def _isreconnected(pair_socket:  NodeSocket,
     self_content.node_uid = incoming_node_uid
 
     return False
+
+
+def isdatatable(value: Any) -> bool:
+    """"""
+    return isinstance(value, (DataFrame, LazyFrame))
 
 
 def _serialize_data(obj: Any) -> Any:
@@ -532,8 +540,8 @@ class NodeReadFile(NodeTemplate):
         self.frame.data['limiter-expanded'] = False
         self.frame.data['refresh-cache']    = True
 
-        self._add_output_table()
-        self._add_file_chooser()
+        self._add_output()
+        self._add_chooser()
 
         def on_refresh(button: Gtk.Button) -> None:
             """"""
@@ -737,7 +745,7 @@ class NodeReadFile(NodeTemplate):
         else:
             self.frame.ErrorButton.set_visible(False)
 
-    def _add_output_table(self) -> None:
+    def _add_output(self) -> None:
         """"""
         self.frame.data['table'] = DataFrame()
 
@@ -758,23 +766,18 @@ class NodeReadFile(NodeTemplate):
                                get_data    = get_data,
                                set_data    = set_data)
 
-    def _add_file_chooser(self) -> None:
+    def _add_chooser(self) -> None:
         """"""
         def get_data() -> str:
             """"""
             return self.frame.data['file-path']
 
-        def on_clicked(button: Gtk.Button) -> None:
+        def set_data(*args, **kwargs) -> None:
             """"""
-            def callback(*args, **kwargs) -> None:
-                """"""
-                _take_snapshot(self, self.set_data, *args, **kwargs)
-            from ..file_manager import FileManager
-            window = self.frame.get_root()
-            FileManager.open_file(window, callback)
+            _take_snapshot(self, self.set_data, *args, **kwargs)
 
-        chooser = NodeFileChooser(get_data   = get_data,
-                                  on_clicked = on_clicked)
+        chooser = NodeFileReader(get_data = get_data,
+                                 set_data = set_data)
         self.frame.add_content(chooser)
 
     def _add_delimiters_group(self,
@@ -917,7 +920,7 @@ class NodeReadFile(NodeTemplate):
             label = NodeLabel(_('No. Rows'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.n_rows'] = content.get_data()
@@ -981,7 +984,7 @@ class NodeReadFile(NodeTemplate):
             label = NodeLabel(_('From Row'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.skip_rows'] = content.get_data()
@@ -1045,7 +1048,7 @@ class NodeReadFile(NodeTemplate):
             label = NodeLabel(_('First Row as Header'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.has_header'] = content.get_data()
@@ -1109,6 +1112,185 @@ class NodeReadFile(NodeTemplate):
 
 
 
+class NodeReadDatabase(NodeTemplate):
+
+    ndname = _('Read Database')
+
+    action = 'read-database'
+
+    @staticmethod
+    def new(x:   int = 0,
+            y:   int = 0,
+            ) -> NodeFrame:
+        """"""
+        self = NodeReadDatabase(x, y)
+
+        self.frame.node_type  = NodeFrameType.SOURCE
+        self.frame.set_data   = self.set_data
+        self.frame.do_process = self.do_process
+        self.frame.do_save    = self.do_save
+        self.frame.do_restore = self.do_restore
+
+        self.frame.data['query']     = ''
+        self.frame.data['config']    = {}
+        self.frame.data['file-path'] = ''
+        self.frame.data['signature'] = None
+
+        self._add_output()
+        self._add_editor()
+
+        def on_refresh(button: Gtk.Button) -> None:
+            """"""
+            self.frame.data['signature'] = None
+            self.frame.do_execute(backward = False)
+        self.frame.CacheButton.connect('clicked', on_refresh)
+
+        return self.frame
+
+    def set_data(self, *args, **kwargs) -> None:
+        """"""
+        query  = args[0]
+        config = args[1]
+
+        self.frame.data['query']  = query
+        self.frame.data['config'] = config
+
+        widget = self.frame.contents[1].Widget
+        widget.set_data(args[0])
+
+        self.frame.data['signature'] = None
+
+        self.frame.do_execute(backward = False)
+
+    def do_process(self,
+                   pair_socket:  NodeSocket,
+                   self_content: NodeContent,
+                   ) ->          None:
+        """"""
+        out_content = self.frame.contents[0]
+        out_socket = out_content.Socket
+
+        if not (links := out_content.Socket.links):
+            self.frame.data['value'] = None
+            out_socket.set_data_type(None)
+            return
+
+        query  = self.frame.data['query']
+        config = self.frame.data['config']
+
+        if not query:
+            self.frame.data['value'] = None
+            out_socket.set_data_type(None)
+            return
+
+        signature = (query, id(config))
+
+        if self.frame.data['signature'] == signature:
+            return
+
+        if file_path := self.frame.data['file-path']:
+            try:
+                os.remove(file_path)
+            except Exception as e:
+                error(e)
+            self.frame.data['file-path'] = ''
+
+        from ..core.connection_manager import ConnectionManager
+
+        config = deepcopy(config)
+
+        # Get password from system keyring
+        if config.get('host'):
+            from keyring import get_password
+            username = ConnectionManager.hash_config(config)
+            password = get_password('com.wittara.studio', username)
+            config['password'] = password or ''
+
+        output, log_info = ConnectionManager.execute(dialect = config['dialect'],
+                                                     config  = config,
+                                                     query   = query)
+
+        # Hide password from log message
+        if (password := config.get('password')) and (message := log_info['message']):
+            log_info['message'] = message.replace(password, '*' * len(password))
+
+        if log_info['success']:
+            self.frame.data['file-path'] = log_info['fpath']
+            self.frame.data['signature'] = signature
+            self.frame.CacheButton.set_visible(True)
+            self.frame.ErrorButton.set_visible(False)
+        else:
+            self.frame.CacheButton.set_visible(False)
+            self.frame.ErrorButton.set_tooltip_text(log_info['message'])
+            self.frame.ErrorButton.set_visible(True)
+
+        if not isinstance(output, LazyFrame):
+            output = None
+        out_socket.set_data_type(type(output))
+        if out_socket.data_type == LazyFrame:
+            out_socket.set_data_type(DataFrame)
+
+        self.frame.data['value'] = output
+
+    def do_save(self) -> dict:
+        """"""
+        return {
+            'query':  self.frame.data['query'],
+            'config': deepcopy(self.frame.data['config']),
+        }
+
+    def do_restore(self,
+                   value: dict,
+                   ) ->   None:
+        """"""
+        try:
+            self.set_data(value['query'],
+                          value['config'])
+        except Exception as e:
+            self.frame.ErrorButton.set_tooltip_text(str(e))
+            self.frame.ErrorButton.set_visible(True)
+        else:
+            self.frame.ErrorButton.set_visible(False)
+
+    def _add_output(self) -> None:
+        """"""
+        self.frame.data['value'] = None
+
+        def get_data() -> Any:
+            """"""
+            return self.frame.data['value']
+
+        def set_data(value: Any) -> None:
+            """"""
+            self.frame.data['value'] = value
+            self.frame.do_execute(backward = False)
+
+        widget = NodeLabel(_('Value'))
+        socket_type = NodeSocketType.OUTPUT
+        self.frame.add_content(widget      = widget,
+                               socket_type = socket_type,
+                               data_type   = None,
+                               get_data    = get_data,
+                               set_data    = set_data)
+
+    def _add_editor(self) -> None:
+        """"""
+        def get_data() -> Any:
+            """"""
+            return self.do_save()
+
+        def set_data(*args, **kwargs) -> None:
+            """"""
+            _take_snapshot(self, self.set_data, *args, **kwargs)
+
+        widget = NodeDatabaseReader(get_data = get_data,
+                                    set_data = set_data)
+        self.frame.add_content(widget   = widget,
+                               get_data = get_data,
+                               set_data = set_data)
+
+
+
 class NodeSheet(NodeTemplate):
 
     ndname = _('Sheet')
@@ -1163,25 +1345,41 @@ class NodeSheet(NodeTemplate):
         """"""
         value = self.frame.data['value']
         value.tables = {}
-        value.sparse = {} # TODO: preserve manual input
+        value.sparse = {}
+        # TODO: preserve manual input
 
         for self_content in self.frame.contents[1:-1]:
             box = self_content.Widget
             label = box.get_first_child()
-            title = label.get_label()
-            if title not in self.frame.data:
+            old_title = label.get_label()
+            if old_title not in self.frame.data:
                 continue
 
-            self_socket = self_content.Socket
-            if links := self_socket.links:
+            if links := self_content.Socket.links:
                 psocket = links[0].in_socket
                 pcontent = psocket.Content
                 pdata = pcontent.get_data()
-                coord = self.frame.data[title]
-                if isinstance(pdata, (DataFrame, LazyFrame)):
-                    value.tables[title] = (coord, pdata)
+                coord = self.frame.data[old_title]
+                is_table = isdatatable(pdata)
+
+                if is_table:
+                    value.tables[old_title] = (coord, pdata)
                 else:
                     value.sparse[coord] = pdata
+
+                # Rename the socket label if needed
+                new_title = old_title
+                titles = [
+                    content.Widget.get_first_child().get_label()
+                    for content in self.frame.contents[1:-1]
+                    if content != self_content
+                ]
+                if old_title.startswith(_('Value')) and is_table:
+                    new_title = unique_name(_('Table'), titles)
+                if old_title.startswith(_('Table')) and not is_table:
+                    new_title = unique_name(_('Value'), titles)
+                self.frame.data[new_title] = self.frame.data.pop(old_title)
+                label.set_label(new_title)
 
     def do_save(self) -> list:
         """"""
@@ -1289,6 +1487,8 @@ class NodeSheet(NodeTemplate):
                                     child = container)
             widget.append(expander)
 
+            label.bind_property('label', expander, 'label')
+
             def set_data(value: tuple) -> None:
                 """"""
                 col, row = value
@@ -1314,44 +1514,39 @@ class NodeSheet(NodeTemplate):
             if not self_content.is_freezing:
                 pdata = pair_socket.Content.get_data()
 
-                if isinstance(pdata, (DataFrame, LazyFrame)):
-                    titles = [
-                        content.Widget.get_first_child().get_label()
-                        for content in self.frame.contents[1:-1]
-                        if content != self_content
-                    ]
+                titles = [
+                    content.Widget.get_first_child().get_label()
+                    for content in self.frame.contents[1:-1]
+                    if content != self_content
+                ]
+                if isdatatable(pdata):
                     new_title = unique_name(_('Table'), titles)
-
                 else:
-                    new_title = _('Value')
+                    new_title = unique_name(_('Value'), titles)
 
                 label.set_label(new_title)
                 label.set_opacity(1.0)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 if self_content.placeholder:
                     self_content.placeholder = False
                     self._add_input()
                 return
 
-            if _isreconnected(pair_socket, self_content):
-                pdata = pair_socket.Content.get_data()
-
+            if isreconnected(pair_socket, self_content):
                 # Rename the socket label if needed
-                if old_title == _('Value') \
-                        and isinstance(pdata, (DataFrame, LazyFrame)):
-                    titles = [
-                        content.Widget.get_first_child().get_label()
-                        for content in self.frame.contents[1:-1]
-                        if content != self_content
-                    ]
-                    old_title = unique_name(_('Table'), titles)
-
-                if old_title.startswith(_('Table')) \
-                        and not isinstance(pdata, (DataFrame, LazyFrame)):
-                    old_title = _('Value')
-
-                label.set_label(old_title)
+                pdata = pair_socket.Content.get_data()
+                titles = [
+                    content.Widget.get_first_child().get_label()
+                    for content in self.frame.contents[1:-1]
+                    if content != self_content
+                ]
+                if old_title.startswith(_('Value')) and isdatatable(pdata):
+                    new_title = unique_name(_('Table'), titles)
+                if old_title.startswith(_('Table')) and not isdatatable(pdata):
+                    new_title = unique_name(_('Value'), titles)
+                self.frame.data[new_title] = self.frame.data.pop(old_title)
+                label.set_label(new_title)
 
                 return # skip if the pending socket to be removed
                        # get connected again to the previous node
@@ -1581,7 +1776,7 @@ class NodeViewer(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if _isreconnected(pair_socket, self_content):
+            if isreconnected(pair_socket, self_content):
                 if pair_socket.data_type in self.SUPPORTED_VIEWS:
                     return # skip if the pending socket to be removed
                            # get connected again to the previous node
@@ -1709,11 +1904,11 @@ class NodeCustomFormula(NodeTemplate):
 
         self._add_output()
         self._add_input()
-        self._add_formula()
+        self._add_editor()
 
         def on_refresh(button: Gtk.Button) -> None:
             """"""
-            self.frame.data['refresh-cache'] = True
+            self.frame.data['signature'] = None
             self.frame.do_execute(backward = False)
         self.frame.CacheButton.connect('clicked', on_refresh)
 
@@ -1745,7 +1940,7 @@ class NodeCustomFormula(NodeTemplate):
 
         if is_isolated:
             self.frame.data['value'] = None
-            out_socket.data_type = None
+            out_socket.set_data_type(None)
             return
 
         value = None
@@ -1753,7 +1948,7 @@ class NodeCustomFormula(NodeTemplate):
         if links := in_content.Socket.links:
             pair_content = links[0].in_socket.Content
             value = pair_content.get_data()
-            out_socket.data_type = type(value)
+            out_socket.set_data_type(type(value))
 
         formula = self.frame.data['formula']
 
@@ -1766,22 +1961,23 @@ class NodeCustomFormula(NodeTemplate):
         if self.frame.data['signature'] == signature:
             return
 
+        # Evaluate custom formula
         from ..core.formula_evaluator import Evaluator
         try:
             variables = {'value': value}
             value = Evaluator(variables).evaluate(formula)
-            out_socket.data_type = type(value)
+            out_socket.set_data_type(type(value))
         except Exception as e:
             self.frame.ErrorButton.set_tooltip_text(str(e))
             self.frame.ErrorButton.set_visible(True)
         else:
             self.frame.ErrorButton.set_visible(False)
 
-        # Make compatible with existing nodes
         if out_socket.data_type == LazyFrame:
-            out_socket.data_type = DataFrame
+            out_socket.set_data_type(DataFrame)
 
         if isinstance(value, DataFrame):
+            value = value.lazy()
             self.frame.data['signature'] = signature
             self.frame.CacheButton.set_visible(True)
         else:
@@ -1822,6 +2018,7 @@ class NodeCustomFormula(NodeTemplate):
         socket_type = NodeSocketType.OUTPUT
         self.frame.add_content(widget      = widget,
                                socket_type = socket_type,
+                               data_type   = None,
                                get_data    = get_data,
                                set_data    = set_data)
 
@@ -1836,7 +2033,7 @@ class NodeCustomFormula(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['signature'] = None
@@ -1854,7 +2051,7 @@ class NodeCustomFormula(NodeTemplate):
 
         content.do_unlink = do_unlink
 
-    def _add_formula(self) -> None:
+    def _add_editor(self) -> None:
         """"""
         def get_data() -> str:
             """"""
@@ -1926,6 +2123,11 @@ class NodeChooseColumns(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_selector()
+            return
+
         self.frame.data['table'] = table
         self._refresh_selector()
 
@@ -1991,7 +2193,7 @@ class NodeChooseColumns(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -2120,6 +2322,11 @@ class NodeRemoveColumns(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_selector()
+            return
+
         self.frame.data['table'] = table
         self._refresh_selector()
 
@@ -2181,7 +2388,7 @@ class NodeRemoveColumns(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -2317,6 +2524,11 @@ class NodeKeepTopKRows(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_columns()
+            return
+
         self.frame.data['table'] = table
         self._refresh_columns()
 
@@ -2380,7 +2592,7 @@ class NodeKeepTopKRows(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -2542,6 +2754,11 @@ class NodeKeepBottomKRows(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_columns()
+            return
+
         self.frame.data['table'] = table
         self._refresh_columns()
 
@@ -2605,7 +2822,7 @@ class NodeKeepBottomKRows(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -2759,6 +2976,10 @@ class NodeKeepFirstKRows(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            return
+
         n_rows = self.frame.data['n-rows']
         table = table.head(n_rows)
 
@@ -2813,7 +3034,7 @@ class NodeKeepFirstKRows(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -2904,6 +3125,10 @@ class NodeKeepLastKRows(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            return
+
         n_rows = self.frame.data['n-rows']
         table = table.tail(n_rows)
 
@@ -2958,7 +3183,7 @@ class NodeKeepLastKRows(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -3055,6 +3280,10 @@ class NodeKeepRangeOfRows(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            return
+
         offset = max(0, self.frame.data['offset'] - 1)
         n_rows = self.frame.data['n-rows']
         table = table.slice(offset, n_rows)
@@ -3114,7 +3343,7 @@ class NodeKeepRangeOfRows(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -3240,6 +3469,10 @@ class NodeKeepEveryNthRows(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            return
+
         nth_row = max(1, self.frame.data['nth-row'])
         offset = self.frame.data['offset']
         table = table.gather_every(nth_row, offset)
@@ -3299,7 +3532,7 @@ class NodeKeepEveryNthRows(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -3416,6 +3649,10 @@ class NodeKeepDuplicateRows(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            return
+
         self.frame.data['table'] = table
         self._refresh_columns()
 
@@ -3475,7 +3712,7 @@ class NodeKeepDuplicateRows(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -3605,6 +3842,10 @@ class NodeRemoveFirstKRows(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            return
+
         n_rows = self.frame.data['n-rows']
         table = table.tail(-n_rows)
 
@@ -3659,7 +3900,7 @@ class NodeRemoveFirstKRows(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -3750,6 +3991,10 @@ class NodeRemoveLastKRows(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            return
+
         n_rows = self.frame.data['n-rows']
         table = table.head(-n_rows)
 
@@ -3804,7 +4049,7 @@ class NodeRemoveLastKRows(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -3901,6 +4146,10 @@ class NodeRemoveRangeOfRows(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            return
+
         from polars import concat
         offset = max(0, self.frame.data['offset'] - 1)
         n_rows = self.frame.data['n-rows']
@@ -3962,7 +4211,7 @@ class NodeRemoveRangeOfRows(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -4101,6 +4350,11 @@ class NodeRemoveDuplicateRows(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_columns()
+            return
+
         self.frame.data['table'] = table
         self._refresh_columns()
 
@@ -4169,7 +4423,7 @@ class NodeRemoveDuplicateRows(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -4238,7 +4492,7 @@ class NodeRemoveDuplicateRows(NodeTemplate):
             label = NodeLabel(_('Maintain Order'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['orig-keep-order'] = self.frame.data['keep-order']
@@ -4375,6 +4629,11 @@ class NodeSortRows(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_selector()
+            return
+
         self.frame.data['table'] = table
         self._refresh_selector()
 
@@ -4438,7 +4697,7 @@ class NodeSortRows(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -4585,6 +4844,11 @@ class NodeFilterRows(NodeTemplate):
 
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
+
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_selector()
+            return
 
         self.frame.data['table'] = table
         self._refresh_selector()
@@ -5073,7 +5337,7 @@ class NodeFilterRows(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -5233,6 +5497,11 @@ class NodeGroupBy(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_selector()
+            return
+
         self.frame.data['table'] = table
         self._refresh_selector()
 
@@ -5309,7 +5578,7 @@ class NodeGroupBy(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -5488,6 +5757,10 @@ class NodeTransposeTable(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            return
+
         if isinstance(table, LazyFrame):
             table = table.collect()
 
@@ -5545,7 +5818,7 @@ class NodeTransposeTable(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -5619,6 +5892,10 @@ class NodeReverseRows(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            return
+
         table = table.reverse()
 
         self.frame.data['table'] = table
@@ -5656,7 +5933,7 @@ class NodeReverseRows(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -5720,6 +5997,11 @@ class NodeChangeDataType(NodeTemplate):
 
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
+
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_selector()
+            return
 
         self.frame.data['table'] = table
         self._refresh_selector()
@@ -5817,7 +6099,7 @@ class NodeChangeDataType(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -5978,6 +6260,11 @@ class NodeRenameColumns(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_selector()
+            return
+
         self.frame.data['table'] = table
         self._refresh_selector()
 
@@ -6036,7 +6323,7 @@ class NodeRenameColumns(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -6201,6 +6488,11 @@ class NodeReplaceValues(NodeTemplate):
 
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
+
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_selector()
+            return
 
         self.frame.data['table'] = table
         self._refresh_selector()
@@ -6373,7 +6665,7 @@ class NodeReplaceValues(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -6420,7 +6712,7 @@ class NodeReplaceValues(NodeTemplate):
             label = NodeLabel(_('Search'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.search'] = content.get_data()
@@ -6477,7 +6769,7 @@ class NodeReplaceValues(NodeTemplate):
             label = NodeLabel(_('Replace'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.replace'] = content.get_data()
@@ -6716,6 +7008,11 @@ class NodeFillBlankCells(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_selector()
+            return
+
         self.frame.data['table'] = table
         self._refresh_selector()
 
@@ -6787,7 +7084,7 @@ class NodeFillBlankCells(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -6981,6 +7278,11 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -7071,7 +7373,7 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -7297,6 +7599,11 @@ class NodeSplitColumnByNumberOfCharacters(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -7400,7 +7707,7 @@ class NodeSplitColumnByNumberOfCharacters(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -7566,6 +7873,11 @@ class NodeSplitColumnByPositions(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -7664,7 +7976,7 @@ class NodeSplitColumnByPositions(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -7801,6 +8113,11 @@ class NodeSplitColumnByLowercaseToUppercase(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -7877,7 +8194,7 @@ class NodeSplitColumnByLowercaseToUppercase(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -7988,6 +8305,11 @@ class NodeSplitColumnByUppercaseToLowercase(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -8060,7 +8382,7 @@ class NodeSplitColumnByUppercaseToLowercase(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -8171,6 +8493,11 @@ class NodeSplitColumnByDigitToNonDigit(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -8243,7 +8570,7 @@ class NodeSplitColumnByDigitToNonDigit(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -8354,6 +8681,11 @@ class NodeSplitColumnByNonDigitToDigit(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -8426,7 +8758,7 @@ class NodeSplitColumnByNonDigitToDigit(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -8537,6 +8869,11 @@ class NodeChangeCaseToLowercase(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -8596,7 +8933,7 @@ class NodeChangeCaseToLowercase(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -8707,6 +9044,11 @@ class NodeChangeCaseToUppercase(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -8766,7 +9108,7 @@ class NodeChangeCaseToUppercase(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -8877,6 +9219,11 @@ class NodeChangeCaseToTitleCase(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -8936,7 +9283,7 @@ class NodeChangeCaseToTitleCase(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -9072,6 +9419,11 @@ class NodeTrimContents(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -9136,7 +9488,7 @@ class NodeTrimContents(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -9311,6 +9663,11 @@ class NodeCleanContents(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -9405,7 +9762,7 @@ class NodeCleanContents(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -9581,6 +9938,11 @@ class NodeAddPrefix(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -9654,7 +10016,7 @@ class NodeAddPrefix(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -9746,7 +10108,7 @@ class NodeAddPrefix(NodeTemplate):
             label = NodeLabel(_('Prefix'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.prefix'] = content.get_data()
@@ -9826,6 +10188,11 @@ class NodeAddSuffix(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -9899,7 +10266,7 @@ class NodeAddSuffix(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -9991,7 +10358,7 @@ class NodeAddSuffix(NodeTemplate):
             label = NodeLabel(_('Suffix'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.suffix'] = content.get_data()
@@ -10101,6 +10468,11 @@ class NodeMergeColumns(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_selector()
+            return
+
         self.frame.data['table'] = table
         self._refresh_selector()
 
@@ -10178,7 +10550,7 @@ class NodeMergeColumns(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -10380,6 +10752,11 @@ class NodeExtractTextLength(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -10448,7 +10825,7 @@ class NodeExtractTextLength(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -10566,6 +10943,11 @@ class NodeExtractFirstCharacters(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -10639,7 +11021,7 @@ class NodeExtractFirstCharacters(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -10780,6 +11162,11 @@ class NodeExtractLastCharacters(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -10853,7 +11240,7 @@ class NodeExtractLastCharacters(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -11000,6 +11387,11 @@ class NodeExtractTextInRange(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -11076,7 +11468,7 @@ class NodeExtractTextInRange(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -11240,6 +11632,11 @@ class NodeExtractTextBeforeDelimiter(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -11314,7 +11711,7 @@ class NodeExtractTextBeforeDelimiter(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -11409,7 +11806,7 @@ class NodeExtractTextBeforeDelimiter(NodeTemplate):
             label = NodeLabel(_('Delimiter'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.delimiter'] = content.get_data()
@@ -11489,6 +11886,11 @@ class NodeExtractTextAfterDelimiter(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -11563,7 +11965,7 @@ class NodeExtractTextAfterDelimiter(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -11658,7 +12060,7 @@ class NodeExtractTextAfterDelimiter(NodeTemplate):
             label = NodeLabel(_('Delimiter'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.delimiter'] = content.get_data()
@@ -11744,6 +12146,11 @@ class NodeExtractTextBetweenDelimiters(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -11827,7 +12234,7 @@ class NodeExtractTextBetweenDelimiters(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -11922,7 +12329,7 @@ class NodeExtractTextBetweenDelimiters(NodeTemplate):
             label = NodeLabel(_('Start'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.start'] = content.get_data()
@@ -11979,7 +12386,7 @@ class NodeExtractTextBetweenDelimiters(NodeTemplate):
             label = NodeLabel(_('End'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.end'] = content.get_data()
@@ -12052,6 +12459,11 @@ class NodeCalculateMinimum(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -12110,7 +12522,7 @@ class NodeCalculateMinimum(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -12221,6 +12633,11 @@ class NodeCalculateMaximum(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -12279,7 +12696,7 @@ class NodeCalculateMaximum(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -12390,6 +12807,11 @@ class NodeCalculateSummation(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -12448,7 +12870,7 @@ class NodeCalculateSummation(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -12559,6 +12981,11 @@ class NodeCalculateMedian(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -12617,7 +13044,7 @@ class NodeCalculateMedian(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -12728,6 +13155,11 @@ class NodeCalculateAverage(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -12786,7 +13218,7 @@ class NodeCalculateAverage(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -12897,6 +13329,11 @@ class NodeCalculateStandardDeviation(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -12955,7 +13392,7 @@ class NodeCalculateStandardDeviation(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -13066,6 +13503,11 @@ class NodeCountValues(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -13124,7 +13566,7 @@ class NodeCountValues(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -13232,6 +13674,11 @@ class NodeCountValues(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -13290,7 +13737,7 @@ class NodeCountValues(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -13398,6 +13845,11 @@ class NodeCountDistinctValues(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -13457,7 +13909,7 @@ class NodeCountDistinctValues(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -13577,6 +14029,11 @@ class NodeCalculateAddition(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -13641,7 +14098,7 @@ class NodeCalculateAddition(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -13733,7 +14190,7 @@ class NodeCalculateAddition(NodeTemplate):
             label = NodeLabel(_('Value'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.value'] = content.get_data()
@@ -13818,6 +14275,11 @@ class NodeCalculateMultiplication(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -13882,7 +14344,7 @@ class NodeCalculateMultiplication(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -13974,7 +14436,7 @@ class NodeCalculateMultiplication(NodeTemplate):
             label = NodeLabel(_('Value'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.value'] = content.get_data()
@@ -14059,6 +14521,11 @@ class NodeCalculateSubtraction(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -14123,7 +14590,7 @@ class NodeCalculateSubtraction(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -14215,7 +14682,7 @@ class NodeCalculateSubtraction(NodeTemplate):
             label = NodeLabel(_('Value'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.value'] = content.get_data()
@@ -14300,6 +14767,11 @@ class NodeCalculateDivision(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -14364,7 +14836,7 @@ class NodeCalculateDivision(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -14456,7 +14928,7 @@ class NodeCalculateDivision(NodeTemplate):
             label = NodeLabel(_('Value'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.value'] = content.get_data()
@@ -14541,6 +15013,11 @@ class NodeCalculateIntegerDivision(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -14605,7 +15082,7 @@ class NodeCalculateIntegerDivision(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -14697,7 +15174,7 @@ class NodeCalculateIntegerDivision(NodeTemplate):
             label = NodeLabel(_('Value'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.value'] = content.get_data()
@@ -14782,6 +15259,11 @@ class NodeCalculateModulo(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -14846,7 +15328,7 @@ class NodeCalculateModulo(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -14938,7 +15420,7 @@ class NodeCalculateModulo(NodeTemplate):
             label = NodeLabel(_('Value'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.value'] = content.get_data()
@@ -15023,6 +15505,11 @@ class NodeCalculatePercentage(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -15087,7 +15574,7 @@ class NodeCalculatePercentage(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -15179,7 +15666,7 @@ class NodeCalculatePercentage(NodeTemplate):
             label = NodeLabel(_('Value'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.value'] = content.get_data()
@@ -15264,6 +15751,11 @@ class NodeCalculatePercentOf(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -15328,7 +15820,7 @@ class NodeCalculatePercentOf(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -15420,7 +15912,7 @@ class NodeCalculatePercentOf(NodeTemplate):
             label = NodeLabel(_('Value'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.value'] = content.get_data()
@@ -15493,6 +15985,11 @@ class NodeCalculateAbsolute(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -15552,7 +16049,7 @@ class NodeCalculateAbsolute(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -15663,6 +16160,11 @@ class NodeCalculateSquareRoot(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -15722,7 +16224,7 @@ class NodeCalculateSquareRoot(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -15833,6 +16335,11 @@ class NodeCalculateSquare(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -15892,7 +16399,7 @@ class NodeCalculateSquare(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -16003,6 +16510,11 @@ class NodeCalculateCube(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -16062,7 +16574,7 @@ class NodeCalculateCube(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -16185,6 +16697,11 @@ class NodeCalculatePowerK(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -16249,7 +16766,7 @@ class NodeCalculatePowerK(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -16341,7 +16858,7 @@ class NodeCalculatePowerK(NodeTemplate):
             label = NodeLabel(_('Value'), can_link = True)
             label.insert_after(content.Container, content.Socket)
 
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.data['bk.value'] = content.get_data()
@@ -16414,6 +16931,11 @@ class NodeCalculateExponent(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -16473,7 +16995,7 @@ class NodeCalculateExponent(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -16584,6 +17106,11 @@ class NodeCalculateBase10(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -16643,7 +17170,7 @@ class NodeCalculateBase10(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -16754,6 +17281,11 @@ class NodeCalculateNatural(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -16813,7 +17345,7 @@ class NodeCalculateNatural(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -16924,6 +17456,11 @@ class NodeCalculateSine(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -16983,7 +17520,7 @@ class NodeCalculateSine(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -17094,6 +17631,11 @@ class NodeCalculateCosine(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -17153,7 +17695,7 @@ class NodeCalculateCosine(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -17264,6 +17806,11 @@ class NodeCalculateTangent(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -17323,7 +17870,7 @@ class NodeCalculateTangent(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -17434,6 +17981,11 @@ class NodeCalculateArcsine(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -17493,7 +18045,7 @@ class NodeCalculateArcsine(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -17604,6 +18156,11 @@ class NodeCalculateArccosine(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -17663,7 +18220,7 @@ class NodeCalculateArccosine(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -17774,6 +18331,11 @@ class NodeCalculateArctangent(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -17833,7 +18395,7 @@ class NodeCalculateArctangent(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -17963,6 +18525,11 @@ class NodeRoundValue(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -18037,7 +18604,7 @@ class NodeRoundValue(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -18193,6 +18760,11 @@ class NodeCalculateIsEven(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -18252,7 +18824,7 @@ class NodeCalculateIsEven(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -18363,6 +18935,11 @@ class NodeCalculateIsOdd(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -18422,7 +18999,7 @@ class NodeCalculateIsOdd(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -18533,6 +19110,11 @@ class NodeExtractValueSign(NodeTemplate):
         pair_content = links[0].in_socket.Content
         table = pair_content.get_data()
 
+        if not isdatatable(table):
+            self.frame.data['table'] = DataFrame()
+            self._refresh_column()
+            return
+
         self.frame.data['table'] = table
         self._refresh_column()
 
@@ -18592,7 +19174,7 @@ class NodeExtractValueSign(NodeTemplate):
                     self_content: NodeContent,
                     ) ->          None:
             """"""
-            if not _iscompatible(pair_socket, self_content):
+            if not iscompatible(pair_socket, self_content):
                 return
 
             self.frame.do_execute(pair_socket, self_content)
@@ -18663,6 +19245,7 @@ _registered_nodes = [
     NodeString(),
 
     NodeReadFile(),
+    NodeReadDatabase(),
     NodeSheet(),
     NodeViewer(),
 

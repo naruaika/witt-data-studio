@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from typing import Any
+from logging import debug
 import json
 
 class FileManager():
@@ -36,20 +37,20 @@ class FileManager():
                 with open(file_path) as file:
                     content = json.load(file)
                     return content
-            except:
-                pass
-            return None
+            except Exception as e:
+                debug(e)
+                return None
 
-        sample_size = kwargs.get('sample_size', -1)
-        u_kwargs    = kwargs.get('u_kwargs',    None)
-        eager_load  = kwargs.get('eager_load',  False)
+        n_samples  = kwargs.get('n_samples',  -1)
+        u_kwargs   = kwargs.get('u_kwargs',   None)
+        eager_mode = kwargs.get('eager_mode', False)
 
-        if 'sample_size' in kwargs:
-            del kwargs['sample_size']
+        if 'n_samples' in kwargs:
+            del kwargs['n_samples']
         if 'u_kwargs' in kwargs:
             del kwargs['u_kwargs']
-        if 'eager_load' in kwargs:
-            del kwargs['eager_load']
+        if 'eager_mode' in kwargs:
+            del kwargs['eager_mode']
 
 #       from fastexcel import read_excel
         from polars import read_csv
@@ -59,10 +60,10 @@ class FileManager():
         from polars import scan_parquet
         read_methods = {
             'json':    read_json,
-            'parquet': read_parquet if eager_load else scan_parquet,
-            'csv':     read_csv     if eager_load else scan_csv,
-            'tsv':     read_csv     if eager_load else scan_csv,
-            'txt':     read_csv     if eager_load else scan_csv,
+            'parquet': read_parquet if eager_mode else scan_parquet,
+            'csv':     read_csv     if eager_mode else scan_csv,
+            'tsv':     read_csv     if eager_mode else scan_csv,
+            'txt':     read_csv     if eager_mode else scan_csv,
 #           'xls':     read_excel,
 #           'xlsx':    read_excel,
 #           'xlsm':    read_excel,
@@ -87,14 +88,14 @@ class FileManager():
             if param.default is not inspect.Parameter.empty:
                 u_kwargs[name] = param.default
 
-        if sample_size > 0:
+        if n_samples > 0:
             if file_format in {'parquet', 'csv', 'tsv', 'txt'}:
                 if 'n_rows' in kwargs:
                     kwargs['n_rows'] = kwargs['n_rows'] or 0
-                    kwargs['n_rows'] = min(sample_size, kwargs['n_rows'])
-                    kwargs['n_rows'] = kwargs['n_rows'] or sample_size
+                    kwargs['n_rows'] = min(n_samples, kwargs['n_rows'])
+                    kwargs['n_rows'] = kwargs['n_rows'] or n_samples
                 else:
-                    kwargs['n_rows'] = sample_size
+                    kwargs['n_rows'] = n_samples
 
         if file_format == 'tsv':
             kwargs['separator'] = '\t'
@@ -110,7 +111,8 @@ class FileManager():
         try:
             u_kwargs.update(kwargs.copy())
             result = read_method(file_path, **kwargs)
-        except:
+        except Exception as e:
+            debug(e)
             has_error = True
 
         if has_error:
@@ -128,8 +130,8 @@ class FileManager():
             try:
                 result = read_method(file_path, **kwargs)
                 has_error = False
-            except:
-                pass # TODO: show errors to user?
+            except Exception as e:
+                debug(e)
 
         if has_error:
             # We use non-standard parameters to force loading the entire file contents
@@ -143,8 +145,8 @@ class FileManager():
             try:
                 result = read_method(file_path, **kwargs)
                 has_error = False
-            except:
-                pass # TODO: show errors to user?
+            except Exception as e:
+                debug(e)
 
         if has_error:
             return None
@@ -169,8 +171,8 @@ class FileManager():
                 with open(file_path, 'w') as file:
                     json.dump(content, file, indent = 4)
                     return True
-            except:
-                pass
-            return False
+            except Exception as e:
+                debug(e)
+                return False
 
         return False # TODO

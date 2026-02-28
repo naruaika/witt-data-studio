@@ -1,3 +1,7 @@
+:root {
+    --banner-color: #7d7d83;
+}
+
 @import url('resource://com/wittara/studio/command-palette.css');
 @import url('resource://com/wittara/studio/status-bar.css');
 @import url('resource://com/wittara/studio/toolbar.css');
@@ -106,11 +110,52 @@ calendar grid .week-number {
     padding-right: 12px;
 }
 
+.banner,
+.dimmed-banner {
+    min-height: 26px;
+    padding: 10px;
+}
+.banner {
+    font-weight: bold;
+}
+.background .banner {
+    background-color: color-mix(in srgb, var(--banner-color) 30%, var(--window-bg-color));
+    color: var(--window-fg-color);
+}
+.background .banner:backdrop {
+    background-color: color-mix(in srgb, var(--banner-color) 15%, var(--window-bg-color));
+}
+.view .banner {
+    background-color: color-mix(in srgb, var(--banner-color) 30%, var(--view-bg-color));
+    color: var(--view-fg-color);
+}
+.view .banner:backdrop {
+    background-color: color-mix(in srgb, var(--banner-color) 15%, var(--view-bg-color));
+}
+.sidebar-pane .banner {
+    background-color: color-mix(in srgb, var(--banner-color) 30%, var(--sidebar-bg-color));
+    color: var(--sidebar-fg-color);
+}
+.sidebar-pane .banner:backdrop {
+    background-color: color-mix(in srgb, var(--banner-color) 15%, var(--sidebar-bg-color));
+}
+.dimmed-banner {
+    background-color: color-mix(in srgb, currentColor 5%, transparent);
+}
+.dimmed-banner:backdrop {
+    background-color: transparent;
+}
+.banner:backdrop,
+.dimmed-banner:backdrop {
+    color: color-mix(in srgb, currentColor 50%, transparent);
+}
+
 .entry-separator {
     min-width: 10px;
     margin-right: 1px;
     background-color: color-mix(in srgb, currentColor 10%, transparent);
 }
+
 .floating-sheet {
     background-color: RGB(from var(--shade-color) r g b / calc(alpha * 2));
 }

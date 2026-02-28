@@ -243,6 +243,8 @@ class NodeFrame(Adw.Bin):
                    initiator:    'bool'        = True,
                    ) ->          'None':
         """"""
+        # TODO: run on a new thread
+
         if self.is_processing:
             return
 
@@ -255,25 +257,23 @@ class NodeFrame(Adw.Bin):
         # Process parent frames
         if backward:
             visited_frames = []
-            for content in self.contents:
-                if not (socket := content.Socket):
+            for scontent in self.contents:
+                if not (ssocket := scontent.Socket):
                     continue
-                if not socket.is_input():
+                if not ssocket.is_input():
                     continue
                 if (
-                    specified              and
-                    self_content           and
-                    self_socket.is_input() and
-                    self_content != content
+                    specified
+                    and self_content
+                    and self_socket.is_input()
+                    and self_content != scontent
                 ):
                     continue
-                for link in socket.links:
-                    if not link.compatible:
-                        continue
+                for link in ssocket.links:
                     frame = link.in_socket.Frame
                     if frame in visited_frames:
                         continue
-                    frame.do_execute(pair_socket  = socket,
+                    frame.do_execute(pair_socket  = ssocket,
                                      self_content = self_content,
                                      forward      = False,
                                      initiator    = False)
@@ -283,19 +283,17 @@ class NodeFrame(Adw.Bin):
         # build output data for child frames.
         if not self.is_with_cache:
             self.is_processing = True
-            for content in self.contents:
-                if not (self_socket := content.Socket):
+            for scontent in self.contents:
+                if not (ssocket := scontent.Socket):
                     continue
-                if not self_socket.is_input():
+                if not ssocket.is_input():
                     continue
-                if not (links := self_socket.links):
-                    continue
-                if not links[0].compatible:
+                if not (links := ssocket.links):
                     continue
                 psocket = links[0].in_socket
                 pcontent = psocket.Content
                 value = pcontent.get_data()
-                content.set_data(value)
+                scontent.set_data(value)
             self.is_processing = False
 
             self.do_process(pair_socket, self_content)
@@ -306,31 +304,31 @@ class NodeFrame(Adw.Bin):
         is_target = self.node_type != NodeFrameType.TARGET
         if forward and initiator and is_target:
             self._collect_targets(targets)
-        for frame, socket in targets:
+        for frame, ssocket in targets:
             frame.is_processing = True
 
         # Process child frames
         if forward:
             visited_frames = []
-            for content in self.contents:
-                if not (socket := content.Socket):
+            for scontent in self.contents:
+                if not (ssocket := scontent.Socket):
                     continue
-                if not socket.is_output():
+                if not ssocket.is_output():
                     continue
                 if (
-                    specified               and
-                    self_content            and
-                    self_socket.is_output() and
-                    self_content != content
+                    specified
+                    and self_content
+                    and self_socket.is_output()
+                    and self_content != scontent
                 ):
                     continue
-                for link in socket.links:
+                for link in ssocket.links:
                     if not link.compatible:
                         continue
                     frame = link.out_socket.Frame
                     if frame in visited_frames:
                         continue
-                    frame.do_execute(pair_socket  = socket,
+                    frame.do_execute(pair_socket  = ssocket,
                                      self_content = self_content,
                                      backward     = False,
                                      initiator    = False)
@@ -392,7 +390,7 @@ class NodeFrame(Adw.Bin):
     def add_content(self,
                     widget:      'Gtk.Widget'     = None,
                     socket_type: 'NodeSocketType' = None,
-                    data_type:   'Any'            = None,
+                    data_type:   'Any'            = Any,
                     get_data:    'callable'       = None,
                     set_data:    'callable'       = None,
                     placeholder: 'bool'           = False,
@@ -485,11 +483,13 @@ class NodeFrame(Adw.Bin):
 
     def get_width(self) -> int:
         """"""
-        return max(0, Gtk.Widget.get_width(self) - 20)
+        min_width, *_ = self.measure(Gtk.Orientation.HORIZONTAL, -1)
+        return max(min_width, Gtk.Widget.get_width(self)) - 20
 
     def get_height(self) -> int:
         """"""
-        return max(0, Gtk.Widget.get_height(self) - 20)
+        min_height, *_ = self.measure(Gtk.Orientation.VERTICAL, -1)
+        return max(min_height, Gtk.Widget.get_height(self)) - 20
 
     @property
     def right(self) -> int:

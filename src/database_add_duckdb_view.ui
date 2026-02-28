@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="Adw" version="1.0"/>
+  <template class="DatabaseAddDuckDBView" parent="AdwPreferencesPage">
+    <property name="hexpand">True</property>
+    <property name="vexpand">True</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Read From?</property>
+        <child>
+          <object class="AdwEntryRow" id="Database">
+            <property name="title" translatable="yes">Path</property>
+            <property name="text">~/sample.duckdb</property>
+            <child>
+              <object class="GtkButton">
+                <property name="valign">center</property>
+                <property name="icon-name">folder-symbolic</property>
+                <signal name="clicked" handler="_on_database_clicked" swapped="no"/>
+                <style>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Save As?</property>
+        <child>
+          <object class="AdwEntryRow" id="Alias">
+            <property name="title" translatable="yes">Name</property>
+            <property name="text" translatable="yes">New Connection</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

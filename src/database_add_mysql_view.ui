@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="Adw" version="1.0"/>
+  <template class="DatabaseAddMySQLView" parent="AdwPreferencesPage">
+    <property name="hexpand">True</property>
+    <property name="vexpand">True</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Connect To?</property>
+        <child>
+          <object class="AdwEntryRow" id="Host">
+            <property name="title" translatable="yes">Host</property>
+            <property name="text">127.0.0.1</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwSpinRow" id="Port">
+            <property name="title" translatable="yes">Port</property>
+            <property name="numeric">true</property>
+            <property name="adjustment">
+              <object class="GtkAdjustment">
+                <property name="lower">1</property>
+                <property name="upper">65535</property>
+                <property name="value">3306</property>
+                <property name="page-increment">10</property>
+                <property name="step-increment">1</property>
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwEntryRow" id="Database">
+            <property name="title" translatable="yes">Database</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Connect As?</property>
+        <child>
+          <object class="AdwEntryRow" id="Username">
+            <property name="title" translatable="yes">Username</property>
+            <property name="text">root</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPasswordEntryRow" id="Password">
+            <property name="title" translatable="yes">Password</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Save As?</property>
+        <child>
+          <object class="AdwEntryRow" id="Alias">
+            <property name="title" translatable="yes">Name</property>
+            <property name="text" translatable="yes">New Connection</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

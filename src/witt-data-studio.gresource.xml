@@ -2,6 +2,12 @@
 <gresources>
   <gresource prefix="/com/wittara/studio">
     <file preprocess="xml-stripblanks">command_palette.ui</file>
+    <file preprocess="xml-stripblanks">database_add_duckdb_view.ui</file>
+    <file preprocess="xml-stripblanks">database_add_mysql_view.ui</file>
+    <file preprocess="xml-stripblanks">database_add_postgresql_view.ui</file>
+    <file preprocess="xml-stripblanks">database_add_sqlite_view.ui</file>
+    <file preprocess="xml-stripblanks">database_add_window.ui</file>
+    <file preprocess="xml-stripblanks">database_import_window.ui</file>
     <file preprocess="xml-stripblanks">file_import_window.ui</file>
     <file preprocess="xml-stripblanks">formula_editor_window.ui</file>
     <file preprocess="xml-stripblanks">status_bar.ui</file>
@@ -66,15 +72,17 @@
     <file preprocess="xml-stripblanks">box-dotted-symbolic.svg</file>
     <file preprocess="xml-stripblanks">check-round-outline-symbolic.svg</file>
     <file preprocess="xml-stripblanks">clock-alt-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">code-symbolic.svg</file>
     <file preprocess="xml-stripblanks">compass2-symbolic.svg</file>
     <file preprocess="xml-stripblanks">edit-find-symbolic.svg</file>
     <file preprocess="xml-stripblanks">exclamation-mark-symbolic.svg</file>
     <file preprocess="xml-stripblanks">folder-open-symbolic.svg</file>
     <file preprocess="xml-stripblanks">go-next-symbolic.svg</file>
     <file preprocess="xml-stripblanks">go-previous-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">logs-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">network-server-symbolic.svg</file>
     <file preprocess="xml-stripblanks">object-select-symbolic.svg</file>
     <file preprocess="xml-stripblanks">open-menu-symbolic.svg</file>
-    <file preprocess="xml-stripblanks">panel-modified-symbolic.svg</file>
     <file preprocess="xml-stripblanks">profit-symbolic.svg</file>
     <file preprocess="xml-stripblanks">sidebar-show-symbolic.svg</file>
     <file preprocess="xml-stripblanks">table-symbolic.svg</file>

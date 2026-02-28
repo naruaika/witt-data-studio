@@ -105,11 +105,7 @@ class SheetFormulaBar(Gtk.Box):
         settings.connect('notify::gtk-application-prefer-dark-theme',
                          self._on_prefer_dark_theme_changed)
 
-        scheme_manager = GtkSource.StyleSchemeManager.get_default()
-        prefers_dark = Adw.StyleManager().get_dark()
-        color_scheme = 'Adwaita-dark' if prefers_dark else 'Adwaita'
-        style_scheme = scheme_manager.get_scheme(color_scheme)
-        buffer.set_style_scheme(style_scheme)
+        self._on_prefer_dark_theme_changed(None, None)
 
     def _setup_actions(self) -> None:
         """"""

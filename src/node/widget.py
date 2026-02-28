@@ -237,12 +237,7 @@ class NodeComboButton(Gtk.Button):
             def on_closed(popover: Gtk.Popover) -> None:
                 """"""
                 button.remove_css_class('has-open-popup')
-
-                def do_remove() -> None:
-                    """"""
-                    popover.unparent()
-
-                GLib.timeout_add(1000, do_remove)
+                GLib.timeout_add(1000, popover.unparent)
 
             popover.connect('closed', on_closed)
 
@@ -275,6 +270,51 @@ class NodeComboButton(Gtk.Button):
             self.icon.set_from_icon_name('exclamation-mark-symbolic')
         else:
             self.icon.set_from_icon_name('pan-down-symbolic')
+
+
+
+class NodeDatabaseReader(Gtk.Button):
+
+    __gtype_name__ = 'NodeDatabaseReader'
+
+    def __init__(self,
+                 get_data: callable,
+                 set_data: callable,
+                 ) ->      None:
+        """"""
+        label = Gtk.Label(label            = get_data()['query'],
+                          xalign           = 0.0,
+                          ellipsize        = Pango.EllipsizeMode.END,
+                          single_line_mode = True)
+        label.add_css_class('monospace')
+
+        super().__init__(child = label)
+
+        def on_clicked(button: Gtk.Button) -> None:
+            """"""
+            window = self.get_root()
+            application = window.get_application()
+
+            data = get_data()
+            query = data['query']
+            config = data['config']
+
+            from ..database_import_window import DatabaseImportWindow
+            importer = DatabaseImportWindow(query         = query,
+                                            config        = config,
+                                            callback      = set_data,
+                                            transient_for = window,
+                                            application   = application)
+            importer.present()
+
+        self.connect('clicked', on_clicked)
+
+    def set_data(self,
+                 value: str,
+                 ) ->   None:
+        """"""
+        label = self.get_child()
+        label.set_label(str(value))
 
 
 
@@ -522,14 +562,14 @@ class NodeEntry(Gtk.Button):
 
 
 
-class NodeFileChooser(Gtk.Button):
+class NodeFileReader(Gtk.Button):
 
-    __gtype_name__ = 'NodeFileChooser'
+    __gtype_name__ = 'NodeFileReader'
 
     def __init__(self,
-                 get_data:   callable,
-                 on_clicked: callable,
-                 ) ->        None:
+                 get_data: callable,
+                 set_data: callable,
+                 ) ->      None:
         """"""
         box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
                       spacing     = 6)
@@ -544,6 +584,13 @@ class NodeFileChooser(Gtk.Button):
         box.append(icon)
 
         super().__init__(child = box)
+
+        def on_clicked(button: Gtk.Button) -> None:
+            """"""
+            window = self.get_root()
+
+            from ..file_manager import FileManager
+            FileManager.open_file(window, set_data)
 
         self.connect('clicked', on_clicked)
 
@@ -1194,12 +1241,12 @@ class NodeFormulaEditor(Gtk.Button):
             application = window.get_application()
 
             from ..formula_editor_window import FormulaEditorWindow
-            editor_window = FormulaEditorWindow(subtitle      = None,
-                                                callback      = do_apply,
-                                                transient_for = window,
-                                                application   = application,
-                                                text          = get_data())
-            editor_window.present()
+            editor = FormulaEditorWindow(subtitle      = None,
+                                         callback      = do_apply,
+                                         transient_for = window,
+                                         application   = application,
+                                         formula       = get_data())
+            editor.present()
 
         self.connect('clicked', on_clicked)
 

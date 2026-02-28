@@ -36,9 +36,8 @@ class Toolbar(Gtk.Box):
     HomePage                 = Gtk.Template.Child()
 
     InputOutputSection       = Gtk.Template.Child()
-    ReadFileButton           = Gtk.Template.Child()
-    OpenFileButton           = Gtk.Template.Child()
-    QueryDatabaseButton      = Gtk.Template.Child()
+    OpenSourceButton         = Gtk.Template.Child()
+    ReadSourceButton         = Gtk.Template.Child()
     RecentSourcesButton      = Gtk.Template.Child()
     ExportDataButton         = Gtk.Template.Child()
     FileUtilitiesButton      = Gtk.Template.Child()
@@ -155,24 +154,16 @@ class Toolbar(Gtk.Box):
                         ),
                         [
                             (
-                                self.ReadFileButton,
-                                (
-                                    NodeEditor,
-                                ),
-                            ),
-                            (
-                                self.OpenFileButton,
+                                self.OpenSourceButton,
                                 (
                                     ChartEditor,
                                     SheetEditor,
                                 ),
                             ),
                             (
-                                self.QueryDatabaseButton,
+                                self.ReadSourceButton,
                                 (
                                     NodeEditor,
-                                    ChartEditor,
-                                    SheetEditor,
                                 ),
                             ),
                             (

@@ -20,7 +20,7 @@
         <property name="min-sidebar-width">320sp</property>
         <property name="sidebar">
           <object class="AdwNavigationPage" id="Sidebar">
-            <property name="title" translatable="yes">Import</property>
+            <property name="title" translatable="yes">Configuration</property>
             <property name="child">
               <object class="AdwToolbarView">
                 <child type="top">
@@ -30,6 +30,15 @@
                   <object class="AdwPreferencesPage" id="PreferencesPage">
                     <child>
                       <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwActionRow" id="FilePathRow">
+                            <property name="title" translatable="yes">File Path</property>
+                            <property name="subtitle-selectable">true</property>
+                            <style>
+                              <class name="property"/>
+                            </style>
+                          </object>
+                        </child>
                         <child>
                           <object class="AdwActionRow" id="FileSizeRow">
                             <property name="title" translatable="yes">File Size</property>
@@ -145,7 +154,7 @@
                     <property name="visible">false</property>
                     <property name="end-widget">
                       <object class="GtkButton" id="ImportButton">
-                        <property name="label" translatable="yes">Import</property>
+                        <property name="label" translatable="yes">Load</property>
                         <signal name="clicked" handler="_on_import_button_clicked" swapped="no"/>
                         <style>
                           <class name="pill"/>
@@ -161,5 +170,8 @@
         </property>
       </object>
     </property>
+    <style>
+      <class name="view"/>
+    </style>
   </template>
 </interface>

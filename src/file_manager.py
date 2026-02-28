@@ -80,7 +80,7 @@ class FileManager():
         filters.append(FILTER_PARQUET)
 
         dialog = Gtk.FileDialog(title   = _('Open'),
-                                modal   = True,
+                                modal   = False,
                                 filters = filters)
 
         def on_dialog_dismissed(dialog: Gtk.FileDialog,

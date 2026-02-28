@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="Adw" version="1.0"/>
+  <template class="DatabaseAddWindow" parent="AdwWindow">
+    <property name="width-request">362</property>
+    <property name="height-request">362</property>
+    <property name="title" translatable="yes">New Connection</property>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <property name="title-widget">
+              <object class="AdwWindowTitle" id="WindowTitle">
+                <property name="title" translatable="yes">New Connection</property>
+              </object>
+            </property>
+          </object>
+        </child>
+        <property name="content">
+          <object class="AdwBin" id="MainContainer"/>
+        </property>
+        <child type="bottom">
+          <object class="GtkCenterBox">
+            <property name="orientation">horizontal</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="center-widget">
+              <object class="GtkBox">
+                <property name="orientation">horizontal</property>
+                <property name="spacing">10</property>
+                <child>
+                  <object class="GtkButton" id="ConnectButton">
+                    <property name="valign">center</property>
+                    <property name="child">
+                      <object class="GtkBox">
+                        <property name="spacing">5</property>
+                        <child>
+                          <object class="AdwSpinner" id="ConnectSpinner">
+                            <property name="valign">center</property>
+                            <property name="width-request">24</property>
+                            <property name="height-request">24</property>
+                            <property name="visible">false</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Connect</property>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                    <signal name="clicked" handler="_on_connect_button_clicked" swapped="no"/>
+                    <style>
+                      <class name="flat"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="SaveButton">
+                    <property name="label" translatable="yes">Save</property>
+                    <signal name="clicked" handler="_on_save_button_clicked" swapped="no"/>
+                    <style>
+                      <class name="pill"/>
+                      <class name="suggested-action"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>

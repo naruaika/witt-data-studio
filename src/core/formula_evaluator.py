@@ -23,6 +23,7 @@ from datetime import date
 from datetime import time
 from difflib import get_close_matches
 from functools import reduce
+from logging import error
 from sys import executable
 from typing import Any
 import ast
@@ -169,100 +170,6 @@ class _PolarsSelector(_AttrProxy):
     }
 
 
-class _PolarsUtility(_AttrProxy):
-
-    _attributes = {
-        'all':                polars.all,
-        'all_horizontal':     polars.all_horizontal,
-        'any':                polars.any,
-        'any_horizontal':     polars.any_horizontal,
-        'approx_n_unique':    polars.approx_n_unique,
-        'arange':             polars.arange,
-        'arctan2':            polars.arctan2,
-        'arg_sort_by':        polars.arg_sort_by,
-        'arg_where':          polars.arg_where,
-        'business_day_count': polars.business_day_count,
-        'coalesce':           polars.coalesce,
-        'concat_arr':         polars.concat_arr,
-        'concat_list':        polars.concat_list,
-        'concat_str':         polars.concat_str,
-        'corr':               polars.corr,
-        'count':              polars.count,
-        'cov':                polars.cov,
-        'cum_count':          polars.cum_count,
-        'cum_fold':           polars.cum_fold,
-        'cum_reduce':         polars.cum_reduce,
-        'cum_sum':            polars.cum_sum,
-        'cum_sum_horizontal': polars.cum_sum_horizontal,
-        'date':               polars.date,
-        'date_range':         polars.date_range,
-        'date_ranges':        polars.date_ranges,
-        'datetime':           polars.datetime,
-        'datetime_range':     polars.datetime_range,
-        'datetime_ranges':    polars.datetime_ranges,
-        'duration':           polars.duration,
-        'element':            polars.element,
-        'exclude':            polars.exclude,
-        'field':              polars.field,
-        'first':              polars.first,
-        'fold':               polars.fold,
-        'format':             polars.format,
-        'from_epoch':         polars.from_epoch,
-        'groups':             polars.groups,
-        'head':               polars.head,
-        'implode':            polars.implode,
-        'int_range':          polars.int_range,
-        'int_ranges':         polars.int_ranges,
-        'last':               polars.last,
-        'len':                polars.len,
-        'linear_space':       polars.linear_space,
-        'linear_spaces':      polars.linear_spaces,
-        'lit':                polars.lit,
-        'map_batches':        polars.map_batches,
-        'map_groups':         polars.map_groups,
-        'max':                polars.max,
-        'max_horizontal':     polars.max_horizontal,
-        'mean':               polars.mean,
-        'mean_horizontal':    polars.mean_horizontal,
-        'median':             polars.median,
-        'min':                polars.min,
-        'min_horizontal':     polars.min_horizontal,
-        'n_unique':           polars.n_unique,
-        'nth':                polars.nth,
-        'ones':               polars.ones,
-        'quantile':           polars.quantile,
-        'reduce':             polars.reduce,
-        'repeat':             polars.repeat,
-        'rolling_corr':       polars.rolling_corr,
-        'rolling_cov':        polars.rolling_cov,
-        'row_index':          polars.row_index,
-        'select':             polars.select,
-        'sql':                polars.sql,
-        'sql_expr':           polars.sql_expr,
-        'std':                polars.std,
-        'struct':             polars.struct,
-        'sum':                polars.sum,
-        'sum_horizontal':     polars.sum_horizontal,
-        'tail':               polars.tail,
-        'time':               polars.time,
-        'time_range':         polars.time_range,
-        'time_ranges':        polars.time_ranges,
-        'var':                polars.var,
-        'when':               polars.when,
-        'zeros':              polars.zeros,
-
-        'align_frames':       polars.align_frames,
-        'concat':             polars.concat,
-        'union':              polars.union,
-        'defer':              polars.defer,
-
-        'collect_all':        polars.collect_all,
-        'explain_all':        polars.explain_all,
-
-        'escape_regex':       polars.escape_regex,
-    }
-
-
 class Evaluator():
 
     OPERATORS = {ast.Add:      operator.add,
@@ -310,7 +217,8 @@ class Evaluator():
                      'Type':          _PolarsType,
                      'Source':        _PolarsSource,
                      'Selector':      _PolarsSelector,
-                     'Utility':       _PolarsUtility}
+
+                     'polars':        polars}
 
         self.vars.update(vars)
 
@@ -426,8 +334,8 @@ class Evaluator():
 
             try:
                 return self._visit(node.body)
-            except:
-                pass # TODO: show errors to user
+            except Exception as e:
+                error(e)
             finally:
                 self.vars = old_vars
 

@@ -20,3 +20,5 @@
 from .application import Application
 
 app: Application = None
+
+debug: int = 0

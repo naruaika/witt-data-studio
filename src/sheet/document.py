@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from enum import Enum
+from logging import debug
 from polars import DataFrame
 from polars import LazyFrame
 from polars import Series
@@ -230,9 +231,12 @@ class SheetDocument(Document):
 
             try:
                 dataframe = await lazyframe.collect_async()
+
             except Exception as e:
                 dataframe = DataFrame({'#ERROR!': None}).head(0)
                 error_message = str(e)
+
+                debug(error_message)
 
             for tindex, table in enumerate(self.tables):
                 if table is old_table:

@@ -40,14 +40,18 @@ if __name__ == '__main__':
 
     debug_mode = os.environ.get('WDS_DEBUG', '0')
     debug_mode = int(debug_mode or '0')
-    try:
-        import debugpy
-        if debug_mode > 0:
+    if debug_mode > 0:
+        try:
+            import debugpy
             debugpy.listen(('127.0.0.1', 5678))
             if debug_mode > 1:
                 debugpy.wait_for_client()
-    except ModuleNotFoundError:
-        pass
+        except ModuleNotFoundError:
+            pass
+
+    import logging
+    level = logging.DEBUG if debug_mode > 0 else logging.INFO
+    logging.basicConfig(level = level)
 
     import gi
     gi.require_version('Adw', '1')
@@ -63,5 +67,9 @@ if __name__ == '__main__':
     resource = Gio.Resource.load(resource_path)
     resource._register()
 
+    from witt_data_studio import environment as env
     from witt_data_studio import main
+
+    env.debug = debug_mode
+
     sys.exit(main.main(APP_ID, VERSION))

@@ -2,6 +2,7 @@ asyncio==4.0.0
 cffi==2.0.0
 connectorx==0.4.5
 cryptography==46.0.5
+duckdb==1.4.4
 fastexcel==0.19.0
 iniconfig==2.3.0
 jaraco.classes==3.4.0

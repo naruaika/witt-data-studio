@@ -72,7 +72,7 @@
                         <property name="primary">true</property>
                         <property name="icon-name">open-menu-symbolic</property>
                         <property name="tooltip-text" translatable="yes">Main Menu</property>
-                        <property name="menu-model">primary_menu</property>
+                        <property name="menu-model">PrimaryMenu</property>
                         <style>
                           <class name="flat"/>
                         </style>
@@ -133,7 +133,7 @@
     </style>
   </template>
 
-  <menu id="primary_menu">
+  <menu id="PrimaryMenu">
     <section>
       <item>
         <attribute name="label" translatable="yes">New _Window</attribute>
@@ -142,8 +142,12 @@
     </section>
     <section>
       <item>
-        <attribute name="label" translatable="yes">_Open File...</attribute>
+        <attribute name="label" translatable="yes">Open _File...</attribute>
         <attribute name="action">app.open-file</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Open _Database...</attribute>
+        <attribute name="action">app.open-database</attribute>
       </item>
     </section>
     <section>
@@ -180,19 +184,6 @@
       <item>
         <attribute name="label" translatable="yes">E_xit</attribute>
         <attribute name="action">app.exit</attribute>
-      </item>
-    </section>
-  </menu>
-
-  <menu id="new_sheet_menu">
-    <section>
-      <item>
-        <attribute name="label" translatable="yes">New _Sheet</attribute>
-        <attribute name="action">win.new-sheet</attribute>
-      </item>
-      <item>
-        <attribute name="label" translatable="yes">New _Chart</attribute>
-        <attribute name="action">win.new-chart</attribute>
       </item>
     </section>
   </menu>

@@ -64,7 +64,6 @@ def load_excel_file(excel_reader: ExcelReader,
     return output_queue.put(dataframes)
 
 
-
 @Gtk.Template(resource_path = '/com/wittara/studio/file_import_window.ui')
 class FileImportWindow(Adw.Window):
 
@@ -84,6 +83,7 @@ class FileImportWindow(Adw.Window):
     ImportButton     = Gtk.Template.Child()
 
     PreferencesPage  = Gtk.Template.Child()
+    FilePathRow      = Gtk.Template.Child()
     FileSizeRow      = Gtk.Template.Child()
     LastModifiedRow  = Gtk.Template.Child()
     CreatedAtRow     = Gtk.Template.Child()
@@ -219,9 +219,17 @@ class FileImportWindow(Adw.Window):
         created_at = datetime.fromtimestamp(file_stats.st_ctime)
         created_at = created_at.strftime('%d %B %Y %H:%M:%S')
 
+        self.FilePathRow.set_subtitle(self.file_path)
         self.FileSizeRow.set_subtitle(file_size)
         self.LastModifiedRow.set_subtitle(last_modified)
         self.CreatedAtRow.set_subtitle(created_at)
+
+        header = self.FilePathRow.get_first_child()
+        prefixes = header.get_first_child()
+        image = prefixes.get_next_sibling()
+        title_box = image.get_next_sibling()
+        subtitle = title_box.get_last_child()
+        subtitle.set_wrap_mode(Pango.WrapMode.CHAR)
 
     def _hide_spinner(self,
                       fill_page: bool = True,
@@ -387,10 +395,10 @@ class FileImportWindow(Adw.Window):
 
     def _setup_default_page(self) -> None:
         """"""
-        dataframe = FileManager.read_file(file_path   = self.file_path,
-                                          sample_size = self.DATA_SAMPLE_SIZE,
-                                          u_kwargs    = self.u_kwargs,
-                                          eager_load  = True)
+        dataframe = FileManager.read_file(file_path  = self.file_path,
+                                          n_samples  = self.DATA_SAMPLE_SIZE,
+                                          u_kwargs   = self.u_kwargs,
+                                          eager_mode = True)
 
         if dataframe is None:
             self._setup_error_page()
@@ -414,8 +422,8 @@ class FileImportWindow(Adw.Window):
 
         match self.file_format:
             case 'csv' | 'tsv' | 'txt':
-                from .file_import_csv_view import FileImportCsvView
-                self.CustomView = FileImportCsvView(self.PreferencesPage,
+                from .file_import_csv_view import FileImportCSVView
+                self.CustomView = FileImportCSVView(self.PreferencesPage,
                                                     self.u_kwargs,
                                                     self.conf_widgets,
                                                     main_table.columns,
@@ -447,10 +455,10 @@ class FileImportWindow(Adw.Window):
         # version of the file, so it'll be a huge benefit sometimes.
         if dataframe is None:
             kwargs = self._get_current_settings(read_only)
-            dataframe = FileManager.read_file(file_path   = self.file_path,
-                                              sample_size = self.DATA_SAMPLE_SIZE,
-                                              u_kwargs    = self.u_kwargs,
-                                              eager_load  = True,
+            dataframe = FileManager.read_file(file_path  = self.file_path,
+                                              n_samples  = self.DATA_SAMPLE_SIZE,
+                                              u_kwargs   = self.u_kwargs,
+                                              eager_mode = True,
                                               **kwargs)
 
         # I also know this is ugly, but it does the job

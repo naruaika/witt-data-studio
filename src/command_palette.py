@@ -157,19 +157,32 @@ class CommandPalette(Adw.Bin):
                                   visible     = False)
         box.append(separator)
 
+        def on_click(gesture: Gtk.GestureClick,
+                     n_press: int,
+                     x:       float,
+                     y:       float,
+                     ) ->     None:
+            """"""
+            item_data = list_item.get_item()
+            _, position = self.ListStore.find(item_data)
+            self.Selection.set_selected(position)
+            self._on_entry_activated(self.Entry)
+
+        controller = Gtk.GestureClick()
+        controller.connect('released', on_click)
+        box.add_controller(controller)
+
         list_item.content = content
         list_item.label = label
         list_item.shortcut = shortcut
         list_item.separator = separator
         list_item.highlight = None
-        list_item.clicker = None
 
     def _bind_factory(self,
                       list_item_factory: Gtk.SignalListItemFactory,
                       list_item:         Gtk.ListItem,
                       ) ->               None:
         """"""
-        container = list_item.get_child()
         item_data = list_item.get_item()
 
         is_separator = item_data.is_separator
@@ -190,20 +203,6 @@ class CommandPalette(Adw.Bin):
                                                       target_property = 'label',
                                                       flags           = GObject.BindingFlags.SYNC_CREATE)
 
-        def on_click(gesture: Gtk.GestureClick,
-                     n_press: int,
-                     x:       float,
-                     y:       float,
-                     ) ->     None:
-            """"""
-            _, position = self.ListStore.find(item_data)
-            self.Selection.set_selected(position)
-            self._on_entry_activated(self.Entry)
-
-        list_item.clicker = Gtk.GestureClick()
-        list_item.clicker.connect('released', on_click)
-        container.add_controller(list_item.clicker)
-
         if len(item_data.shortcuts) > 0:
             shortcut_string = item_data.shortcuts[0]
             is_parsed, accel_key, accel_mods = Gtk.accelerator_parse(shortcut_string)
@@ -218,10 +217,7 @@ class CommandPalette(Adw.Bin):
                         list_item:         Gtk.ListItem,
                         ) ->               None:
         """"""
-        container = list_item.get_child()
-
         list_item.highlight.unbind()
-        container.remove_controller(list_item.clicker)
 
     @Gtk.Template.Callback()
     def _on_entry_activated(self,

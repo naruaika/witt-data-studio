@@ -230,7 +230,7 @@ class NodeCanvas(Gtk.Fixed):
         # rect = Gdk.Rectangle()
         # rect.x = x
         # rect.y = y
-        # rect.width = 1
+        # rect.width  = 1
         # rect.height = 1
         # popover.set_pointing_to(rect)
 

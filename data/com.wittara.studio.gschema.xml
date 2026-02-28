@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="witt-data-studio">
+	<schema id="com.wittara.studio" path="/com/wittara/studio/">
+		<key name="connection-list" type="s">
+			<default>'[]'</default>
+			<summary>Connection List</summary>
+			<description>List of recently used connections.</description>
+		</key>
+	</schema>
+</schemalist>
