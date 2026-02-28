@@ -2797,12 +2797,12 @@
   <menu id="OpenSourceMenu">
     <section>
       <item>
-        <attribute name="label" translatable="yes">Open _File</attribute>
+        <attribute name="label" translatable="yes">From _File</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">open-file</attribute>
       </item>
       <item>
-        <attribute name="label" translatable="yes">Open _Database</attribute>
+        <attribute name="label" translatable="yes">_Database</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">open-database</attribute>
       </item>
@@ -2812,12 +2812,12 @@
   <menu id="ReadSourceMenu">
     <section>
       <item>
-        <attribute name="label" translatable="yes">Read _File</attribute>
+        <attribute name="label" translatable="yes">From _File</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">read-file</attribute>
       </item>
       <item>
-        <attribute name="label" translatable="yes">Read _Database</attribute>
+        <attribute name="label" translatable="yes">_Database</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">read-database</attribute>
       </item>
