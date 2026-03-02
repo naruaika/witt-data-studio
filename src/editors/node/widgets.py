@@ -425,6 +425,8 @@ class NodeEntry(Gtk.Button):
                  set_data: callable,
                  ) ->      None:
         """"""
+        self.is_empty = get_data() == ''
+
         from ...core.evaluators.arithmetic import Evaluator
         evaluator = Evaluator()
 
@@ -439,11 +441,7 @@ class NodeEntry(Gtk.Button):
                               tooltip_text = title)
             box.append(label)
 
-        default = get_data()
-
-        is_empty = default == ''
-
-        text = default if not is_empty else f'[{_('Empty')}]'
+        text = get_data() if not self.is_empty else f'[{_('Empty')}]'
 
         label = Gtk.Label(label     = text,
                           xalign    = 1.0,
@@ -456,11 +454,11 @@ class NodeEntry(Gtk.Button):
                        label:  Gtk.Label,
                        ) ->    None:
             """"""
-            value = label.get_label() if not is_empty else ''
+            value = label.get_label() if not self.is_empty else ''
             entry = Gtk.Entry(text             = value,
                               placeholder_text = title)
 
-            if isinstance(default, (int, float)):
+            if isinstance(get_data(), (int, float)):
                 entry.set_input_purpose(Gtk.InputPurpose.NUMBER)
 
             entry.add_css_class('node-widget')
@@ -477,24 +475,22 @@ class NodeEntry(Gtk.Button):
 
             def do_apply(args: list[Any]) -> None:
                 """"""
-                nonlocal is_empty
-
                 container, button, label, entry = args
                 text = entry.get_text()
 
-                if isinstance(default, (int, float)):
+                if isinstance(get_data(), (int, float)):
                     try:
                         text = evaluator.evaluate(text)
-                        if isinstance(default, int):
+                        if isinstance(get_data(), int):
                             text = int(text)
-                        if isinstance(default, float):
+                        if isinstance(get_data(), float):
                             text = float(text)
                     except:
                         return
 
                 text = str(text)
-                is_empty = text == ''
-                text = text if not is_empty else f'[{_('Empty')}]'
+                self.is_empty = text == ''
+                text = text if not self.is_empty else f'[{_('Empty')}]'
 
                 label.set_label(text)
                 container.insert_child_after(button, entry)
@@ -530,16 +526,16 @@ class NodeEntry(Gtk.Button):
                 text = entry.get_text()
                 try:
                     text = evaluator.evaluate(text)
-                    if isinstance(default, int):
+                    if isinstance(get_data(), int):
                         int(text)
-                    if isinstance(default, float):
+                    if isinstance(get_data(), float):
                         float(text)
                 except:
                     entry.add_css_class('warning')
                 else:
                     entry.remove_css_class('warning')
 
-            if isinstance(default, (int, float)):
+            if isinstance(get_data(), (int, float)):
                 entry.connect('changed', on_changed)
 
             def do_focus() -> bool:
@@ -561,9 +557,13 @@ class NodeEntry(Gtk.Button):
                  value: str,
                  ) ->   None:
         """"""
+        value = str(value)
+        self.is_empty = value == ''
+        value = value if not self.is_empty else f'[{_('Empty')}]'
+
         box = self.get_child()
         label = box.get_last_child()
-        label.set_label(str(value))
+        label.set_label(value)
 
 
 
@@ -1735,7 +1735,9 @@ class NodeDatePicker(Gtk.Button):
                                       icon_name = 'vcal-symbolic')
         entry.connect('icon-press', on_icon_pressed)
 
-        _get_data = lambda: get_data().strftime('%Y-%m-%d')
+        def _get_data() -> str:
+            """"""
+            return get_data().strftime('%Y-%m-%d')
 
         def _set_data(value:  str,
                       submit: bool,
@@ -1755,22 +1757,20 @@ class NodeDatePicker(Gtk.Button):
 
         popover.set_parent(entry)
 
-        default = get_data()
-
-        is_empty = default == ''
+        is_empty = get_data() == ''
 
         box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
                       spacing     = 6)
 
-        label = Gtk.Label(label     = default or f'[{_('Empty')}]',
+        label = Gtk.Label(label     = get_data() or f'[{_('Empty')}]',
                           xalign    = 1.0,
                           ellipsize = Pango.EllipsizeMode.END)
         box.append(label)
 
-        if isinstance(default, datetime.date):
-            picker.set_year(default.year)
-            picker.set_month(default.month)
-            picker.set_day(default.day)
+        if isinstance(get_data(), datetime.date):
+            picker.set_year(get_data().year)
+            picker.set_month(get_data().month)
+            picker.set_day(get_data().day)
 
         def on_calendar_updated(widget: DatePicker) -> None:
             """"""
@@ -1908,7 +1908,9 @@ class NodeTimePicker(Gtk.Button):
                                       icon_name = 'clock-alt-symbolic')
         entry.connect('icon-press', on_icon_pressed)
 
-        _get_data = lambda: get_data().strftime('%H:%M:%S')
+        def _get_data() -> str:
+            """"""
+            return get_data().strftime('%H:%M:%S')
 
         def _set_data(value:  str,
                       submit: bool,
@@ -1928,22 +1930,20 @@ class NodeTimePicker(Gtk.Button):
 
         popover.set_parent(entry)
 
-        default = get_data()
-
-        is_empty = default == ''
+        is_empty = get_data() == ''
 
         box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL,
                       spacing     = 6)
 
-        label = Gtk.Label(label     = default or f'[{_('Empty')}]',
+        label = Gtk.Label(label     = get_data() or f'[{_('Empty')}]',
                           xalign    = 1.0,
                           ellipsize = Pango.EllipsizeMode.END)
         box.append(label)
 
-        if isinstance(default, datetime.time):
-            picker.set_hour(default.hour)
-            picker.set_minute(default.minute)
-            picker.set_second(default.second)
+        if isinstance(get_data(), datetime.time):
+            picker.set_hour(get_data().hour)
+            picker.set_minute(get_data().minute)
+            picker.set_second(get_data().second)
 
         def on_time_updated(widget: TimePicker) -> None:
             """"""
