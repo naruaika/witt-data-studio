@@ -205,7 +205,7 @@ class Application(Adw.Application):
         dialog = Adw.AboutDialog(application_name   = 'Witt Data Studio',
                                  application_icon   = self.APP_ID,
                                  version            = self.VERSION,
-                                 copyright          = '© 2025 Naufan Rusyda Faikar <hello@naruaika.me>',
+                                 copyright          = '© 2025 Naufan Rusyda Faikar',
                                  license_type       = Gtk.License.AGPL_3_0,
                                  designers          = ['Naufan Rusyda Faikar <hello@naruaika.me>'],
                                  developer_name     = 'Naufan Rusyda Faikar',
@@ -500,6 +500,8 @@ class Application(Adw.Application):
         from time import strftime
         from locale import getlocale
 
+        from .editors.node.factory import NodeViewer
+
         data = {
             'version':  self.WIBOOK_VERSION,
             'timezone': strftime('%Z'), # TODO: should be configurable
@@ -517,7 +519,6 @@ class Application(Adw.Application):
         data['links'] = sorted(data['links'], key = sort_key)
 
         # Get active viewer node
-        from .editors.node.factory import NodeViewer
         for node in window.node_editor.nodes:
             if not isinstance(node.parent, NodeViewer):
                 continue
@@ -578,15 +579,15 @@ class Application(Adw.Application):
 
         if file_path:
             FileDialog.save(file_path = file_path,
-                             content   = data,
-                             callback  = on_finish)
+                            content   = data,
+                            callback  = on_finish)
 
         else:
             file_name = '{}.wibook'.format(_('Book1'))
             FileDialog.save_as(file_name = file_name,
-                                content   = data,
-                                window    = window,
-                                callback  = on_finish)
+                               content   = data,
+                               window    = window,
+                               callback  = on_finish)
 
     def get_active_main_window(self) -> Window:
         """"""

@@ -79,7 +79,7 @@ class NodeCanvas(Gtk.Fixed):
 
             dx = abs(x2 - x1)
 
-            control_dx = min(120,max(8, dx * 0.35))
+            control_dx = min(120, max(8, dx * 0.35))
 
             c1x, c1y = x1 + control_dx, y1
             c2x, c2y = x2 - control_dx, y2

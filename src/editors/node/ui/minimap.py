@@ -48,7 +48,6 @@ class NodeMinimap(Adw.Bin):
         x2 = x1 + scrolled_window.get_width()
         y2 = y1 + scrolled_window.get_height()
 
-        # TODO: pre-compute children geometry
         canvas = editor.Canvas
         child = canvas.get_first_child()
         while child:

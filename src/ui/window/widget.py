@@ -72,7 +72,6 @@ class Window(Adw.ApplicationWindow):
 
         self._setup_uinterfaces()
         self._setup_controllers()
-
         self._setup_actions()
         self._setup_commands()
 

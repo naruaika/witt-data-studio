@@ -195,12 +195,15 @@ class NodeFrame(Adw.Bin):
             self._prev_offset_y == offset_y
         ):
             return
+
         self._prev_offset_x = offset_x
         self._prev_offset_y = offset_y
 
-        if not self.is_dragging and \
-                abs(offset_x) > 0.5 and \
-                abs(offset_y) > 0.5:
+        if (
+            not self.is_dragging and
+            abs(offset_x) > 0.5  and
+            abs(offset_y) > 0.5
+        ):
             # Prevent from triggering the released event
             self._click_handler.set_state(Gtk.EventSequenceState.DENIED)
 
@@ -217,12 +220,6 @@ class NodeFrame(Adw.Bin):
                 self.grab_focus()
 
             self.is_dragging = True
-
-        state = gesture.get_current_event_state()
-        snap = state & Gdk.ModifierType.CONTROL_MASK
-
-        editor = self.get_editor()
-        editor.update_move_selections(offset_x, offset_y, snap)
 
     def _on_drag_end(self,
                      gesture:  Gtk.GestureDrag,

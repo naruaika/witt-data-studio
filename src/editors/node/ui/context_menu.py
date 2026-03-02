@@ -38,11 +38,6 @@ class NodeContextMenu(Gtk.PopoverMenu):
 
         def on_closed(popover: Gtk.PopoverMenu) -> None:
             """"""
-            def do_remove() -> None:
-                """"""
-                popover.unparent()
-                gc.collect()
-
-            GLib.timeout_add(1000, do_remove)
+            GLib.timeout_add(1000, popover.unparent)
 
         self.connect('closed', on_closed)

@@ -17,7 +17,6 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-from gi.repository import Adw
 from gi.repository import Gtk
 from typing import Any
 import gc

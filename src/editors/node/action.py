@@ -33,8 +33,8 @@ from .socket import NodeSocket
 class Action(Action):
 
     def __init__(self,
-                 owner: object = None, # Editor
-                 coown: object = None, # Editor
+                 owner: object = None,
+                 coown: object = None,
                  ) ->   None:
         """"""
         super().__init__(owner, coown)
@@ -60,6 +60,9 @@ class ActionAddNode(Action):
            undoable: bool = True,
            ) ->      bool:
         """"""
+        if not self.nodes:
+            return False
+
         for node in self.nodes:
             self.editor.Canvas.put(node, node.x, node.y)
             self.editor.nodes.append(node)
@@ -114,6 +117,9 @@ class ActionDeleteNode(Action):
            undoable: bool = True,
            ) ->      bool:
         """"""
+        if not self.nodes:
+            return False
+
         for node in self.nodes:
             self.editor.nodes.remove(node)
 
@@ -205,6 +211,9 @@ class ActionMoveNode(Action):
            undoable: bool = True,
            ) ->      bool:
         """"""
+        if not self.nodes:
+            return False
+
         canvas = self.editor.Canvas
 
         canvas_width  = canvas.get_width()

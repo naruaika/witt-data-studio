@@ -26,12 +26,8 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Graphene
 from gi.repository import Gtk
-from numpy import array as narray
-from pykdtree.kdtree import KDTree
 from typing import TypeAlias
-import cairo
 import gc
-import math
 
 from ... import environment as env
 
@@ -84,9 +80,6 @@ class NodeEditor(Gtk.Overlay):
         """"""
         super().__init__()
 
-        viewport = self.ScrolledWindow.get_first_child()
-        viewport.set_scroll_to_focus(False)
-
         self.nodes:  list['NodeFrame']       = []
         self.links:  list['NodeLink']        = []
         self.groups: list['NodeEditorGroup'] = []
@@ -118,6 +111,7 @@ class NodeEditor(Gtk.Overlay):
 
         self._origin_x_position = 0
         self._origin_y_position = 0
+        self._is_dragging_nodes = False
 
         self._editor_init_setup = False
         self._should_init_nodes = len(nodes) > 0
@@ -125,6 +119,7 @@ class NodeEditor(Gtk.Overlay):
         self._scroll_restore_id = None
 
         self._setup_data(nodes, links)
+        self._setup_uinterfaces()
         self._setup_actions()
         self._setup_commands()
         self._setup_controllers()
@@ -209,6 +204,11 @@ class NodeEditor(Gtk.Overlay):
             self.links.append(link)
 
         window.history.freezing = False
+
+    def _setup_uinterfaces(self) -> None:
+        """"""
+        viewport = self.ScrolledWindow.get_first_child()
+        viewport.set_scroll_to_focus(False)
 
     def _setup_actions(self) -> None:
         """"""
@@ -602,6 +602,11 @@ class NodeEditor(Gtk.Overlay):
         self._cursor_x_position = x + scroll_x_position
         self._cursor_y_position = y + scroll_y_position
 
+        if self._is_dragging_nodes:
+            state = motion.get_current_event_state()
+            snap = state & Gdk.ModifierType.CONTROL_MASK
+            self.update_move_selections(snap)
+
     def _on_scrolled(self,
                      adjustment: Gtk.Adjustment,
                      ) ->        None:
@@ -733,6 +738,9 @@ class NodeEditor(Gtk.Overlay):
                         snapshot: Gtk.Snapshot,
                         ) ->      None:
         """"""
+        import cairo
+        import math
+
         vadjustment = self.ScrolledWindow.get_vadjustment()
         hadjustment = self.ScrolledWindow.get_hadjustment()
         scroll_y_position = vadjustment.get_value()
@@ -1120,6 +1128,9 @@ class NodeEditor(Gtk.Overlay):
                            socket_type: 'NodeSocketType',
                            ) ->         'None':
         """"""
+        from numpy import array as narray
+        from pykdtree.kdtree import KDTree
+
         if socket_type == NodeSocketType.INPUT:
             points = narray(self.out_points)
         if socket_type == NodeSocketType.OUTPUT:
@@ -1132,6 +1143,8 @@ class NodeEditor(Gtk.Overlay):
         """"""
         if not self._snap_points:
             return
+
+        from numpy import array as narray
 
         # Reset the target socket so that it won't be picked up
         # when the user release the pointer from the future-link
@@ -1183,25 +1196,22 @@ class NodeEditor(Gtk.Overlay):
         for node in self.selected_nodes:
             node_width  = node.get_width()
             node_height = node.get_height()
-            node._max_x = canvas_width  - node_width
-            node._max_y = canvas_height - node_height
+            node._max_x = canvas_width  - node_width  - 25
+            node._max_y = canvas_height - node_height - 25
             node._old_x = node.x
             node._old_y = node.y
 
         self._origin_x_position = self._cursor_x_position
         self._origin_y_position = self._cursor_y_position
 
+        self._is_dragging_nodes = True
+
     def update_move_selections(self,
-                               offset_x: float,
-                               offset_y: float,
-                               snap:     bool = False,
-                               ) ->      None:
+                               snap: bool = False,
+                               ) ->  None:
         """"""
         offset_x = self._cursor_x_position - self._origin_x_position
         offset_y = self._cursor_y_position - self._origin_y_position
-
-        if abs(offset_x) < 1 and abs(offset_y) < 1:
-            return
 
         for node in self.selected_nodes:
             new_y = node._old_y + offset_y
@@ -1221,17 +1231,18 @@ class NodeEditor(Gtk.Overlay):
 
     def end_move_selections(self) -> None:
         """"""
-        offset_x = self._cursor_x_position - self._origin_x_position
-        offset_y = self._cursor_y_position - self._origin_y_position
+        self._is_dragging_nodes = False
 
-        if abs(offset_x) < 1 and abs(offset_y) < 1:
-            return
+        window = self.get_root()
+        window.history.grouping = True
 
         for node in self.selected_nodes:
             old_position = (node._old_x, node._old_y)
             new_position = (node.x, node.y)
             positions = (old_position, new_position)
             self.move_node(node, positions)
+
+        window.history.grouping = False
 
     def move_node(self,
                   node:      'NodeFrame',
