@@ -1,6 +1,6 @@
 // lib.rs
 //
-// Copyright (c) 2025 Naufan Rusyda Faikar
+// Copyright (c) 2025 Naufan Rusyda Faikar <hello@naruaika.me>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by

@@ -1,0 +1,10 @@
+@import url('resource://com/wittara/studio/style.css');
+
+@import url('resource://com/wittara/studio/editors/chart/style-dark.css');
+@import url('resource://com/wittara/studio/editors/node/style-dark.css');
+@import url('resource://com/wittara/studio/editors/sheet/style-dark.css');
+
+.sourceview {
+    color: #fff;
+    caret-color: #fff;
+}

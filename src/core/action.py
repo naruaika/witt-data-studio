@@ -1,6 +1,6 @@
 # action.py
 #
-# Copyright (c) 2025 Naufan Rusyda Faikar
+# Copyright (c) 2025 Naufan Rusyda Faikar <hello@naruaika.me>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -20,8 +20,8 @@
 class Action():
 
     def __init__(self,
-                 owner: object = None, # Editor
-                 coown: object = None, # Editor
+                 owner: object = None,
+                 coown: object = None,
                  ) ->   None:
         """"""
         self.owner = owner

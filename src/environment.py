@@ -1,6 +1,6 @@
 # environment.py
 #
-# Copyright 2025 Naufan Rusyda Faikar
+# Copyright 2025 Naufan Rusyda Faikar <hello@naruaika.me>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +18,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from .application import Application
-
 app: Application = None
 
 debug: int = 0

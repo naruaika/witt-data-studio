@@ -2,7 +2,7 @@
 
 # witt-data-studio.in
 #
-# Copyright 2025 Naufan Rusyda Faikar
+# Copyright 2025 Naufan Rusyda Faikar <hello@naruaika.me>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -23,11 +23,12 @@ import os
 import sys
 import signal
 import locale
+import logging
 import gettext
 
-APP_ID = '@APP_ID@'
-VERSION = '@VERSION@'
-localedir = '@localedir@'
+APP_ID     = '@APP_ID@'
+VERSION    = '@VERSION@'
+localedir  = '@localedir@'
 pkgdatadir = '@pkgdatadir@'
 
 sys.path.insert(1, pkgdatadir)
@@ -35,6 +36,37 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 locale.bindtextdomain('witt-data-studio', localedir)
 locale.textdomain('witt-data-studio')
 gettext.install('witt-data-studio', localedir)
+
+class _ColoredFormatter(logging.Formatter):
+
+    COLORS = {
+        "DEBUG":    "\033[36m",  # cyan
+        "INFO":     "\033[32m",  # green
+        "WARNING":  "\033[33m",  # yellow
+        "ERROR":    "\033[31m",  # red
+        "CRITICAL": "\033[41m",  # red background
+    }
+    TIME_COLOR    = "\033[90m"   # bright black (gray)
+    MESSAGE_COLOR = "\033[37m"   # white
+    RESET_COLOR   = "\033[0m"
+
+    def format(self,
+               record: logging.LogRecord,
+               ) ->    str:
+        """"""
+        level_color = self.COLORS.get(record.levelname, self.RESET_COLOR)
+
+        record.asctime = self.formatTime(record, self.datefmt)
+
+        formatted = (
+            f"{self.TIME_COLOR}[{record.asctime}]{self.RESET_COLOR} "
+            f"{level_color}{record.levelname}{self.RESET_COLOR} — "
+            f"{self.MESSAGE_COLOR}{record.getMessage()}{self.RESET_COLOR}"
+        )
+
+        return formatted
+
+
 
 if __name__ == '__main__':
 
@@ -49,17 +81,18 @@ if __name__ == '__main__':
         except ModuleNotFoundError:
             pass
 
-    import logging
-    level = logging.DEBUG if debug_mode > 0 else logging.INFO
-    logging.basicConfig(level = level)
+    level   = logging.DEBUG if debug_mode > 0 else logging.INFO
+    handler = logging.StreamHandler()
+    handler.setFormatter(_ColoredFormatter())
+    logging.basicConfig(level = level, handlers = [handler])
 
     import gi
-    gi.require_version('Adw', '1')
-    gi.require_version('Gdk', '4.0')
-    gi.require_version('GObject', '2.0')
-    gi.require_version('Gtk', '4.0')
+    gi.require_version('Adw',       '1')
+    gi.require_version('Gdk',       '4.0')
+    gi.require_version('GObject',   '2.0')
+    gi.require_version('Gtk',       '4.0')
     gi.require_version('GtkSource', '5')
-    gi.require_version('WebKit', '6.0')
+    gi.require_version('WebKit',    '6.0')
 
     from gi.repository import Gio
     resource_path = 'witt-data-studio.gresource'

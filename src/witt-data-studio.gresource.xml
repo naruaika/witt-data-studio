@@ -1,70 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/wittara/studio">
-    <file preprocess="xml-stripblanks">command_palette.ui</file>
-    <file preprocess="xml-stripblanks">database_add_duckdb_view.ui</file>
-    <file preprocess="xml-stripblanks">database_add_mysql_view.ui</file>
-    <file preprocess="xml-stripblanks">database_add_postgresql_view.ui</file>
-    <file preprocess="xml-stripblanks">database_add_sqlite_view.ui</file>
-    <file preprocess="xml-stripblanks">database_add_window.ui</file>
-    <file preprocess="xml-stripblanks">database_import_window.ui</file>
-    <file preprocess="xml-stripblanks">file_import_window.ui</file>
-    <file preprocess="xml-stripblanks">formula_editor_window.ui</file>
-    <file preprocess="xml-stripblanks">status_bar.ui</file>
-    <file preprocess="xml-stripblanks">toolbar.ui</file>
-    <file preprocess="xml-stripblanks">window.ui</file>
+    <file alias="style.css">ui/style.css</file>
+    <file alias="style-dark.css">ui/style-dark.css</file>
 
-    <file>style.css</file>
-    <file>style-dark.css</file>
-    <file>command-palette.css</file>
-    <file>command-palette-dark.css</file>
-    <file>status-bar.css</file>
-    <file>status-bar-dark.css</file>
-    <file>toolbar.css</file>
-    <file>toolbar-dark.css</file>
-    <file>window.css</file>
-    <file>window-dark.css</file>
+    <file preprocess="xml-stripblanks">ui/command_palette/template.ui</file>
+    <file>ui/command_palette/style.css</file>
+    <file>ui/command_palette/style-dark.css</file>
 
-    <file preprocess="xml-stripblanks">chart/editor.ui</file>
+    <file preprocess="xml-stripblanks">ui/status_bar/template.ui</file>
+    <file>ui/status_bar/style.css</file>
+    <file>ui/status_bar/style-dark.css</file>
 
-    <file>chart/style.css</file>
-    <file>chart/style-dark.css</file>
-    <file>chart/editor.css</file>
-    <file>chart/editor-dark.css</file>
-    <file>chart/canvas.css</file>
-    <file>chart/canvas-dark.css</file>
+    <file preprocess="xml-stripblanks">ui/toolbar/template.ui</file>
+    <file>ui/toolbar/style.css</file>
+    <file>ui/toolbar/style-dark.css</file>
 
-    <file preprocess="xml-stripblanks">node/editor.ui</file>
-    <file preprocess="xml-stripblanks">node/frame.ui</file>
+    <file preprocess="xml-stripblanks">ui/window/template.ui</file>
+    <file>ui/window/style.css</file>
+    <file>ui/window/style-dark.css</file>
 
-    <file>node/style.css</file>
-    <file>node/style-dark.css</file>
-    <file>node/editor.css</file>
-    <file>node/editor-dark.css</file>
-    <file>node/canvas.css</file>
-    <file>node/canvas-dark.css</file>
-    <file>node/frame.css</file>
-    <file>node/frame-dark.css</file>
-    <file>node/content.css</file>
-    <file>node/content-dark.css</file>
-    <file>node/socket.css</file>
-    <file>node/socket-dark.css</file>
+    <file preprocess="xml-stripblanks">ui/database_add/template.ui</file>
+    <file preprocess="xml-stripblanks">ui/database_add/view_duckdb.ui</file>
+    <file preprocess="xml-stripblanks">ui/database_add/view_mysql.ui</file>
+    <file preprocess="xml-stripblanks">ui/database_add/view_postgresql.ui</file>
+    <file preprocess="xml-stripblanks">ui/database_add/view_sqlite.ui</file>
 
-    <file preprocess="xml-stripblanks">sheet/editor.ui</file>
-    <file preprocess="xml-stripblanks">sheet/filter_rows_window.ui</file>
-    <file preprocess="xml-stripblanks">sheet/formula_bar.ui</file>
-    <file preprocess="xml-stripblanks">sheet/transform_window.ui</file>
+    <file preprocess="xml-stripblanks">ui/database_import/template.ui</file>
 
-    <file>sheet/style.css</file>
-    <file>sheet/style-dark.css</file>
-    <file>sheet/editor.css</file>
-    <file>sheet/editor-dark.css</file>
-    <file>sheet/formula-bar.css</file>
-    <file>sheet/formula-bar-dark.css</file>
-    <file>sheet/canvas.css</file>
-    <file>sheet/canvas-dark.css</file>
-    <file>sheet/transform-window.css</file>
-    <file>sheet/transform-window-dark.css</file>
+    <file preprocess="xml-stripblanks">ui/file_import/template.ui</file>
+
+    <file preprocess="xml-stripblanks">ui/formula_editor/template.ui</file>
+
+    <file>editors/chart/style.css</file>
+    <file>editors/chart/style-dark.css</file>
+
+    <file preprocess="xml-stripblanks">editors/chart/editor.ui</file>
+
+    <file>editors/node/style.css</file>
+    <file>editors/node/style-dark.css</file>
+
+    <file preprocess="xml-stripblanks">editors/node/editor.ui</file>
+    <file preprocess="xml-stripblanks">editors/node/frame.ui</file>
+
+    <file>editors/sheet/style.css</file>
+    <file>editors/sheet/style-dark.css</file>
+
+    <file preprocess="xml-stripblanks">editors/sheet/editor.ui</file>
+    <file preprocess="xml-stripblanks">editors/sheet/ui/filter_rows_window.ui</file>
+    <file preprocess="xml-stripblanks">editors/sheet/ui/formula_bar.ui</file>
+    <file preprocess="xml-stripblanks">editors/sheet/ui/transform_window.ui</file>
   </gresource>
 
   <gresource prefix="/com/wittara/studio/icons/scalable/actions/">
