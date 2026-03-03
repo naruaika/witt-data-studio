@@ -79,7 +79,7 @@ class NodeCanvas(Gtk.Fixed):
 
             dx = abs(x2 - x1)
 
-            control_dx = min(120, max(8, dx * 0.35))
+            control_dx = min(120, max(8, dx * 0.5))
 
             c1x, c1y = x1 + control_dx, y1
             c2x, c2y = x2 - control_dx, y2
@@ -115,7 +115,6 @@ class NodeCanvas(Gtk.Fixed):
                           ) ->      None:
         """"""
         stroke = Gsk.Stroke(3.0)
-        stroke.set_dash([4, 4])
 
         if self._prefers_dark:
             color = Gdk.RGBA(0.8706, 0.8667, 0.8549, 1.0) # equivalent to --light-3
@@ -137,7 +136,7 @@ class NodeCanvas(Gtk.Fixed):
 
         dx = abs(x2 - x1)
 
-        control_dx = min(120, max(8, dx * 0.35))
+        control_dx = min(120, max(8, dx * 0.5))
 
         c1x, c1y = x1 + control_dx, y1
         c2x, c2y = x2 - control_dx, y2

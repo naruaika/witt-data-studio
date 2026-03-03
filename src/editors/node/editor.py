@@ -28,8 +28,11 @@ from gi.repository import Graphene
 from gi.repository import Gtk
 from typing import TypeAlias
 import gc
+import logging
 
 from ... import environment as env
+
+logger = logging.getLogger(__name__)
 
 Point2D:  TypeAlias = tuple[float, float]
 Scalar2D: TypeAlias = tuple[Point2D, Point2D]
@@ -124,10 +127,6 @@ class NodeEditor(Gtk.Overlay):
         self._setup_commands()
         self._setup_controllers()
 
-    def setup(self) -> None:
-        """"""
-        pass
-
     def grab_focus(self) -> None:
         """"""
         self.Canvas.set_focusable(True)
@@ -142,18 +141,13 @@ class NodeEditor(Gtk.Overlay):
 
         self.queue_draw()
 
-    def cleanup(self) -> None:
-        """"""
-        pass
-
     def queue_draw(self,
                    refresh: bool = True,
                    ) ->     None:
         """"""
         if refresh:
             self.Canvas.queue_draw()
-        if self.Minimap.get_visible():
-            self.Minimap.queue_draw()
+        self.Minimap.queue_draw()
 
     def queue_resize(self) -> None:
         """"""
@@ -620,6 +614,10 @@ class NodeEditor(Gtk.Overlay):
             GLib.source_remove(self._scroll_restore_id)
             self._scroll_restore_id = None
 
+        # We prevent all children widgets
+        # from receiving the hover events
+        # so we can avoid any performance
+        # degradation while scrolling
         self.Canvas.set_can_target(False)
 
         self._scroll_restore_id = GLib.timeout_add(50, do_restore)
@@ -628,13 +626,15 @@ class NodeEditor(Gtk.Overlay):
 
     def _setup_default_nodes(self) -> None:
         """"""
+        logger.debug('Setting up a new empty workspace...')
+
         from .factory import NodeSheet
         from .factory import NodeViewer
 
+        window = self.get_root()
+
         canvas_width = self.Canvas.get_width()
         canvas_height = self.Canvas.get_height()
-
-        window = self.get_root()
         viewport_width = window.TabView.get_width()
         viewport_height = window.TabView.get_height()
 
@@ -813,28 +813,53 @@ class NodeEditor(Gtk.Overlay):
                       tab_page: Adw.TabPage,
                       ) ->      None:
         """"""
+        from .actions import ActionDeleteLink
+        from .actions import ActionDeleteNodeContent
         from .factory import NodeViewer
 
-        # Find and unlink the related nodes
+        window = self.get_window()
+
+        is_in_transx = window.history.grouping
+        if not is_in_transx:
+            window.history.grouping = True
+
         for node in self.nodes:
             if not isinstance(node.parent, NodeViewer):
                 continue
             if not node.is_active():
                 continue
+
             for content in node.contents:
-                if content.Page == tab_page:
-                    if links := content.Socket.links:
-                        link = links[0]
-                        if link not in self.links:
-                            break
-                        self.links.remove(link)
-                        link.unlink()
-                    if content in node.contents:
-                        node.remove_content(content)
-                    break
+                if content.Page != tab_page:
+                    continue
+                if links := content.Socket.links:
+                    link = links[0]
+                    if link not in self.links:
+                        break
+
+                    if link.out_socket.auto_remove:
+                        node = link.out_socket.Frame
+                        content = link.out_socket.Content
+                        cindex = node.contents.index(content)
+
+                    node1 = link.in_socket.Frame.parent
+                    node2 = link.out_socket.Frame.parent
+                    logger.info('Unlinking {} from {}...'
+                                .format(node1.__class__.__name__,
+                                        node2.__class__.__name__))
+                    action = ActionDeleteLink(self, link)
+                    window.do(action)
+
+                    if link.out_socket.auto_remove:
+                        action = ActionDeleteNodeContent(self, content, node, cindex)
+                        window.do(action, add_only = True)
+                break
             else:
                 continue
             break
+
+        if not is_in_transx:
+            window.history.grouping = False
 
         gc.collect()
 
@@ -843,6 +868,10 @@ class NodeEditor(Gtk.Overlay):
                           parameter: GLib.Variant,
                           ) ->       None:
         """"""
+        name = parameter.get_string()
+
+        logger.info(f'Creating a new node: {name}')
+
         # TODO: it's yet to be determined when requested from
         # 1) the primary toolbar, 2) the contextual menu, and
         # 3) the command palette for the placement algorithm.
@@ -851,16 +880,17 @@ class NodeEditor(Gtk.Overlay):
         scroll_y_position = vadjustment.get_value()
         scroll_x_position = hadjustment.get_value()
 
-        name = parameter.get_string()
-        node = self.create_node(name,
-                                scroll_x_position + 25,#self._cursor_x_position
-                                scroll_y_position + 25)#self._cursor_y_position
+        node = self.create_new_node(name,
+                                    scroll_x_position + 25,
+                                    scroll_y_position + 25)
 
         if node:
             window = self.get_root()
             window.history.grouping = True
+
             self.add_node(node)
             self.select_by_click(node)
+
             window.history.grouping = False
 
     def _on_duplicate_action(self,
@@ -870,6 +900,8 @@ class NodeEditor(Gtk.Overlay):
         """"""
         if not self.selected_nodes:
             return
+
+        logger.info('Duplicating all selected nodes...')
 
         window = self.get_root()
         window.history.grouping = True
@@ -897,7 +929,9 @@ class NodeEditor(Gtk.Overlay):
         if not self.selected_nodes:
             return
 
-        from .action import ActionDeleteNode
+        logger.info('Deleting all selected nodes...')
+
+        from .actions import ActionDeleteNode
         action = ActionDeleteNode(self, self.selected_nodes)
 
         window = self.get_root()
@@ -908,7 +942,7 @@ class NodeEditor(Gtk.Overlay):
                               parameter: GLib.Variant,
                               ) ->       None:
         """"""
-        from .factory import NodeViewer
+        logger.info('Selecting all nodes...')
 
         window = self.get_root()
         window.history.grouping = True
@@ -925,13 +959,14 @@ class NodeEditor(Gtk.Overlay):
                                parameter: GLib.Variant,
                                ) ->       None:
         """"""
+        logger.info('Deselecting all nodes...')
         self.select_by_click()
 
-    def create_node(self,
-                    name: 'str',
-                    x:    'int' = 0,
-                    y:    'int' = 0,
-                    ) ->  'NodeFrame':
+    def create_new_node(self,
+                        name: 'str',
+                        x:    'int' = 0,
+                        y:    'int' = 0,
+                        ) ->  'NodeFrame':
         """"""
         from .factory import create_new_node
         return create_new_node(name, x, y)
@@ -940,7 +975,7 @@ class NodeEditor(Gtk.Overlay):
                  node: 'NodeFrame',
                  ) ->  'bool':
         """"""
-        from .action import ActionAddNode
+        from .actions import ActionAddNode
         action = ActionAddNode(self, [node])
         window = self.get_window()
         return window.do(action)
@@ -950,7 +985,7 @@ class NodeEditor(Gtk.Overlay):
                  socket2: 'NodeSocket',
                  ) ->     'bool':
         """"""
-        from .action import ActionAddLink
+        from .actions import ActionAddLink
         action = ActionAddLink(self, socket1, socket2)
         window = self.get_window()
         return window.do(action)
@@ -962,7 +997,6 @@ class NodeEditor(Gtk.Overlay):
         window = self.get_window()
 
         is_in_transx = window.history.grouping
-
         if not is_in_transx:
             window.history.grouping = True
 
@@ -1067,12 +1101,19 @@ class NodeEditor(Gtk.Overlay):
             # Keep track of the state of the target node
             # TODO: we should also track downstream nodes
             if is_linked := len(self._target_socket.links) > 0:
-                from .action import ActionEditNode
                 frame = self._target_socket.Frame
                 old_value = frame.do_save()
                 values = (old_value, old_value)
+
+                from .actions import ActionEditNode
                 action = ActionEditNode(self, frame, values)
                 window.do(action, add_only = True)
+
+            node1 = self._source_socket.Frame.parent
+            node2 = self._target_socket.Frame.parent
+            logger.info('Linking {} from {}...'
+                        .format(node1.__class__.__name__,
+                                node2.__class__.__name__))
 
             self.add_link(self._source_socket, self._target_socket)
 
@@ -1092,20 +1133,27 @@ class NodeEditor(Gtk.Overlay):
             # Keep track of the state of the target node
             # TODO: we should also track downstream nodes
             if not self._target_socket:
-                from .action import ActionEditNode
                 socket = self.removed_link.out_socket
                 frame = socket.Frame
                 value = frame.do_save()
                 values = (value, value)
+
+                from .actions import ActionEditNode
                 action = ActionEditNode(self, frame, values)
                 window.do(action, add_only = True)
 
-            from .action import ActionDeleteLink
+            node1 = self.removed_link.in_socket.Frame.parent
+            node2 = self.removed_link.out_socket.Frame.parent
+            logger.info('Unlinking {} from {}...'
+                        .format(node1.__class__.__name__,
+                                node2.__class__.__name__))
+
+            from .actions import ActionDeleteLink
             action = ActionDeleteLink(self, self.removed_link)
             window.do(action, add_only = True)
 
         if self.removed_socket:
-            from .action import ActionDeleteNodeContent
+            from .actions import ActionDeleteNodeContent
             content = self.removed_socket.Content
             action = ActionDeleteNodeContent(self, content)
             window.do(action)
@@ -1239,8 +1287,15 @@ class NodeEditor(Gtk.Overlay):
         for node in self.selected_nodes:
             old_position = (node._old_x, node._old_y)
             new_position = (node.x, node.y)
+            if (
+                abs(node._old_x - node.x) <= 0.5 and
+                abs(node._old_y - node.y) <= 0.5
+            ):
+                continue
             positions = (old_position, new_position)
             self.move_node(node, positions)
+            logger.info(f'Moved {node.parent.__class__.__name__} '
+                        f'from {old_position} to {new_position}')
 
         window.history.grouping = False
 
@@ -1249,7 +1304,7 @@ class NodeEditor(Gtk.Overlay):
                   positions: 'tuple',
                   ) ->       'None':
         """"""
-        from .action import ActionMoveNode
+        from .actions import ActionMoveNode
         action = ActionMoveNode(self, [node], [positions])
         window = self.get_root()
         window.do(action)
@@ -1258,7 +1313,8 @@ class NodeEditor(Gtk.Overlay):
                       viewer: 'NodeFrame',
                       ) ->    'bool':
         """"""
-        from .action import ActionSelectViewer
+        logger.info('Switching node viewer...')
+        from .actions import ActionSelectViewer
         action = ActionSelectViewer(self, viewer)
         window = self.get_window()
         return window.do(action)
@@ -1268,7 +1324,7 @@ class NodeEditor(Gtk.Overlay):
                         combo: 'bool'      = False,
                         ) ->   'bool':
         """"""
-        from .action import ActionSelectByClick
+        from .actions import ActionSelectByClick
         action = ActionSelectByClick(self, node, combo)
         window = self.get_window()
         return window.do(action)
@@ -1284,7 +1340,7 @@ class NodeEditor(Gtk.Overlay):
         if abs(x2 - x1) < 1 and abs(y2 - y1) < 1:
             return False
 
-        from .action import ActionSelectByRubberband
+        from .actions import ActionSelectByRubberband
         action = ActionSelectByRubberband(self, combo)
         window = self.get_window()
         return window.do(action)
@@ -1296,6 +1352,6 @@ class NodeEditor(Gtk.Overlay):
         return env.app.get_active_main_window()
 
 from .frame import NodeFrame
+from .link import NodeLink
 from .socket import NodeSocket
 from .socket import NodeSocketType
-from .link import NodeLink

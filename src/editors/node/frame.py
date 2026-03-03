@@ -24,6 +24,11 @@ from gi.repository import Graphene
 from gi.repository import Gtk
 from typing import Any
 from typing import TypeAlias
+import logging
+
+from ... import environment as env
+
+logger = logging.getLogger(__name__)
 
 Point2D: TypeAlias = tuple[float, float]
 
@@ -245,7 +250,20 @@ class NodeFrame(Adw.Bin):
                    initiator:    'bool'        = True,
                    ) ->          'None':
         """"""
-        # TODO: run on a new thread
+        if initiator:
+            pass # TODO: run on a new thread?
+
+        if self.get_editor():
+            if env.debug:
+                parameters = {'backward':  backward,
+                              'forward':   forward,
+                              'specified': specified,
+                              'initiator': initiator}
+                logger.debug('Processing {} with parameters: {}'
+                             .format(self.parent.__class__.__name__,
+                                     parameters))
+            elif initiator:
+                logger.info(f'Processing {self.parent.__class__.__name__}')
 
         if self.is_processing:
             return
@@ -530,6 +548,10 @@ class NodeFrame(Adw.Bin):
     def unselect(self) -> None:
         """"""
         editor = self.get_editor()
+
+        if not editor:
+            return
+
         if self in editor.selected_nodes:
             editor.selected_nodes.remove(self)
         self.remove_css_class('selected')
@@ -537,19 +559,10 @@ class NodeFrame(Adw.Bin):
 
     def toggle(self) -> None:
         """"""
-        editor = self.get_editor()
-
-        if self.has_css_class('selected'):
-            self.remove_css_class('selected')
-            if self in editor.selected_nodes:
-                editor.selected_nodes.remove(self)
-            self.is_selected = False
-
+        if self.is_selected:
+            self.unselect()
         else:
-            self.add_css_class('selected')
-            if self not in editor.selected_nodes:
-                editor.selected_nodes.append(self)
-            self.is_selected = True
+            self.select()
 
     def get_editor(self) -> 'NodeEditor':
         """"""

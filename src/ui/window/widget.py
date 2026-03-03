@@ -24,6 +24,7 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
 from typing import TypeAlias
+import logging
 
 from ...core.action import Action
 from ...core.history import History
@@ -34,6 +35,8 @@ from ...editors.chart.editor import ChartEditor
 
 from ...editors.node.frame import NodeFrame
 from ...editors.node.link import NodeLink
+
+logger = logging.getLogger(__name__)
 
 Editor: TypeAlias = NodeEditor  | \
                     ChartEditor | \
@@ -55,9 +58,9 @@ class Window(Adw.ApplicationWindow):
 
     def __init__(self, **kwargs) -> None:
         """"""
-        nodes     = kwargs.pop('nodes',  [])
-        links     = kwargs.pop('links',  [])
-        viewer    = kwargs.pop('viewer', None)
+        nodes     = kwargs.pop('nodes',     [])
+        links     = kwargs.pop('links',     [])
+        viewer    = kwargs.pop('viewer',    None)
         file_path = kwargs.pop('file_path', None)
 
         super().__init__(**kwargs)
@@ -80,7 +83,10 @@ class Window(Adw.ApplicationWindow):
     def do_close_request(self) -> bool:
         """"""
         if self.file_saved:
+            logger.info('Closing a main window...')
             return Gdk.EVENT_PROPAGATE
+
+        logger.info('Showing closing confirmation dialog...')
 
         dialog = Adw.AlertDialog()
 
@@ -89,7 +95,7 @@ class Window(Adw.ApplicationWindow):
                           'This action cannot be undone.'))
 
         dialog.add_response('cancel', _('Ca_ncel'))
-        dialog.add_response('close', _('_Close'))
+        dialog.add_response('close',  _('_Close'))
 
         dialog.set_response_appearance('close', Adw.ResponseAppearance.DESTRUCTIVE)
         dialog.set_default_response('close')
@@ -101,10 +107,10 @@ class Window(Adw.ApplicationWindow):
             """"""
             if result.had_error():
                 return
-            if dialog.choose_finish(result) != 'close':
+            if dialog.choose_finish(result) == 'close':
+                self.file_saved = True
+                self.close()
                 return
-            self.file_saved = True #
-            self.close()
 
         dialog.choose(self, None, on_dismissed)
 
@@ -348,7 +354,8 @@ class Window(Adw.ApplicationWindow):
                         ) ->     bool:
         """"""
         if keyval == Gdk.KEY_Escape:
-            self.activate_action('win.focus-editor')
+            editor = self.get_selected_editor()
+            editor.grab_focus()
             return True
 
         return False
@@ -358,20 +365,23 @@ class Window(Adw.ApplicationWindow):
                          param_spec: GObject.ParamSpec,
                          ) ->        None:
         """"""
-        self.Toolbar.populate()
-        self.StatusBar.populate()
-
         editor = self.get_selected_editor()
-        editor.grab_focus()
+        logger.info(f'Switched page to {editor.title}')
 
         if self.CommandPalette.get_visible():
             self.CommandPalette.popdown()
+
+        self.Toolbar.populate()
+        self.StatusBar.populate()
+
+        editor.grab_focus()
 
     def _on_page_closed(self,
                         tab_view: Adw.TabView,
                         tab_page: Adw.TabPage,
                         ) ->      bool:
         """"""
+        logger.info(f'Closed tab page: {tab_page.get_child().title}')
         self.node_editor.do_close_page(tab_page)
         return Gdk.EVENT_PROPAGATE
 
@@ -403,7 +413,7 @@ class Window(Adw.ApplicationWindow):
         if not success:
             return False
 
-        if editor := self.get_selected_editor():
+        if editor:
             editor.refresh_ui()
             editor.grab_focus()
 
@@ -417,7 +427,12 @@ class Window(Adw.ApplicationWindow):
             focused_widget.activate_action('text.undo', None)
             return True
 
+        logger.info('Undoing last action(s)...')
+
         (success, actions) = self.history.undo()
+
+        logger.debug('Undone action(s): {}'.format([action.__class__.__name__
+                                                    for action in actions]))
 
         if actions:
             first_action = actions[0]
@@ -425,9 +440,9 @@ class Window(Adw.ApplicationWindow):
             coown = first_action.coown
             self.go_to_editor([owner, coown])
 
-        if editor := self.get_selected_editor():
-            editor.refresh_ui()
-            editor.grab_focus()
+        editor = self.get_selected_editor()
+        editor.refresh_ui()
+        editor.grab_focus()
 
         self._post_undo()
 
@@ -441,7 +456,12 @@ class Window(Adw.ApplicationWindow):
             focused_widget.activate_action('text.redo', None)
             return True
 
+        logger.info('Redoing last action(s)...')
+
         (success, actions) = self.history.redo()
+
+        logger.debug('Redone action(s): {}'.format([action.__class__.__name__
+                                                    for action in actions]))
 
         if actions:
             first_action = actions[0]
@@ -449,9 +469,9 @@ class Window(Adw.ApplicationWindow):
             coown = first_action.coown
             self.go_to_editor([owner, coown])
 
-        if editor := self.get_selected_editor():
-            editor.refresh_ui()
-            editor.grab_focus()
+        editor = self.get_selected_editor()
+        editor.refresh_ui()
+        editor.grab_focus()
 
         self._post_do()
 
@@ -462,9 +482,10 @@ class Window(Adw.ApplicationWindow):
         if not self.history.undo_stack:
             return
 
-        from ...editors.node.action import ActionSelectByClick
-        from ...editors.node.action import ActionSelectByRubberband
+        from ...editors.node.actions import ActionSelectByClick
+        from ...editors.node.actions import ActionSelectByRubberband
         classes = (ActionSelectByClick, ActionSelectByRubberband)
+
         last_action = self.history.undo_stack[-1]
         is_selection = isinstance(last_action, classes)
         if not (is_selection and not last_action.group):
@@ -476,9 +497,10 @@ class Window(Adw.ApplicationWindow):
         if not self.history.redo_stack:
             return
 
-        from ...editors.node.action import ActionSelectByClick
-        from ...editors.node.action import ActionSelectByRubberband
+        from ...editors.node.actions import ActionSelectByClick
+        from ...editors.node.actions import ActionSelectByRubberband
         classes = (ActionSelectByClick, ActionSelectByRubberband)
+
         last_action = self.history.redo_stack[-1]
         is_selection = isinstance(last_action, classes)
         if not (is_selection and not last_action.group):
@@ -495,15 +517,19 @@ class Window(Adw.ApplicationWindow):
         else:
             page = self.TabView.append(editor)
 
+        logger.info(f'Created new page: {editor.title}')
+
         indicator_icon = Gio.ThemedIcon.new(editor.ICON_NAME)
         page.set_indicator_icon(indicator_icon)
 
-        page.bind_property('title', editor, 'title', GObject.BindingFlags.BIDIRECTIONAL)
+        page.bind_property(source_property = 'title',
+                           target          = editor,
+                           target_property = 'title',
+                           flags           = GObject.BindingFlags.BIDIRECTIONAL)
         page.set_title(editor.title)
 
         self.TabView.set_selected_page(page)
 
-        editor.setup()
         editor.grab_focus()
 
         return page

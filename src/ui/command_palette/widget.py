@@ -24,6 +24,9 @@ from gi.repository import Gio
 from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Pango
+import logging
+
+logger = logging.getLogger(__name__)
 
 class CommandListItem(GObject.Object):
 
@@ -97,6 +100,8 @@ class CommandPalette(Adw.Bin):
             self.Entry.grab_focus()
             return
 
+        logger.info('Showing the command palette...')
+
         self.command_titles = []
         self.ListStore.remove_all()
 
@@ -127,6 +132,8 @@ class CommandPalette(Adw.Bin):
     def popdown(self) -> None:
         """"""
         self.set_visible(False)
+
+        logger.info('Closed the command palette...')
 
         window = self.get_root()
         window.activate_action('win.focus-editor')

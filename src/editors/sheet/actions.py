@@ -1,4 +1,4 @@
-# action.py
+# actions.py
 #
 # Copyright (c) 2025 Naufan Rusyda Faikar <hello@naruaika.me>
 #

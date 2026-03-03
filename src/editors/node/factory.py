@@ -167,7 +167,7 @@ def _take_snapshot(node:     'NodeTemplate',
                    **kwargs: 'dict',
                    ) ->      'None':
     """"""
-    from .action import ActionEditNode
+    from .actions import ActionEditNode
 
     old_data = node.do_save()
     callback(*args, **kwargs)
@@ -1442,7 +1442,7 @@ class NodeSheet(NodeTemplate):
     def _add_input(self) -> None:
         """"""
         widget = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
-        widget.set_data = lambda *args: None
+        widget.set_data = lambda *_: None
 
         label = NodeLabel(_('Value'))
         label.set_xalign(0.0)
@@ -1454,6 +1454,9 @@ class NodeSheet(NodeTemplate):
                                          socket_type = socket_type,
                                          placeholder = True,
                                          auto_remove = True)
+        # TODO: placeholder implementation is currently so fragile,
+        # both in NodeSheet and NodeViewer. It is so ugly as we mix
+        # up logical state and UI state.
 
         def restore_data(title:   str,
                          content: NodeContent,
@@ -1772,6 +1775,18 @@ class NodeViewer(NodeTemplate):
                                          placeholder = True,
                                          auto_remove = True)
 
+        def restore_data(title:   str,
+                         content: NodeContent,
+                         ) ->     str:
+            """"""
+            cindex = self.frame.contents.index(content)
+            titles = self.frame.data['replace-titles']
+            if cindex in titles:
+                title = titles[cindex]
+                label.set_label(title)
+                del titles[cindex]
+            return title
+
         def do_link(pair_socket:  NodeSocket,
                     self_content: NodeContent,
                     ) ->          None:
@@ -1810,13 +1825,7 @@ class NodeViewer(NodeTemplate):
             else:
                 pass
 
-            # Restore content data
-            cindex = self.frame.contents.index(self_content)
-            titles = self.frame.data['replace-titles']
-            if cindex in titles:
-                title = titles[cindex]
-                label.set_label(title)
-                del titles[cindex]
+            title = restore_data(title, self_content)
 
             label.set_opacity(1.0)
 

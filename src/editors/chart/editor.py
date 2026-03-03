@@ -64,20 +64,12 @@ class ChartEditor(Gtk.Overlay):
         self._setup_actions()
         self._setup_commands()
 
-    def setup(self) -> None:
-        """"""
-        pass
-
     def grab_focus(self) -> None:
         """"""
         self.Canvas.set_focusable(True)
         self.Canvas.grab_focus()
 
     def refresh_ui(self) -> None:
-        """"""
-        pass
-
-    def cleanup(self) -> None:
         """"""
         pass
 

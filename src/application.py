@@ -63,7 +63,7 @@ class Application(Adw.Application):
         window = self.get_active_main_window()
 
         if not window:
-            logger.info('Creating default main window...')
+            logger.info('Spawning a new main window...')
             window = Window(application = self)
 
         window.present()
@@ -72,7 +72,7 @@ class Application(Adw.Application):
                         command_line: Gio.ApplicationCommandLine,
                         ) ->          int:
         """"""
-        logger.info('Starting up from command line...')
+        logger.info('Starting up application from command line...')
 
         parser = self._create_argument_parser()
 
@@ -109,7 +109,7 @@ class Application(Adw.Application):
                 hint:    str,
                 ) ->     None:
         """"""
-        logger.info('Starting up from file open...')
+        logger.info('Starting up application from file open...')
 
         paths = [path for file in files if (path := file.get_path())]
 
@@ -199,7 +199,7 @@ class Application(Adw.Application):
                          parameter: GLib.Variant,
                          ) ->       None:
         """"""
-        logger.info('Showing application information...')
+        logger.info('Showing application about dialog...')
 
         repository_url = 'https://github.com/naruaika/witt-data-studio'
         dialog = Adw.AboutDialog(application_name   = 'Witt Data Studio',
@@ -225,13 +225,7 @@ class Application(Adw.Application):
                         ) ->       None:
         """"""
         logger.info('Exiting application...')
-
-        windows = self.get_windows()
-
-        if windows:
-            logger.info(f'Closing {len(windows)} window(s)...')
-
-        for window in windows:
+        for window in self.get_windows():
             window.close()
 
     def _on_new_window_action(self,
@@ -239,7 +233,7 @@ class Application(Adw.Application):
                               parameter: GLib.Variant,
                               ) ->       None:
         """"""
-        logger.info('Creating new main window...')
+        logger.info('Spawning a new main window...')
         window = Window(application = self)
         window.present()
 
@@ -248,7 +242,7 @@ class Application(Adw.Application):
                              parameter: GLib.Variant,
                              ) ->       None:
         """"""
-        logger.info('Opening file...')
+        logger.info('Showing open file dialog...')
 
         from .ui.file_dialog import FileDialog
         window = self.get_active_main_window()
@@ -259,7 +253,7 @@ class Application(Adw.Application):
                                  parameter: GLib.Variant,
                                  ) ->       None:
         """"""
-        logger.info('Opening database...')
+        logger.info('Showing open database dialog...')
 
         from .ui.database_import.widget import DatabaseImportWindow
         window = self.get_active_main_window()
@@ -276,7 +270,7 @@ class Application(Adw.Application):
                            window:      Gtk.Window,
                            ) ->         None:
         """"""
-        # Closing all child windows
+        # Closing all transient windows
         for target in self.get_windows():
             if target.get_transient_for() == window:
                 target.close()
@@ -390,7 +384,7 @@ class Application(Adw.Application):
         if node_id := content.get('viewer'):
             viewer = instances[node_id]
 
-        logger.info('Creating new main window...')
+        logger.info('Spawning a new main window...')
         window = Window(application = self,
                         nodes       = nodes,
                         links       = links,
@@ -464,7 +458,6 @@ class Application(Adw.Application):
             not window.history.undo_stack and
             not window.history.redo_stack
         ):
-            logger.info('Closing blank main window...')
             window.close()
 
     def save(self,

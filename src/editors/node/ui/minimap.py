@@ -37,6 +37,9 @@ class NodeMinimap(Adw.Bin):
                     snapshot: Gtk.Snapshot,
                     ) ->      None:
         """"""
+        if not self.get_visible():
+            return
+
         editor = self.get_editor()
 
         scrolled_window = editor.ScrolledWindow

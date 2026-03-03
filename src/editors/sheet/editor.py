@@ -116,10 +116,6 @@ class SheetEditor(Gtk.Box):
         if self.configs['view-read-only']:
             self.FormulaBar.set_visible(False)
 
-    def setup(self) -> None:
-        """"""
-        pass
-
     def grab_focus(self) -> None:
         """"""
         self.Canvas.set_focusable(True)
@@ -144,10 +140,6 @@ class SheetEditor(Gtk.Box):
         self.view.update_by_scroll()
         self.update_formula_bar()
         self.queue_draw(refresh)
-
-    def cleanup(self) -> None:
-        """"""
-        pass
 
     def queue_draw(self,
                    refresh: bool = False,
@@ -973,7 +965,7 @@ class SheetEditor(Gtk.Box):
             # Create a new appropriate node
             x = self.node.x - 175 - 50
             y = pair_node.y
-            transformer = editor.create_node(func_name, x, y)
+            transformer = editor.create_new_node(func_name, x, y)
             transformer.set_data(*func_args)
             editor.add_node(transformer)
             editor.select_by_click(transformer)
@@ -1131,7 +1123,7 @@ class SheetEditor(Gtk.Box):
             # Create a new appropriate node
             x = self.node.x - 175 - 50
             y = pair_node.y
-            transformer = editor.create_node('filter-rows', x, y)
+            transformer = editor.create_new_node('filter-rows', x, y)
             transformer.set_data(*func_args)
             editor.add_node(transformer)
             editor.select_by_click(transformer)
@@ -1221,7 +1213,7 @@ class SheetEditor(Gtk.Box):
             # Create a new appropriate node
             x = self.node.x - 175 - 50
             y = pair_node.y
-            transformer = editor.create_node('custom-formula', x, y)
+            transformer = editor.create_new_node('custom-formula', x, y)
             transformer.set_data(formula)
             editor.add_node(transformer)
             editor.select_by_click(transformer)
@@ -1273,7 +1265,7 @@ class SheetEditor(Gtk.Box):
 
         # Create a new sheet node
         position = (viewer.x - 175 - 50, viewer.y)
-        sheet = editor.create_node(name, *position)
+        sheet = editor.create_new_node(name, *position)
         if sheet:
             editor.add_node(sheet)
             editor.select_by_click(sheet)

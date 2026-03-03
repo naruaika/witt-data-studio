@@ -30,7 +30,7 @@ class File():
              **kwargs:  dict,
              ) ->       Any:
         """"""
-        logging.info(f'Reading file: {file_path}')
+        logger.info(f'Reading file: {file_path}')
 
         from ..core.utils import get_file_format
         file_format = get_file_format(file_path)

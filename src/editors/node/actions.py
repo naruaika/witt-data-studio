@@ -1,4 +1,4 @@
-# action.py
+# actions.py
 #
 # Copyright (c) 2025 Naufan Rusyda Faikar <hello@naruaika.me>
 #
@@ -310,7 +310,10 @@ class ActionDeleteNodeContent(Action):
         node = node or content.Frame
 
         if cindex is None:
-            cindex = node.contents.index(content)
+            try:
+                cindex = node.contents.index(content)
+            except:
+                cindex = -1
 
         self.editor  = editor
         self.content = content
@@ -321,6 +324,9 @@ class ActionDeleteNodeContent(Action):
            undoable: bool = True,
            ) ->      bool:
         """"""
+        if self.cindex == -1:
+            return False
+
         self.content.do_remove(self.content)
         return True
 
@@ -365,9 +371,11 @@ class ActionAddLink(Action):
         self.socket2 = socket2
         self.frame2  = socket2.Frame
 
-        self.new_link = None
-        self.old_link = None
-        self.old_data = None
+        self.new_content = None
+        self.new_link    = None
+        self.new_data    = None
+        self.old_link    = None
+        self.old_data    = None
 
     def do(self,
            undoable: bool = True,
@@ -375,7 +383,10 @@ class ActionAddLink(Action):
         """"""
         # Skip if there's already a link between the two sockets
         for link in self.editor.links:
-            if link.in_socket == self.socket1 and link.out_socket == self.socket2:
+            if (
+                link.in_socket  == self.socket1 and
+                link.out_socket == self.socket2
+            ):
                 return False
 
         # Keep track of the state of the target node
@@ -400,15 +411,34 @@ class ActionAddLink(Action):
             content = self.old_link.out_socket.Content
             content.is_freezing = True
 
-        # After undoing, a content that feature auto removal
-        # will no longer available anywhere. Thus we need to
-        # find the related placeholder socket, usually it is
-        # the last socket of the node frame. Currently, only
-        # the last socket that can be a placeholder so TODO?
-        if self.socket2.Content not in self.frame2.contents:
-            self.socket2 = self.frame2.contents[-1].Socket
+        # Restore the link from previous state before
+        # undoing as well as the exact content if any
+        if self.new_link:
+            if self.new_content:
+                last_container = self.frame2.Body.get_last_child()
+                last_container.unparent()
+                self.frame2.Body.append(self.new_content.Container)
+                self.frame2.Body.append(last_container)
 
-        self.new_link = NodeLink(self.socket1, self.socket2).link()
+                self.frame2.contents.insert(-1, self.new_content)
+                self.socket2 = self.new_content.Socket
+
+            if self.old_link:
+                content.is_freezing = False
+
+            if self.new_data:
+                self.frame2.do_restore(self.new_data)
+
+            self.new_link.link()
+
+        else:
+            self.new_link = NodeLink(self.socket1, self.socket2)
+            self.new_link.link()
+
+            if self.socket2.auto_remove:
+                self.new_content = self.socket2.Content
+                self.new_data = self.frame2.do_save()
+
         self.editor.links.append(self.new_link)
 
         if self.old_link:
@@ -431,9 +461,7 @@ class ActionAddLink(Action):
             content.is_freezing = True
 
             self.editor.links.remove(self.new_link.unlink())
-
             self.frame2.do_restore(self.old_data)
-
             self.editor.links.append(self.old_link.link())
 
             content.is_freezing = False
@@ -503,6 +531,9 @@ class ActionSelectViewer(Action):
            undoable: bool = True,
            ) ->      bool:
         """"""
+        if not self.new_viewer:
+            return False
+
         from .construct import Sheet
         from .factory import NodeViewer
 
