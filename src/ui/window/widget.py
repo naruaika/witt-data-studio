@@ -337,9 +337,10 @@ class Window(Adw.ApplicationWindow):
             self.node_editor.select_viewer(viewer)
             self.history.freezing = False
 
-            page = self.TabView.get_nth_page(tab_page)
-            if page:
-                self.TabView.set_selected_page(page)
+            if tab_page:
+                page = self.TabView.get_nth_page(tab_page)
+                if page:
+                    self.TabView.set_selected_page(page)
 
         GLib.idle_add(do_view, viewer)
 
