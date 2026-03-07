@@ -690,7 +690,7 @@ class SheetEditor(Gtk.Box):
 
         self.selection.previous_cell_name = ''
 
-        self.refresh_ui()
+        GLib.idle_add(self.refresh_ui)
 
         gc.collect()
 
