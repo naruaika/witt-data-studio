@@ -34,6 +34,7 @@ from gi.repository import Pango
 from gi.repository import PangoCairo
 import re
 
+from ...core.models.table import DataTable
 from ...core.utils import print_timedelta
 
 from .document import SheetDocument
@@ -420,7 +421,7 @@ class SheetRenderer():
                               display.top_locator_height)
             context.clip()
 
-            context.move_to(x_text, 2)
+            context.move_to(x_text, 3)
             PangoCairo.show_layout(context, layout)
 
             context.restore()
@@ -449,7 +450,7 @@ class SheetRenderer():
             text_width = layout.get_pixel_size()[0]
             x = display.left_locator_width - text_width - display.DEFAULT_CELL_PADDING
 
-            context.move_to(x, 2 + y)
+            context.move_to(x, y + 3)
             PangoCairo.show_layout(context, layout)
 
             y += display.get_cell_height_from_row(row_index)
@@ -576,6 +577,9 @@ class SheetRenderer():
         body_font_desc = f'{font_family} Normal Regular {display.FONT_SIZE}px #tnum=1'
         body_font_desc = Pango.font_description_from_string(body_font_desc)
 
+        from .widgets import SheetColumnDType
+        x_head_margin = SheetColumnDType.WIDTH - 7
+
         layout = PangoCairo.create_layout(ccontext)
         layout.set_wrap(Pango.WrapMode.NONE)
         layout.set_font_description(body_font_desc)
@@ -626,6 +630,11 @@ class SheetRenderer():
                 lrow_index = display.get_lrow_from_row(row_index)
                 cell_height = display.get_cell_height_from_row(row_index)
 
+#               if lrow_index == 1:
+#                   layout.set_font_description(head_font_desc)
+#               if lrow_index == 2:
+#                   layout.set_font_description(body_font_desc)
+
                 if (
                     use_cache and
                     (
@@ -649,6 +658,9 @@ class SheetRenderer():
                     continue # skip out of bound area
 
                 cell_value = document.read_data(lcol_index, lrow_index)
+
+                opt_table = document.get_table_by_position(lcol_index, lrow_index)
+                _is_table = isinstance(opt_table, DataTable)
 
                 # Determine cell data type to decide how to render it properly
                 _is_none = cell_value is None
@@ -702,7 +714,11 @@ class SheetRenderer():
                 layout.set_text(cell_text, -1)
 
                 x_text = x + display.DEFAULT_CELL_PADDING
-                ccontext.move_to(x_text, y + 2)
+
+                if _is_table and opt_table.with_header and lrow_index == 1:
+                    x_text += x_head_margin
+
+                ccontext.move_to(x_text, y + 3)
 
                 PangoCairo.show_layout(ccontext, layout)
 

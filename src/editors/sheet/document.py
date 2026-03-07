@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from enum import Enum
+from polars import DataType
 from polars import DataFrame
 from polars import LazyFrame
 from polars import Series
@@ -36,6 +37,7 @@ from ...core.utils import unique_name
 
 from .canvas import SheetCanvas
 from .display import SheetDisplay
+from .widgets import SheetColumnDType
 from .widgets import SheetTableFilter
 
 logger = logging.getLogger(__name__)
@@ -229,7 +231,7 @@ class SheetDocument(Document):
         self._update_bounding_box(bounding_box)
 
         if not is_lazyframe:
-            self.repopulate_table_widgets()
+            self.repopulate_table_widgets() # TODO: not efficient!
 
         async def do_load(old_table: DataTable,
                           lazyframe: LazyFrame,
@@ -291,7 +293,7 @@ class SheetDocument(Document):
         if n_col_changed or n_row_changed:
             self._update_bounding_box(to_shrink = True)
 
-        self.repopulate_table_widgets()
+        self.repopulate_table_widgets() # TODO: not efficient!
 
         return SheetOperation.UPDATE_TABLE
 
@@ -519,21 +521,57 @@ class SheetDocument(Document):
         for table in self.tables:
             if table.height == 0:
                 continue
+
             bbox = table.bounding_box
             y = self.display.get_cell_y_from_row(bbox.row)
+
+            cschema = table.collect_schema()
+            columns = table.columns
+
             for column_index in range(table.width):
                 column = bbox.column + column_index
                 column = self.display.get_column_from_lcolumn(column)
+
                 if column < 0:
                     continue # skip if the column is hidden
-                widget = SheetTableFilter(0, 0, column, bbox.row)
+
                 x = self.display.get_cell_x_from_column(column)
-                x = x + self.display.get_cell_width_from_column(column)
-                x = x - widget.WIDTH
-                widget.x = x
-                widget.y = y
+
+                dtype = cschema[columns[column_index]]
+                widget = self._create_column_dtype_widget(bbox, x, y, column, dtype)
                 widgets.append(widget)
                 self.Canvas.add_overlay(widget)
+
+                widget = self._create_table_filter_widget(bbox, x, y, column)
+                widgets.append(widget)
+                self.Canvas.add_overlay(widget)
+
+    def _create_column_dtype_widget(self,
+                                    bbox:   BoundingBox,
+                                    x:      int,
+                                    y:      int,
+                                    column: int,
+                                    dtype:  DataType,
+                                    ) ->    None:
+        """"""
+        widget = SheetColumnDType(0, 0, column, bbox.row, dtype)
+        widget.x = x
+        widget.y = y
+        return widget
+
+    def _create_table_filter_widget(self,
+                                    bbox:   BoundingBox,
+                                    x:      int,
+                                    y:      int,
+                                    column: int,
+                                    ) ->    None:
+        """"""
+        widget = SheetTableFilter(0, 0, column, bbox.row)
+        x = x + self.display.get_cell_width_from_column(column)
+        x = x - widget.WIDTH
+        widget.x = x
+        widget.y = y
+        return widget
 
     def reposition_table_widgets(self) -> None:
         """"""
@@ -547,25 +585,51 @@ class SheetDocument(Document):
         for table in self.tables:
             if table.width <= 1 and table.height == 0:
                 continue
+
             bbox = table.bounding_box
             y = self.display.get_cell_y_from_row(bbox.row)
+
             for column_index in range(table.width):
                 column = bbox.column + column_index
                 column = self.display.get_column_from_lcolumn(column)
+
                 if column < 0:
                     continue # skip if it's hidden
-                try:
-                    widget = widgets[widget_index]
-                except:
-                    break # shouldn't happen at all
+
                 x = self.display.get_cell_x_from_column(column)
-                x = x + self.display.get_cell_width_from_column(column)
-                x = x - widget.WIDTH
-                widget.x = x
-                widget.y = y
+
+                widget = widgets[widget_index]
+                self._move_column_dtype_widget(widget, x, y)
+
+                widget_index += 1
+
+                widget = widgets[widget_index]
+                self._move_table_filter_widget(widget, x, y, column)
+
                 widget_index += 1
 
         self.Canvas.queue_allocate()
+
+    def _move_column_dtype_widget(self,
+                                  widget: SheetColumnDType,
+                                  x:      int,
+                                  y:      int,
+                                  ) ->    None:
+        """"""
+        widget.x = x
+        widget.y = y
+
+    def _move_table_filter_widget(self,
+                                  widget: SheetTableFilter,
+                                  x:      int,
+                                  y:      int,
+                                  column: int,
+                                  ) ->    None:
+        """"""
+        x = x + self.display.get_cell_width_from_column(column)
+        x = x - widget.WIDTH
+        widget.x = x
+        widget.y = y
 
     def _update_bounding_box(self,
                              in_bbox:   BoundingBox = None,

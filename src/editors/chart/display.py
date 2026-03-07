@@ -29,7 +29,7 @@ class ChartDisplay():
     AXIS_SIZE:     float = 50
     AXIS_MIN_SIZE: float = 30
 
-    ICON_SIZE: float = 18
+    ICON_SIZE: float = 16
     FONT_SIZE: float = 12
 
     BAR_CHART_BAR_SIZE:        float = 40

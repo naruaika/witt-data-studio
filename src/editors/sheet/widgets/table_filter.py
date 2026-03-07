@@ -26,8 +26,8 @@ class SheetTableFilter(Gtk.Widget):
 
     __gtype_name__ = 'SheetTableFilter'
 
-    WIDTH  = 20
-    HEIGHT = 20
+    WIDTH  = 22
+    HEIGHT = 22
 
     x = 0
     y = 0
@@ -73,17 +73,15 @@ class SheetTableFilter(Gtk.Widget):
         bounds = Graphene.Rect().init(0, 0, self.WIDTH, self.HEIGHT)
         context = snapshot.append_cairo(bounds)
 
-        if (
-            (prefers_dark and not self._being_hovered) or
-            (not prefers_dark and self._being_hovered)
-        ):
-            context.set_source_rgb(0.25, 0.25, 0.25)
-        else:
-            context.set_source_rgb(0.75, 0.75, 0.75)
-
         # Draw the background fill
-        context.rectangle(x, y, self.WIDTH-1, self.HEIGHT-3)
-        context.fill()
+        if (prefers_dark and self._being_hovered):
+            context.set_source_rgb(0.75, 0.75, 0.75)
+            context.rectangle(x, y, self.WIDTH-1, self.HEIGHT-3)
+            context.fill()
+        if not prefers_dark and self._being_hovered:
+            context.set_source_rgb(0.25, 0.25, 0.25)
+            context.rectangle(x, y, self.WIDTH-1, self.HEIGHT-3)
+            context.fill()
 
         if (
             (prefers_dark and not self._being_hovered) or
@@ -97,7 +95,7 @@ class SheetTableFilter(Gtk.Widget):
 
         # Draw the left diagonal line
         start_x = x + 5
-        start_y = y + 6
+        start_y = y + 7
         end_x = x + self.WIDTH / 2
         end_y = y + self.HEIGHT - 9
         context.move_to(start_x, start_y)
@@ -107,7 +105,7 @@ class SheetTableFilter(Gtk.Widget):
         start_x = x + self.WIDTH / 2
         start_y = y + self.HEIGHT - 9
         end_x = x + self.WIDTH - 5
-        end_y = y + 6
+        end_y = y + 7
         context.move_to(start_x, start_y)
         context.line_to(end_x, end_y)
 

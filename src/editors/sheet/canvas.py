@@ -21,6 +21,7 @@ from gi.repository import Gdk
 from gi.repository import Graphene
 from gi.repository import Gtk
 
+from .widgets import SheetColumnDType
 from .widgets import SheetTableFilter
 
 class SheetCanvas(Gtk.Overlay):
@@ -73,12 +74,15 @@ class SheetCanvas(Gtk.Overlay):
                                allocation: Gdk.Rectangle,
                                ) ->        bool:
         """"""
-        if isinstance(widget, SheetTableFilter):
+        table_widgets = (SheetColumnDType, SheetTableFilter)
+
+        if isinstance(widget, table_widgets):
             allocation.x = widget.x
             allocation.y = widget.y - 1
             allocation.width  = widget.WIDTH
             allocation.height = widget.HEIGHT
             return Gdk.EVENT_STOP
+
         return Gdk.EVENT_PROPAGATE
 
     def get_editor(self) -> 'SheetEditor':

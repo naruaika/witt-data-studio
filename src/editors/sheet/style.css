@@ -49,6 +49,13 @@
 
 
 
+.sheet-canvas > image {
+    color: var(--accent-color);
+    -gtk-icon-size: 18px;
+}
+
+
+
 .transform-window .custom-row > box {
     margin-left: 8px;
     margin-right: 8px;

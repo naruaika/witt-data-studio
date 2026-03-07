@@ -601,12 +601,6 @@ class SheetEditor(Gtk.Box):
                  sparse: Sparse = {},
                  ) ->    None:
         """"""
-        # Remove existing document widgets
-        widgets = self.document.widgets
-        for widgets in widgets.values():
-            for widget in widgets:
-                widget.unparent()
-
         # Get cached dataframes by query plan
         cache_hits = []
         for index, (tname, (coord, table)) in enumerate(tables.items()):
@@ -676,7 +670,7 @@ class SheetEditor(Gtk.Box):
                                                   row    = coord[1])
 
             if self.adjust_columns:
-                self._readjust_column_widths_by_value(value)
+                self._readjust_column_widths_by_value(value, coord[0])
 
         # Flag the new table instances from cache
         for (index, query_plan) in cache_hits:
@@ -821,13 +815,13 @@ class SheetEditor(Gtk.Box):
         from polars import UInt32
 
         monitor = Gdk.Display.get_default().get_monitors()[0]
-        max_width = monitor.get_geometry().width // 10
+        max_width = monitor.get_geometry().width // 8
         sample_data = table.head(50).vstack(table.tail(50))
 
         context = self.Canvas.get_pango_context()
         font_desc = context.get_font_description()
         font_family = font_desc.get_family() if font_desc else 'Sans'
-        font_desc = f'{font_family} Normal Bold {self.display.FONT_SIZE}px #tnum=1'
+        font_desc = f'{font_family} Normal Regular {self.display.FONT_SIZE}px #tnum=1'
         font_desc = Pango.font_description_from_string(font_desc)
 
         layout = Pango.Layout.new(context)
@@ -851,10 +845,13 @@ class SheetEditor(Gtk.Box):
             self.display.column_widths = concat([self.display.column_widths,
                                                  default_column_widths])
 
-        safe_margin = 0
+        l_margin = 0
+        r_margin = 0
         if table.width and table.height:
+            from .widgets import SheetColumnDType
             from .widgets import SheetTableFilter
-            safe_margin += SheetTableFilter.WIDTH - 4
+            l_margin += SheetColumnDType.WIDTH - 7
+            r_margin += SheetTableFilter.WIDTH - 4
 
         for col_index, col_name in enumerate(table.columns):
             # Add table position offset into account
@@ -864,7 +861,7 @@ class SheetEditor(Gtk.Box):
             layout.set_text(col_name, -1)
             text_width = layout.get_pixel_size()[0]
             column_width = text_width + 2 * self.display.DEFAULT_CELL_PADDING
-            column_width = column_width + safe_margin
+            column_width = column_width + l_margin + r_margin
             column_width = min(max_width, int(column_width))
             column_width = max(self.display.DEFAULT_CELL_WIDTH, column_width)
             self.display.column_widths[col_index] = column_width
@@ -910,10 +907,53 @@ class SheetEditor(Gtk.Box):
         self.document.reposition_table_widgets()
 
     def _readjust_column_widths_by_value(self,
-                                         value: Any,
-                                         ) ->   None:
+                                         value:  Any,
+                                         column: int,
+                                         ) ->    None:
         """"""
-        pass # TODO
+        from gi.repository import Pango
+        from polars import concat
+        from polars import Series
+
+        monitor = Gdk.Display.get_default().get_monitors()[0]
+        max_width = monitor.get_geometry().width // 8
+
+        context = self.Canvas.get_pango_context()
+        font_desc = context.get_font_description()
+        font_family = font_desc.get_family() if font_desc else 'Sans'
+        font_desc = f'{font_family} Normal Regular {self.display.FONT_SIZE}px #tnum=1'
+        font_desc = Pango.font_description_from_string(font_desc)
+
+        layout = Pango.Layout.new(context)
+        layout.set_wrap(Pango.WrapMode.NONE)
+        layout.set_font_description(font_desc)
+
+        n_column_widths = len(self.display.column_widths)
+
+        # Initialize with default column widths
+        if n_column_widths == 0:
+            default_column_widths = [self.display.DEFAULT_CELL_WIDTH] * column
+            self.display.column_widths = Series(default_column_widths, dtype = UInt32)
+            n_column_widths = len(self.display.column_widths)
+
+        # Expand with default column widths
+        if n_column_widths < column:
+            n_missing = column - n_column_widths
+            default_column_widths = [self.display.DEFAULT_CELL_WIDTH] * n_missing
+            default_column_widths = Series(default_column_widths, dtype = UInt32)
+            self.display.column_widths = concat([self.display.column_widths,
+                                                 default_column_widths])
+
+            # Compute the width of the text
+            current_column_width = self.display.column_widths[column - 1]
+            layout.set_text(value, -1)
+            text_width = layout.get_pixel_size()[0]
+            column_width = text_width + 2 * self.display.DEFAULT_CELL_PADDING
+            column_width = min(max_width, int(column_width))
+            column_width = max(current_column_width, column_width)
+            self.display.column_widths[column - 1] = column_width
+
+        self.display.ccolumn_widths = Series(self.display.column_widths).cum_sum()
 
     def _transform_table(self,
                          func_name: str,

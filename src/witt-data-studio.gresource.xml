@@ -85,10 +85,13 @@
 
     <file preprocess="xml-stripblanks">xxx-aggregator-count-rows-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-book-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-boolean-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-calculation-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-calendar-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-carousel-horizontal-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-catalog-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-character-upper-case-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-character-whole-number-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-chemistry-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-circle-outline-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-code-symbolic.svg</file>
@@ -115,6 +118,7 @@
     <file preprocess="xml-stripblanks">xxx-insert-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-join-inner-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-label-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-object-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-migrate-alt-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-notebook-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-parameter-symbolic.svg</file>

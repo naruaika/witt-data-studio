@@ -24,15 +24,15 @@ import re
 
 class SheetDisplay():
 
-    DEFAULT_CELL_HEIGHT:  int = 20
+    DEFAULT_CELL_HEIGHT:  int = 22
     DEFAULT_CELL_WIDTH:   int = 65
     DEFAULT_CELL_PADDING: int = 6
 
-    ICON_SIZE: float = 18
+    ICON_SIZE: float = 16
     FONT_SIZE: float = 12
 
     left_locator_width: int = 45
-    top_locator_height: int = 20
+    top_locator_height: int = 22
 
     pan_increment:    int = 0.05
     scroll_increment: int = 3

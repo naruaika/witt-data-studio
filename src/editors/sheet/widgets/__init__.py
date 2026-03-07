@@ -17,4 +17,5 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+from .column_dtype import *
 from .table_filter import *
