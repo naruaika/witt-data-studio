@@ -384,11 +384,15 @@ class Application(Adw.Application):
         if node_id := content.get('viewer'):
             viewer = instances[node_id]
 
+        # Get previous active tab page
+        tab_page = content.get('tab_page')
+
         logger.info('Spawning a new main window...')
         window = Window(application = self,
                         nodes       = nodes,
                         links       = links,
                         viewer      = viewer,
+                        tab_page    = tab_page,
                         file_path   = file_path)
         window.present()
 
@@ -495,6 +499,9 @@ class Application(Adw.Application):
 
         from .editors.node.factory import NodeViewer
 
+        tab_page = window.TabView.get_selected_page()
+        tab_page = window.TabView.get_page_position(tab_page)
+
         data = {
             'version':  self.WIBOOK_VERSION,
             'timezone': strftime('%Z'), # TODO: should be configurable
@@ -502,6 +509,7 @@ class Application(Adw.Application):
             'nodes':    [],
             'links':    [],
             'viewer':   None,
+            'tab_page': tab_page,
         }
 
         data['nodes'] = self._serialize_nodes(window)

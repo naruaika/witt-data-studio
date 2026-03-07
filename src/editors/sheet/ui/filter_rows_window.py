@@ -997,7 +997,7 @@ class SheetFilterRowsWindow(Adw.Window):
                                  button: Gtk.Button,
                                  ) ->    None:
         """"""
-        self.close() # close first to properly handle the focus
+        self.close()
         self.callback(self.clauses)
 
     def _on_input_activated(self,

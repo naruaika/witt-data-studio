@@ -34,6 +34,7 @@ class NodeContent(Gtk.Widget):
                  set_data:    'callable'       = None,
                  placeholder: 'bool'           = False,
                  auto_remove: 'bool'           = False,
+                 auto_update: 'bool'           = False,
                  ) ->         'None':
         """"""
         super().__init__()
@@ -45,11 +46,13 @@ class NodeContent(Gtk.Widget):
                                     socket_type,
                                     data_type,
                                     placeholder,
-                                    auto_remove) \
+                                    auto_remove,
+                                    auto_update) \
                          if socket_type else None
 
         self.placeholder = placeholder
         self.auto_remove = auto_remove
+        self.auto_update = auto_update
 
         self.is_freezing = False
 
@@ -79,10 +82,24 @@ class NodeContent(Gtk.Widget):
                 self_content: 'NodeContent',
                 ) ->          'None':
         """"""
-        if self_content.Socket.is_input():
-            self.Frame.do_execute(pair_socket, self_content)
+        if not self_content.Socket.is_input():
+            return
+
+        from .factory._utils import iscompatible
+        if not iscompatible(pair_socket, self_content):
+            return
+
+        self.Frame.do_execute(pair_socket, self_content)
 
     def do_unlink(self,
+                  socket: 'NodeSocket',
+                  ) ->    'None':
+        """"""
+        if socket.is_input():
+            self.Frame.do_execute(self_content = socket.Content,
+                                  backward     = False)
+
+    def do_update(self,
                   socket: 'NodeSocket',
                   ) ->    'None':
         """"""

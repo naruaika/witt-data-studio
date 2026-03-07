@@ -28,11 +28,9 @@ from multiprocessing import Process
 from multiprocessing import Queue
 from polars import DataFrame
 
+from ...core.constants import *
 from ...core.utils import get_file_format
 from ...backend.file import File
-
-COLUMNAR_FILES    = {'csv', 'tsv', 'txt', 'json', 'parquet'}
-SPREADSHEET_FILES = {'xls', 'xlsx', 'xlsm', 'xlsb', 'xla', 'xlam', 'ods'}
 
 def load_excel_file(excel_reader: ExcelReader,
                     output_queue: Queue,
@@ -249,10 +247,9 @@ class FileImportWindow(Adw.Window):
 
         from ...editors.sheet.editor import SheetEditor
         tables = {_('Table'): ((1, 1), dataframe)}
-        configs = {'prefer-synchro': True,
-                   'view-read-only': True}
-        self.Editor = SheetEditor(tables  = tables,
-                                  configs = configs)
+        self.Editor = SheetEditor(tables         = tables,
+                                  prefer_synchro = True,
+                                  view_read_only = True)
         self.MainContainer.append(self.Editor)
 
         self.BottomSeparator = Gtk.Separator(orientation = Gtk.Orientation.HORIZONTAL)
@@ -461,12 +458,8 @@ class FileImportWindow(Adw.Window):
                                   eager_mode = True,
                                   **kwargs)
 
-        # I also know this is ugly, but it does the job
-        # and I haven't found any glitches or whatever.
-        self.TopSeparator.unparent()
-        self.Editor.unparent()
-        self.BottomSeparator.unparent()
-        self._setup_data_viewer(dataframe)
+        tables = {_('Table'): ((1, 1), dataframe)}
+        self.Editor.set_data(tables)
 
     def _refresh_column_chooser(self) -> None:
         """"""

@@ -253,6 +253,9 @@ class NodeFrame(Adw.Bin):
         if initiator:
             pass # TODO: run on a new thread?
 
+        if self.is_processing:
+            return
+
         if self.get_editor():
             if env.debug:
                 parameters = {'backward':  backward,
@@ -263,10 +266,7 @@ class NodeFrame(Adw.Bin):
                              .format(self.parent.__class__.__name__,
                                      parameters))
             elif initiator:
-                logger.info(f'Processing {self.parent.__class__.__name__}')
-
-        if self.is_processing:
-            return
+                logger.info(f'Processing {self.parent.__class__.__name__}...')
 
         if self.is_with_cache:
             backward = False
@@ -299,6 +299,8 @@ class NodeFrame(Adw.Bin):
                                      initiator    = False)
                     visited_frames.append(frame)
 
+        from .factory._utils import iscompatible
+
         # Collect data from parent frames and
         # build output data for child frames.
         if not self.is_with_cache:
@@ -313,10 +315,19 @@ class NodeFrame(Adw.Bin):
                 psocket = links[0].in_socket
                 pcontent = psocket.Content
                 value = pcontent.get_data()
+                if not iscompatible(psocket, scontent):
+                    continue
                 scontent.set_data(value)
             self.is_processing = False
 
-            self.do_process(pair_socket, self_content)
+            try:
+                self.do_process(pair_socket, self_content)
+            except Exception as e:
+                logger.error(e, exc_info = True)
+                self.ErrorButton.set_tooltip_text(str(e))
+                self.ErrorButton.set_visible(True)
+            else:
+                self.ErrorButton.set_visible(False)
 
         # Collect all target frames and prevent
         # them from being processed right away.
@@ -415,6 +426,7 @@ class NodeFrame(Adw.Bin):
                     set_data:    'callable'       = None,
                     placeholder: 'bool'           = False,
                     auto_remove: 'bool'           = False,
+                    auto_update: 'bool'           = False,
                     ) ->         'NodeContent':
         """"""
         if not widget:
@@ -434,7 +446,8 @@ class NodeFrame(Adw.Bin):
                               get_data,
                               set_data,
                               placeholder,
-                              auto_remove)
+                              auto_remove,
+                              auto_update)
         self.Body.append(content.Container)
         self.contents.append(content)
 

@@ -81,7 +81,7 @@ class DatabaseAddWindow(Adw.Window):
 
         alias = config.get('alias', _('Unknown'))
         subtitle = self.WindowTitle.get_subtitle()
-        subtitle = f'{alias} – {subtitle}'
+        subtitle = f'{alias} @ {subtitle}'
         self.WindowTitle.set_subtitle(subtitle)
 
     def set_password(self,

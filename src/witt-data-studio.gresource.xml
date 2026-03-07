@@ -49,6 +49,7 @@
     <file preprocess="xml-stripblanks">editors/sheet/editor.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/filter_rows_window.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/formula_bar.ui</file>
+    <file preprocess="xml-stripblanks">editors/sheet/ui/join_tables_window.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/transform_window.ui</file>
   </gresource>
 

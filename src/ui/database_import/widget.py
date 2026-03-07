@@ -886,21 +886,17 @@ class DatabaseImportWindow(Adw.Window):
                                    dataframe: DataFrame,
                                    ) ->       None:
         """"""
-        from ...editors.sheet.editor import SheetEditor
-        tables = {_('Table'): ((1, 1), dataframe)} \
-                 if dataframe is not None else {}
-        configs = {'prefer-synchro': True,
-                   'view-read-only': True}
-        editor = SheetEditor(tables  = tables,
-                             configs = configs)
-        self.OutputView.set_child(editor)
+        if not hasattr(self, 'Editor'):
+            from ...editors.sheet.editor import SheetEditor
+            self.Editor = SheetEditor(prefer_synchro = True,
+                                      view_read_only = True)
+            self.OutputView.set_child(self.Editor)
 
-        self.OutputStatusPage.set_visible(False)
-        self.OutputViewBox.set_visible(True)
+            self.OutputStatusPage.set_visible(False)
+            self.OutputViewBox.set_visible(True)
 
-        editor.refresh_ui()
-
-        gc.collect()
+        tables = {_('Table'): ((1, 1), dataframe)}
+        self.Editor.set_data(tables)
 
     def _update_execution_logs_view(self,
                                     log_info: str,

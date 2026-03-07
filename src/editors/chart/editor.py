@@ -36,16 +36,10 @@ class ChartEditor(Gtk.Overlay):
     title = GObject.Property(type = str, default = _('Chart'))
 
     def __init__(self,
-                 title:   str  = _('Chart'),
-                 configs: dict = {},
+                 **kwargs: dict,
                  ) ->     None:
         """"""
-        super().__init__()
-
-        self.title = title
-
-        self.configs = {}
-        self.configs.update(configs)
+        super().__init__(**kwargs)
 
         self.Canvas = ChartCanvas()
         # self.Canvas.set_halign(Gtk.Align.START)

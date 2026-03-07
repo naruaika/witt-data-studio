@@ -53,8 +53,7 @@ class NodeEditorGroup():
         self.future_link: Scalar2D = None
         self.rubber_band: Scalar2D = None
 
-        self.selected_nodes: 'list'['NodeFrame'] = []
-        self.removed_socket: 'NodeSocket'        = None
+        self.selected_nodes: list['NodeFrame'] = []
 
         self._prev_zoom: float = 1.0
         self._curr_zoom: float = 1.0
@@ -77,11 +76,12 @@ class NodeEditor(Gtk.Overlay):
     title = GObject.Property(type = str, default = _('Home'))
 
     def __init__(self,
-                 nodes: list['NodeFrame'] = [],
-                 links: list['NodeLink']  = [],
-                 ) ->   None:
+                 nodes:    list['NodeFrame'] = [],
+                 links:    list['NodeLink']  = [],
+                 **kwargs: dict,
+                 ) ->      None:
         """"""
-        super().__init__()
+        super().__init__(**kwargs)
 
         self.nodes:  list['NodeFrame']       = []
         self.links:  list['NodeLink']        = []
@@ -97,8 +97,9 @@ class NodeEditor(Gtk.Overlay):
 
         self.selected_nodes: list['NodeFrame'] = []
 
-        self.removed_link:   'NodeLink'   = None
-        self.removed_socket: 'NodeSocket' = None
+        self.removed_link:    'NodeLink'    = None
+        self.removed_socket:  'NodeSocket'  = None
+        self.updated_content: 'NodeContent' = None
 
         self._prev_zoom = 1.0
         self._curr_zoom = 1.0
@@ -292,6 +293,7 @@ class NodeEditor(Gtk.Overlay):
         create_action('new-integer',            lambda *_: create_node('new-integer'))
         create_action('new-string',             lambda *_: create_node('new-string'))
 
+        create_action('join-tables',            lambda *_: create_node('join-tables'))
         create_action('group-by',               lambda *_: create_node('group-by'))
         create_action('transpose-table',        lambda *_: create_node('transpose-table'))
         create_action('reverse-rows',           lambda *_: create_node('reverse-rows'))
@@ -299,7 +301,7 @@ class NodeEditor(Gtk.Overlay):
         create_action('change-data-type',       lambda *_: create_node('change-data-type'))
         create_action('rename-columns',         lambda *_: create_node('rename-columns'))
         create_action('replace-values',         lambda *_: create_node('replace-values'))
-        create_action('fill-blank-cells',       lambda *_: create_node('fill-blank-cells'))
+        create_action('fill-blank-values',      lambda *_: create_node('fill-blank-values'))
 
         create_action('split-column-by-'
                       'delimiter',              lambda *_: create_node('split-column-by-delimiter'))
@@ -463,6 +465,7 @@ class NodeEditor(Gtk.Overlay):
         create_command('new-integer',           f"{_('Create')}: {_('Constant')} {_('Integer')}")
         create_command('new-string',            f"{_('Create')}: {_('Constant')} {_('String')}")
 
+        create_command('join-tables',           f"{_('Table')}: {_('Join Tables')}")
         create_command('group-by',              f"{_('Table')}: {_('Group By')}")
         create_command('transpose-table',       f"{_('Table')}: {_('Transpose Table')}")
         create_command('reverse-rows',          f"{_('Table')}: {_('Reverse Rows')}")
@@ -470,7 +473,7 @@ class NodeEditor(Gtk.Overlay):
         create_command('change-data-type',      f"{_('Table')}: {_('Change Data Type')}")
         create_command('rename-columns',        f"{_('Table')}: {_('Rename Columns')}")
         create_command('replace-values',        f"{_('Table')}: {_('Replace Values')}")
-        create_command('fill-blank-cells',      f"{_('Table')}: {_('Fill Blank Cells')}")
+        create_command('fill-blank-values',     f"{_('Table')}: {_('Fill Blank Values')}")
 
         create_command('split-column',          '$placeholder')
         create_command('split-column-by-'
@@ -568,6 +571,10 @@ class NodeEditor(Gtk.Overlay):
 
     def _setup_controllers(self) -> None:
         """"""
+        controller = Gtk.EventControllerFocus()
+        controller.connect('leave', self._on_unfocused)
+        self.add_controller(controller)
+
         controller = Gtk.EventControllerMotion()
         controller.connect('motion', self._on_motion)
         self.add_controller(controller)
@@ -581,6 +588,12 @@ class NodeEditor(Gtk.Overlay):
                                          target          = self.Minimap,
                                          target_property = 'visible',
                                          flags           = GObject.BindingFlags.SYNC_CREATE)
+
+    def _on_unfocused(self,
+                      event: Gtk.EventControllerFocus,
+                      ) ->   None:
+        """"""
+        self._is_dragging_nodes = False
 
     def _on_motion(self,
                    motion: Gtk.EventControllerMotion,
@@ -814,7 +827,7 @@ class NodeEditor(Gtk.Overlay):
                       ) ->      None:
         """"""
         from .actions import ActionDeleteLink
-        from .actions import ActionDeleteNodeContent
+        from .actions import ActionDeleteContent
         from .factory import NodeViewer
 
         window = self.get_window()
@@ -851,7 +864,7 @@ class NodeEditor(Gtk.Overlay):
                     window.do(action)
 
                     if link.out_socket.auto_remove:
-                        action = ActionDeleteNodeContent(self, content, node, cindex)
+                        action = ActionDeleteContent(self, content, node, cindex)
                         window.do(action, add_only = True)
                 break
             else:
@@ -1002,8 +1015,10 @@ class NodeEditor(Gtk.Overlay):
 
         def do_arrange(target: NodeFrame) -> None:
             """"""
+            from .frame import NodeFrameType
+
             frames = []
-            primes = []
+            primes = [] # the first frame in a group
 
             for content in target.contents:
                 if not (socket := content.Socket):
@@ -1014,30 +1029,31 @@ class NodeEditor(Gtk.Overlay):
                     frame = link.in_socket.Frame
                     if link == link.in_socket.links[0]:
                         if frame not in primes:
-                            primes.append(primes)
+                            primes.append(frame)
                     if frame not in frames:
                         frames.append(frame)
 
             if not frames:
                 return
 
-            group_height = sum([(f.get_height() or 125) for f in frames])
-            group_height += 50 * (len(frames) - 1)
+            group_height = sum([(f.get_height() or 125) for f in frames]) \
+                           + 50 * (len(frames) - 1)
 
             target_center = target.y + (target.get_height() or 125) / 2
 
             y = target_center - group_height / 2
 
-            if root != target:
+            if target.node_type != NodeFrameType.TARGET:
                 y = target.y
 
             if len(frames) == 1:
                 y = target.y
-                if frames[0] not in primes:
-                    y = frame.y
 
             for frame in frames:
                 x = target.x - frame.get_width() - 50
+
+                if frame not in primes:
+                    y = frame.y
 
                 old_pos = (frame.x, frame.y)
                 new_pos = (min(frame.x, x), y)
@@ -1129,6 +1145,8 @@ class NodeEditor(Gtk.Overlay):
                 self.removed_link   = None
                 self.removed_socket = None
 
+            self.updated_content = None
+
         if self.removed_link:
             # Keep track of the state of the target node
             # TODO: we should also track downstream nodes
@@ -1144,7 +1162,7 @@ class NodeEditor(Gtk.Overlay):
 
             node1 = self.removed_link.in_socket.Frame.parent
             node2 = self.removed_link.out_socket.Frame.parent
-            logger.info('Unlinking {} from {}...'
+            logger.info('Unlinked {} from {}...'
                         .format(node1.__class__.__name__,
                                 node2.__class__.__name__))
 
@@ -1153,17 +1171,22 @@ class NodeEditor(Gtk.Overlay):
             window.do(action, add_only = True)
 
         if self.removed_socket:
-            from .actions import ActionDeleteNodeContent
+            from .actions import ActionDeleteContent
             content = self.removed_socket.Content
-            action = ActionDeleteNodeContent(self, content)
+            action = ActionDeleteContent(self, content)
             window.do(action)
+
+        if self.updated_content:
+            socket = self.updated_content.Socket
+            self.updated_content.do_update(socket)
 
         window.history.grouping = False
 
-        self._source_socket = None
-        self._target_socket = None
-        self.removed_link   = None
-        self.removed_socket = None
+        self._source_socket  = None
+        self._target_socket  = None
+        self.removed_link    = None
+        self.removed_socket  = None
+        self.updated_content = None
 
         self._clean_snap_points()
         self.update_future_link(None)
@@ -1351,6 +1374,7 @@ class NodeEditor(Gtk.Overlay):
             return window
         return env.app.get_active_main_window()
 
+from .content import NodeContent
 from .frame import NodeFrame
 from .link import NodeLink
 from .socket import NodeSocket

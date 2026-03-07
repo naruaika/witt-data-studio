@@ -82,7 +82,6 @@ class FileImportCSVView(GObject.Object):
         group = Adw.PreferencesGroup(title = _('How to Read File?'))
         self.preferences_page.add(group)
 
-
         model = Gtk.StringList()
         for separator in SEPARATOR_OPTS.values():
             model.append(separator)
@@ -210,7 +209,7 @@ class FileImportCSVView(GObject.Object):
             if is_meta:
                 # Very not efficient, because this will
                 # call _populate_column_flow_box() twice.
-                # But anyway it does the job.
+                # But anyway it does the job; TODO
                 self.ColumnFlowBox.selected = []
                 self.refresh_ui()
                 checked = button.get_active()

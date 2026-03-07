@@ -20,7 +20,7 @@
         <property name="min-sidebar-width">320sp</property>
         <property name="sidebar">
           <object class="AdwNavigationPage" id="Sidebar">
-            <property name="title" translatable="yes">Configuration</property>
+            <property name="title" translatable="yes">Open File</property>
             <property name="child">
               <object class="AdwToolbarView">
                 <child type="top">

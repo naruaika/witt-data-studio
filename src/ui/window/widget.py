@@ -62,6 +62,7 @@ class Window(Adw.ApplicationWindow):
         links     = kwargs.pop('links',     [])
         viewer    = kwargs.pop('viewer',    None)
         file_path = kwargs.pop('file_path', None)
+        tab_page  = kwargs.pop('tab_page',  None)
 
         super().__init__(**kwargs)
 
@@ -78,7 +79,7 @@ class Window(Adw.ApplicationWindow):
         self._setup_actions()
         self._setup_commands()
 
-        self._setup_node_editor(nodes, links, viewer)
+        self._setup_node_editor(nodes, links, viewer, tab_page)
 
     def do_close_request(self) -> bool:
         """"""
@@ -314,10 +315,11 @@ class Window(Adw.ApplicationWindow):
         self.TabView.connect('close-page', self._on_page_closed)
 
     def _setup_node_editor(self,
-                           nodes:  list[NodeFrame] = [],
-                           links:  list[NodeLink]  = [],
-                           viewer: NodeFrame       = None,
-                           ) ->    None:
+                           nodes:    list[NodeFrame] = [],
+                           links:    list[NodeLink]  = [],
+                           viewer:   NodeFrame       = None,
+                           tab_page: int             = None,
+                           ) ->      None:
         """"""
         self.node_editor = NodeEditor(nodes, links)
         self.add_new_editor(self.node_editor, pinned = True)
@@ -334,6 +336,10 @@ class Window(Adw.ApplicationWindow):
             self.history.freezing = True
             self.node_editor.select_viewer(viewer)
             self.history.freezing = False
+
+            page = self.TabView.get_nth_page(tab_page)
+            if page:
+                self.TabView.set_selected_page(page)
 
         GLib.idle_add(do_view, viewer)
 
@@ -374,7 +380,7 @@ class Window(Adw.ApplicationWindow):
         self.Toolbar.populate()
         self.StatusBar.populate()
 
-        editor.grab_focus()
+        GLib.idle_add(editor.grab_focus)
 
     def _on_page_closed(self,
                         tab_view: Adw.TabView,
@@ -529,8 +535,6 @@ class Window(Adw.ApplicationWindow):
         page.set_title(editor.title)
 
         self.TabView.set_selected_page(page)
-
-        editor.grab_focus()
 
         return page
 

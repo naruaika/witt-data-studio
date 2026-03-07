@@ -297,9 +297,9 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
-        case 'fill-blank-cells':
+        case 'fill-blank-values':
             return (
-                _('Fill Blank Cells'),
+                _('Fill Blank Values'),
                 [
                     (
                         _('Strategy'),
@@ -317,7 +317,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                     (
                         [
                             _('Columns'),
-                            _('Select column(s) with blank cell(s) to fill. '
+                            _('Select column(s) with blank value(s) to fill. '
                               'Leave blank to fill all columns.'),
                         ],
                         'list-check',

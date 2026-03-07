@@ -23,7 +23,6 @@ from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
-from polars import DataFrame
 from polars import LazyFrame
 from polars import Float32
 from polars import Float64
@@ -41,17 +40,11 @@ from polars import Time
 from polars import Datetime
 from polars import Duration
 from typing import Any
-from typing import TypeAlias
 import gc
 
+from ...core.construct import *
 from ...core.models.table import DataTable
 from ..node.frame import NodeFrame
-
-Row:        TypeAlias = int
-Column:     TypeAlias = int
-Coordinate: TypeAlias = tuple[Row, Column]
-Tables:     TypeAlias = dict[Coordinate, DataFrame]
-Sparse:     TypeAlias = dict[Coordinate, Any]
 
 FLOAT_TYPES    = {Float32, Float64}
 INTEGER_TYPES  = {Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64}
@@ -73,24 +66,18 @@ class SheetEditor(Gtk.Box):
 
     title = GObject.Property(type = str, default = _('Sheet'))
 
+    adjust_columns = GObject.Property(type = bool, default = True)
+    prefer_synchro = GObject.Property(type = bool, default = False)
+    view_read_only = GObject.Property(type = bool, default = False)
+
     def __init__(self,
-                 title:   str       = _('Sheet'),
-                 tables:  Tables    = [],
-                 sparse:  Sparse    = {},
-                 configs: dict      = {},
-                 node:    NodeFrame = None,
-                 ) ->     None:
+                 tables:   Tables    = {},
+                 sparse:   Sparse    = {},
+                 node:     NodeFrame = None,
+                 **kwargs: dict,
+                 ) ->      None:
         """"""
-        super().__init__()
-
-        self.title = title
-
-        self.configs = {
-            'adjust-columns': True,
-            'prefer-synchro': False,
-            'view-read-only': False,
-        }
-        self.configs.update(configs)
+        super().__init__(**kwargs)
 
         self.display   = SheetDisplay()
         self.document  = SheetDocument(self.Canvas,
@@ -113,7 +100,7 @@ class SheetEditor(Gtk.Box):
 
         self.set_data(tables, sparse)
 
-        if self.configs['view-read-only']:
+        if self.view_read_only:
             self.FormulaBar.set_visible(False)
 
     def grab_focus(self) -> None:
@@ -172,15 +159,18 @@ class SheetEditor(Gtk.Box):
         table, column_name = self.document.get_table_column_by_position(lcolumn, lrow)
         table_focus = isinstance(table, DataTable) and not table.placeholder
 
-        n_tables = len(self.document.tables) # TODO
+        n_tables = len(self.document.tables)
         n_columns = table.width if table_focus else 0
 
-        variables['table_focus'] = table_focus
-        variables['n_tables']    = n_tables
-        variables['n_columns']   = n_columns
+        n_tables_all = len(self.get_all_tables())
 
-        variables['float_focus']    = False
+        variables['table_focus']  = table_focus
+        variables['n_tables']     = n_tables
+        variables['n_columns']    = n_columns
+        variables['n_tables_all'] = n_tables_all
+
         variables['string_focus']   = False
+        variables['float_focus']    = False
         variables['integer_focus']  = False
         variables['numeric_focus']  = False
         variables['temporal_focus'] = False
@@ -193,8 +183,8 @@ class SheetEditor(Gtk.Box):
             numeric_focus  = column_dtype.is_numeric()
             temporal_focus = column_dtype.is_temporal()
 
-            variables['float_focus']    = float_focus
             variables['string_focus']   = string_focus
+            variables['float_focus']    = float_focus
             variables['integer_focus']  = integer_focus
             variables['numeric_focus']  = numeric_focus
             variables['temporal_focus'] = temporal_focus
@@ -284,6 +274,7 @@ class SheetEditor(Gtk.Box):
         create_action('new-sheet',              lambda *_: self._add_new_workspace('new-sheet'))
         create_action('custom-formula',         lambda *_: self._write_custom_formula())
 
+        create_action('join-tables',            lambda *_: self._join_tables())
         create_action('group-by',               lambda *_: self._transform_table('group-by'))
         create_action('transpose-table',        lambda *_: self._transform_table('transpose-table'))
         create_action('reverse-rows',           lambda *_: self._transform_table('reverse-rows'))
@@ -291,7 +282,7 @@ class SheetEditor(Gtk.Box):
         create_action('change-data-type',       lambda *_: self._transform_table('change-data-type'))
         create_action('rename-columns',         lambda *_: self._transform_table('rename-columns'))
         create_action('replace-values',         lambda *_: self._transform_table('replace-values'))
-        create_action('fill-blank-cells',       lambda *_: self._transform_table('fill-blank-cells'))
+        create_action('fill-blank-values',      lambda *_: self._transform_table('fill-blank-values'))
 
         create_action('split-column-by-'
                       'delimiter',              lambda *_: self._transform_table('split-column-by-delimiter'))
@@ -455,6 +446,8 @@ class SheetEditor(Gtk.Box):
                                                 context = None)
         create_command('custom-formula',        f"{_('Table')}: {_('Write Custom Formula')}...")
 
+        create_command('join-tables',           f"{_('Table')}: {_('Join Tables')}...",
+                                                context = 'table_focus and n_tables_all > 1')
         create_command('group-by',              f"{_('Table')}: {get_title_from_layout('group-by')}...")
         create_command('transpose-table',       f"{_('Table')}: {get_title_from_layout('transpose-table')}...")
         create_command('reverse-rows',          f"{_('Table')}: {get_title_from_layout('reverse-rows')}")
@@ -462,7 +455,7 @@ class SheetEditor(Gtk.Box):
         create_command('change-data-type',      f"{_('Table')}: {get_title_from_layout('change-data-type')}...")
         create_command('rename-columns',        f"{_('Table')}: {get_title_from_layout('rename-columns')}...")
         create_command('replace-values',        f"{_('Table')}: {get_title_from_layout('replace-values')}...")
-        create_command('fill-blank-cells',      f"{_('Table')}: {get_title_from_layout('fill-blank-cells')}...")
+        create_command('fill-blank-values',     f"{_('Table')}: {get_title_from_layout('fill-blank-values')}...")
 
         create_command('split-column',          '$placeholder')
         create_command('split-column-by-'
@@ -646,7 +639,7 @@ class SheetEditor(Gtk.Box):
 
         def do_finish(table: DataTable) -> None:
             """"""
-            if self.configs['adjust-columns']:
+            if self.adjust_columns:
                 self._readjust_column_widths_by_table(table)
 
             c_cell = self.selection.current_cursor_cell
@@ -669,10 +662,10 @@ class SheetEditor(Gtk.Box):
                                                      column      = coord[0],
                                                      row         = coord[1],
                                                      table_name  = tname,
-                                                     prefer_sync = self.configs['prefer-synchro'],
+                                                     prefer_sync = self.prefer_synchro,
                                                      on_finish   = do_finish)
 
-            if self.configs['adjust-columns']:
+            if self.adjust_columns:
                 table = self.document.tables[table_index]
                 self._readjust_column_widths_by_table(table)
 
@@ -682,7 +675,7 @@ class SheetEditor(Gtk.Box):
                                                   column = coord[0],
                                                   row    = coord[1])
 
-            if self.configs['adjust-columns']:
+            if self.adjust_columns:
                 self._readjust_column_widths_by_value(value)
 
         # Flag the new table instances from cache
@@ -1068,7 +1061,7 @@ class SheetEditor(Gtk.Box):
         for ridx in range(len(win_layout)):
             do_evaluate(ridx, win_layout)
 
-        subtitle = f'{table.tname} – {self.title}'
+        subtitle = f'{table.tname} @ {self.title}'
 
         application = window.get_application()
 
@@ -1163,7 +1156,7 @@ class SheetEditor(Gtk.Box):
 
             self.grab_focus()
 
-        subtitle = f'{table.tname} – {self.title}'
+        subtitle = f'{table.tname} @ {self.title}'
 
         application = window.get_application()
 
@@ -1174,6 +1167,172 @@ class SheetEditor(Gtk.Box):
                                        transient_for = window,
                                        application   = application)
         dialog.present()
+
+    def _join_tables(self) -> None:
+        """"""
+        active = self.selection.current_active_cell
+
+        lcolumn = self.display.get_lcolumn_from_column(active.column)
+        lrow = self.display.get_lrow_from_row(active.row)
+
+        table = self.document.get_table_by_position(lcolumn, lrow)
+
+        if not isinstance(table, DataTable):
+            return False
+
+        window = self.get_root()
+        editor = window.node_editor
+
+        tables = self.get_all_tables()
+
+        def do_join(func_args: list[Any] = [],
+                    **kwargs:  dict,
+                    ) ->       bool:
+            """"""
+            ltname, lcolumn, lcolumns, \
+            rtname, rcolumn, rcolumns, \
+            how, order = func_args
+
+            window.history.grouping = True
+
+            # Find the related node content
+            contents = self.node.contents[1:-1]
+            for content in contents:
+                box = content.Widget
+                label = box.get_first_child()
+                label = label.get_label()
+                if label == table.tname:
+                    break
+
+            # Find all the pair nodes
+            sheet1 = self._find_sheet_node_by_address(ltname)
+            sheet2 = self._find_sheet_node_by_address(rtname)
+            viewer = self._find_active_viewer_node()
+
+            ltname = ltname.split(' @ ')[0]
+            rtname = rtname.split(' @ ')[0]
+            func_args = [ltname, lcolumn, lcolumns,
+                         rtname, rcolumn, rcolumns,
+                         how, order]
+
+            # Create a new sheet node
+            x = viewer.x - 175 - 50
+            y = viewer.y
+            sheet3 = editor.create_new_node('new-sheet', x, y)
+            editor.add_node(sheet3)
+
+            # Create a new joiner node
+            x = sheet3.x - 175 - 50
+            y = sheet3.y
+            joiner = editor.create_new_node('join-tables', x, y)
+            joiner.set_data(*func_args)
+            editor.add_node(joiner)
+            editor.select_by_click(joiner)
+
+            # Connect all the pair nodes from/to the joiner node
+            content = joiner.contents[3]
+            editor.add_link(content.Socket, sheet1.contents[0].Socket)
+            content = joiner.contents[4]
+            editor.add_link(content.Socket, sheet2.contents[0].Socket)
+            content = joiner.contents[0]
+            editor.add_link(content.Socket, sheet3.contents[-1].Socket)
+            content = sheet3.contents[0]
+            editor.add_link(content.Socket, viewer.contents[-1].Socket)
+
+            editor.auto_arrange(viewer)
+
+            window.history.grouping = False
+
+            self.grab_focus()
+
+        tname = f'{table.tname} @ {self.title}'
+
+        application = window.get_application()
+
+        from .ui.join_tables_window import SheetJoinTablesWindow
+        dialog = SheetJoinTablesWindow(tname         = tname,
+                                       tables        = tables,
+                                       callback      = do_join,
+                                       transient_for = window,
+                                       application   = application)
+        dialog.present()
+
+    def get_all_tables(self) -> list:
+        """"""
+        if not self.node:
+            return []
+
+        from ..node.factory import NodeSheet
+
+        viewer = self._find_active_viewer_node()
+
+        tables = []
+
+        # Collect all tables in this sheet
+        if not viewer:
+            for table in self.document.tables:
+                label = f'{table.tname} @ {self.title}'
+                tables.append((label, table))
+            return tables
+
+        # Collect all tables visible to the viewer
+        for content in viewer.contents[:-1]:
+            link = content.Socket.links[0]
+            node = link.in_socket.Frame
+            if not isinstance(node.parent, NodeSheet):
+                continue
+            if not content.Page:
+                continue
+            title = content.Widget.get_label()
+            editor = content.Page.get_child()
+            for table in editor.document.tables:
+                label = f'{table.tname} @ {title}'
+                tables.append((label, table))
+
+        return tables
+
+    def _find_sheet_node_by_address(self,
+                                    address: str,
+                                    ) ->     NodeFrame:
+        """"""""
+        from ..node.factory import NodeSheet
+
+        viewer = self._find_active_viewer_node()
+
+        tname, sname = address.split(' @ ')
+
+        for content in viewer.contents[:-1]:
+            link = content.Socket.links[0]
+            node = link.in_socket.Frame
+            if not isinstance(node.parent, NodeSheet):
+                continue
+            if not content.Page:
+                continue
+            title = content.Widget.get_label()
+            if title != sname:
+                continue
+            editor = content.Page.get_child()
+            for table in editor.document.tables:
+                if table.tname == tname:
+                    return node
+
+        return None
+
+    def _find_active_viewer_node(self) -> NodeFrame:
+        """"""
+        from ..node.factory import NodeViewer
+
+        content = self.node.contents[0]
+        links = content.Socket.links
+        for link in links:
+            node = link.out_socket.Frame
+            if not isinstance(node.parent, NodeViewer):
+                continue
+            if not node.is_active():
+                continue
+            return node
+
+        return None
 
     def _write_custom_formula(self) -> None:
         """"""
@@ -1236,7 +1395,7 @@ class SheetEditor(Gtk.Box):
 
         application = window.get_application()
 
-        subtitle = f'{table.tname} – {self.title}'
+        subtitle = f'{table.tname} @ {self.title}'
 
         from ...ui.formula_editor.widget import FormulaEditorWindow
         editor_window = FormulaEditorWindow(subtitle      = subtitle,

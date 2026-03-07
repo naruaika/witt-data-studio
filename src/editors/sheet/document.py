@@ -18,13 +18,13 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from enum import Enum
-from logging import debug
 from polars import DataFrame
 from polars import LazyFrame
 from polars import Series
 from typing import Any
 from typing import TypeAlias
 import asyncio
+import logging
 
 from ...core.models.document import Document
 from ...core.models.table import BoundingBox
@@ -37,6 +37,8 @@ from ...core.utils import unique_name
 from .canvas import SheetCanvas
 from .display import SheetDisplay
 from .widgets import SheetTableFilter
+
+logger = logging.getLogger(__name__)
 
 Row:        TypeAlias = int
 Column:     TypeAlias = int
@@ -171,7 +173,13 @@ class SheetDocument(Document):
 
         if is_lazyframe:
             if prefer_sync:
-                content = content.collect()
+                is_lazyframe = False
+                try:
+                    content = content.collect()
+                except Exception as e:
+                    logger.error(e, exc_info = True)
+                    content = DataFrame({'#ERROR!': None}).head(0)
+
             else:
                 to_load = content
                 content = DataFrame({'#LOADING!': None}).head(0)
@@ -233,10 +241,9 @@ class SheetDocument(Document):
                 dataframe = await lazyframe.collect_async()
 
             except Exception as e:
+                logger.error(e, exc_info = True)
                 dataframe = DataFrame({'#ERROR!': None}).head(0)
                 error_message = str(e)
-
-                debug(error_message)
 
             for tindex, table in enumerate(self.tables):
                 if table is old_table:

@@ -7,7 +7,7 @@
     <property name="height-request">362</property>
     <property name="default-width">1280</property>
     <property name="default-height">800</property>
-    <property name="title" translatable="yes">New Query</property>
+    <property name="title" translatable="yes">Open Database</property>
     <child>
       <object class="AdwBreakpoint">
         <condition>max-width: 640sp</condition>
@@ -22,7 +22,7 @@
         <property name="min-sidebar-width">320sp</property>
         <property name="sidebar">
           <object class="AdwNavigationPage">
-            <property name="title" translatable="yes">Connections</property>
+            <property name="title" translatable="yes">Open Database</property>
             <property name="child">
               <object class="AdwToolbarView">
                 <child type="top">

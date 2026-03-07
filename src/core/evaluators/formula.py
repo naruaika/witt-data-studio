@@ -27,6 +27,7 @@ from logging import error
 from sys import executable
 from typing import Any
 import ast
+import numpy
 import operator
 import polars
 import polars.selectors
@@ -219,7 +220,8 @@ class Evaluator():
                      'Source':        _PolarsSource,
                      'Selector':      _PolarsSelector,
 
-                     'polars':        polars}
+                     'polars':        polars,
+                     'numpy':         numpy}
 
         self.vars.update(vars)
 

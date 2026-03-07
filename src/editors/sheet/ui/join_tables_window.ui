@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="Adw" version="1.0"/>
+  <template class="SheetJoinTablesWindow" parent="AdwWindow">
+    <property name="width-request">362</property>
+    <property name="height-request">362</property>
+    <property name="default-width">1280</property>
+    <property name="default-height">800</property>
+    <property name="title" translatable="yes">Join Tables</property>
+    <child>
+      <object class="AdwBreakpoint">
+        <condition>max-width: 640sp</condition>
+        <setter object="SplitView" property="collapsed">true</setter>
+      </object>
+    </child>
+    <property name="content">
+      <object class="AdwOverlaySplitView" id="SplitView">
+        <property name="collapsed">false</property>
+        <property name="show-sidebar">true</property>
+        <property name="min-sidebar-width">320sp</property>
+        <property name="sidebar">
+          <object class="AdwNavigationPage">
+            <property name="title" translatable="yes">Join Tables</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar" id="SidebarHeaderBar"/>
+                </child>
+                <property name="content">
+                  <object class="AdwPreferencesPage" id="PreferencesPage">
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwComboRow" id="LeftTableRow">
+                            <property name="title" translatable="yes">Table</property>
+                            <signal name="notify::selected" handler="_on_left_table_changed" swapped="no"/>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwComboRow" id="LeftColumnRow">
+                            <property name="title" translatable="yes">On Column</property>
+                            <signal name="notify::selected" handler="_on_left_column_changed" swapped="no"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwPreferencesRow">
+                            <property name="activatable">false</property>
+                            <child>
+                              <object class="GtkFlowBox" id="LeftColumnsRow">
+                                <property name="selection-mode">none</property>
+                                <property name="homogeneous">true</property>
+                                <property name="min-children-per-line">2</property>
+                                <property name="margin-top">6</property>
+                                <property name="margin-bottom">6</property>
+                                <property name="margin-start">4</property>
+                                <property name="margin-end">4</property>
+                                <property name="column-spacing">4</property>
+                                <property name="row-spacing">4</property>
+                                <style>
+                                  <class name="navigation-sidebar"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <property name="title" translatable="yes">Which to Join With?</property>
+                        <child>
+                          <object class="AdwComboRow" id="RightTableRow">
+                            <property name="title" translatable="yes">Table</property>
+                            <signal name="notify::selected" handler="_on_right_table_changed" swapped="no"/>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwComboRow" id="RightColumnRow">
+                            <property name="title" translatable="yes">On Column</property>
+                            <signal name="notify::selected" handler="_on_right_column_changed" swapped="no"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwPreferencesRow">
+                            <property name="activatable">false</property>
+                            <child>
+                              <object class="GtkFlowBox" id="RightColumnsRow">
+                                <property name="selection-mode">none</property>
+                                <property name="homogeneous">true</property>
+                                <property name="min-children-per-line">2</property>
+                                <property name="margin-top">6</property>
+                                <property name="margin-bottom">6</property>
+                                <property name="margin-start">4</property>
+                                <property name="margin-end">4</property>
+                                <property name="column-spacing">4</property>
+                                <property name="row-spacing">4</property>
+                                <style>
+                                  <class name="navigation-sidebar"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwComboRow" id="StrategyRow">
+                            <property name="title" translatable="yes">Strategy</property>
+                            <signal name="notify::selected" handler="_on_strategy_changed" swapped="no"/>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwComboRow" id="MaintainOrderRow">
+                            <property name="title" translatable="yes">Maintain Order</property>
+                            <signal name="notify::selected" handler="_on_maintain_order_changed" swapped="no"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </property>
+          </object>
+        </property>
+        <property name="content">
+          <object class="AdwNavigationPage">
+            <property name="title" translatable="yes">Workspace</property>
+            <property name="can-pop">false</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar" id="ContentHeaderBar">
+                    <property name="title-widget">
+                      <object class="AdwWindowTitle" id="WindowTitle">
+                        <property name="title">Output</property>
+                        <property name="subtitle">Showing up to 1,000 rows</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <property name="content">
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkSeparator">
+                        <property name="orientation">horizontal</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwBin" id="OutputView"/>
+                    </child>
+                    <child>
+                      <object class="GtkSeparator">
+                        <property name="orientation">horizontal</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+                <child type="bottom">
+                  <object class="GtkCenterBox" id="BottomToolbar">
+                    <property name="orientation">horizontal</property>
+                    <property name="margin-top">12</property>
+                    <property name="margin-bottom">12</property>
+                    <property name="margin-start">12</property>
+                    <property name="margin-end">12</property>
+                    <property name="end-widget">
+                      <object class="GtkButton" id="JoinButton">
+                        <property name="label" translatable="yes">Join</property>
+                        <signal name="clicked" handler="_on_join_button_clicked" swapped="no"/>
+                        <style>
+                          <class name="pill"/>
+                          <class name="suggested-action"/>
+                        </style>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </property>
+      </object>
+    </property>
+    <style>
+      <class name="view"/>
+    </style>
+  </template>
+</interface>

@@ -88,7 +88,8 @@ class File():
 
         # Limit the number of samples
         if n_samples > 0 and \
-                read_method in {scan_csv, scan_parquet}:
+                read_method in {read_csv, read_parquet,
+                                scan_csv, scan_parquet}:
             if 'n_rows' in kwargs:
                 kwargs['n_rows'] = kwargs['n_rows'] or 0
                 kwargs['n_rows'] = min(n_samples, kwargs['n_rows'])

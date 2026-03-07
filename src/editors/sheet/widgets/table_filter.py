@@ -1,4 +1,4 @@
-# widget.py
+# table_filter.py
 #
 # Copyright 2025 Naufan Rusyda Faikar <hello@naruaika.me>
 #

@@ -40,10 +40,13 @@ class NodeSocket(Gtk.Widget):
                  data_type:   'Any'  = None,
                  placeholder: 'bool' = False,
                  auto_remove: 'bool' = False,
+                 auto_update: 'bool' = False,
                  ) ->         'None':
         """"""
-        super().__init__(halign = Gtk.Align.CENTER,
-                         valign = Gtk.Align.CENTER)
+        super().__init__(halign        = Gtk.Align.CENTER,
+                         valign        = Gtk.Align.START,
+                         margin_top    = 8,
+                         margin_bottom = 8)
 
         self.set_size_request(12, 12)
 
@@ -57,14 +60,17 @@ class NodeSocket(Gtk.Widget):
         cursor = Gdk.Cursor.new_from_name('crosshair', fallback)
         self.set_cursor(cursor)
 
-        self.Content:     'NodeContent'      = content
-        self.socket_type: 'NodeSocketType'   = socket_type
-        self.data_type:   'Any'              = data_type
-        self.links:       'list'['NodeLink'] = []
+        self.Frame   = content.Frame
+        self.Content = content
 
-        self.Frame:       'NodeFrame'        = content.Frame
-        self.placeholder: 'bool'             = placeholder
-        self.auto_remove: 'bool'             = auto_remove
+        self.socket_type = socket_type
+        self.data_type   = data_type
+
+        self.placeholder = placeholder
+        self.auto_remove = auto_remove
+        self.auto_update = auto_update
+
+        self.links: list['NodeLink'] = []
 
         self.set_data_type(data_type)
 
@@ -125,6 +131,8 @@ class NodeSocket(Gtk.Widget):
             editor.removed_link = link
             if self.auto_remove:
                 editor.removed_socket = self
+            if self.auto_update:
+                editor.updated_content = self.Content
             link.unlink()
 
         editor.begin_future_link(scalar, source_socket)
@@ -159,12 +167,16 @@ class NodeSocket(Gtk.Widget):
                       value: Any,
                       ) ->   None:
         """"""
+        from ...core.utils import isiterable
         from .factory import iscompatible
 
         self.data_type = value
 
         if value:
-            self.set_tooltip_text(value.__name__)
+            if isiterable(value):
+                self.set_tooltip_text(' | '.join([x.__name__ for x in value]))
+            else:
+                self.set_tooltip_text(value.__name__)
         else:
             self.set_tooltip_text(None)
 

@@ -123,6 +123,9 @@ class StatusBar(Gtk.Box):
             row_unit = _('rows') if n_rows else _('row')
             col_unit = _('columns') if n_cols else _('column')
 
+            if table.with_header:
+                n_rows -= 1
+
             if not table.placeholder:
                 n_row = f'{format_string('%d', n_rows, grouping = True)} {row_unit}'
                 n_col = f'{format_string('%d', n_cols, grouping = True)} {col_unit}'

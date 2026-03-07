@@ -1674,11 +1674,11 @@
                                 </child>
                                 <child>
                                   <object class="GtkButton" id="FillBlankCellsButton">
-                                    <property name="name">fill-blank-cells</property>
+                                    <property name="name">fill-blank-values</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Fill Blanks</property>
+                                    <property name="tooltip-text" translatable="yes">Fill Blank Values</property>
                                     <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'fill-blank-cells'</property>
+                                    <property name="action-target">'fill-blank-values'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>
@@ -1690,7 +1690,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Fill Blanks</property>
+                                            <property name="label" translatable="yes">Fill Blank Values</property>
                                             <property name="vexpand">true</property>
                                           </object>
                                         </child>
@@ -1709,12 +1709,12 @@
                                   <object class="GtkMenuButton" id="PivotColumnsButton">
                                     <property name="name">pivot-columns</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Pivot</property>
+                                    <property name="tooltip-text" translatable="yes">Pivot Columns</property>
                                     <property name="menu-model">PivotColumnsMenu</property>
                                     <child>
                                       <object class="GtkBox">
-                                        <property name="orientation">horizontal</property>
-                                        <property name="spacing">6</property>
+                                        <property name="orientation">vertical</property>
+                                        <property name="homogeneous">true</property>
                                         <child>
                                           <object class="GtkImage">
                                             <property name="icon-name">xxx-shuffle-symbolic</property>
@@ -1722,8 +1722,13 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Pivot&#x00A0;&#x2060;&#x2335;</property>
+                                            <property name="label" translatable="yes">Pivot Columns&#x00A0;&#x2060;&#x2335;</property>
                                             <property name="vexpand">true</property>
+                                            <property name="valign">start</property>
+                                            <property name="lines">2</property>
+                                            <property name="wrap">true</property>
+                                            <property name="justify">center</property>
+                                            <property name="max-width-chars">0</property>
                                           </object>
                                         </child>
                                       </object>
@@ -1731,39 +1736,7 @@
                                     <layout>
                                       <property name="column">2</property>
                                       <property name="row">0</property>
-                                    </layout>
-                                    <style>
-                                      <class name="flat"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkButton" id="MoveColumnsButton">
-                                    <property name="name">move-columns</property>
-                                    <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Move</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'move-columns'</property>
-                                    <child>
-                                      <object class="GtkBox">
-                                        <property name="orientation">horizontal</property>
-                                        <property name="spacing">6</property>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="icon-name">xxx-shuffle-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Move</property>
-                                            <property name="vexpand">true</property>
-                                          </object>
-                                        </child>
-                                      </object>
-                                    </child>
-                                    <layout>
-                                      <property name="column">2</property>
-                                      <property name="row">1</property>
+                                      <property name="row-span">2</property>
                                     </layout>
                                     <style>
                                       <class name="flat"/>

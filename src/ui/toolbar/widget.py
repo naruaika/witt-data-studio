@@ -95,7 +95,6 @@ class Toolbar(Gtk.Box):
     ReplaceValuesButton      = Gtk.Template.Child()
     FillBlankCellsButton     = Gtk.Template.Child()
     PivotColumnsButton       = Gtk.Template.Child()
-    MoveColumnsButton        = Gtk.Template.Child()
 
     TextColumnSection        = Gtk.Template.Child()
     SplitColumnButton        = Gtk.Template.Child()
@@ -513,13 +512,6 @@ class Toolbar(Gtk.Box):
                             ),
                             (
                                 self.PivotColumnsButton,
-                                (
-                                    NodeEditor,
-                                    SheetEditor,
-                                ),
-                            ),
-                            (
-                                self.MoveColumnsButton,
                                 (
                                     NodeEditor,
                                     SheetEditor,

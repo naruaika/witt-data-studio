@@ -123,7 +123,7 @@ class FileImportParquetView(GObject.Object):
             if is_meta:
                 # Very not efficient, because this will
                 # call _populate_column_flow_box() twice.
-                # But anyway it does the job.
+                # But anyway it does the job; TODO
                 self.ColumnFlowBox.selected = []
                 self.refresh_ui()
                 checked = button.get_active()
