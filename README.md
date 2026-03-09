@@ -14,6 +14,14 @@ The word "witt", we believe, is the past form of "wit" which means "understandin
 
 **Note:** All screenshots above do not represent the final product.
 
+## Background
+
+The core idea came from our own experience initiating an automated customer retention system for one of Indonesia's leading telecommunications companies. At certain times, new memos appeared almost every week. While many remained drafts, some were worth trying. Yet implementing each one required engineering work hence the delays or even cancellations. Meanwhile, most changes require no programming expertise at all.
+
+Monitoring and organizing customer retention workflow presented another difficulty. For instance, a workflow may need to be modified while customer records are being processed and scheduled to be transferred to another workflow at a later stage. In some situations, manual intervention may require the forcible transfer of some records to a new workflow before the current process is completed. On another occasion, certain records may also appear in multiple workflows which is acceptable, but sometimes it creates conflicts that must be resolved by removing the records from all but one workflow.
+
+The difficulty of performing business performance analysis is largely a consequence of this complexity. Many present solutions are either incapable of processing medium-sized information effectively on local machines or demand unnecessary expensive infrastructure. Such tasks can already be handled by modern data technologies, albeit there are still few accessible graphical user interfaces for business users.
+
 ## Status
 
 Currently in early development. Please don't expect anything to work at this stage. Follow our repository for real-time updates and get ready to transform your data workflow!
@@ -34,7 +42,8 @@ Currently, we're only outlining the tasks we'll be performing, not the sequence 
 - [ ] Spreadsheet view bound to pipeline
 - [ ] Interactive charts with linked views
 - [ ] Automatic pipeline execution
-- [ ] Self-hostable report export
+- [ ] Self-hostable dashboard
+- [ ] Low-code application builder
 
 ## Build & Run
 
