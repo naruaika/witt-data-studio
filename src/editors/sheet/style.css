@@ -50,8 +50,7 @@
 
 
 .sheet-canvas > image {
-    color: var(--accent-color);
-    -gtk-icon-size: 18px;
+    -gtk-icon-size: 20px;
 }
 
 

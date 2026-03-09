@@ -79,7 +79,7 @@ class SheetRenderer():
         self._setup_cairo_context(context)
         self._draw_headers_backgrounds(context, width, height, display)
         self._draw_selection_backgrounds(context, width, height, display, selection)
-        self._draw_headers_contents(canvas, context, width, height, display)
+        self._draw_headers_contents(canvas, context, width, height, display, document)
         self._draw_cells_contents(canvas, context, width, height, display, document)
         self._draw_cells_borders(context, width, height, display)
         self._draw_selection_borders(context, width, height, display, selection)
@@ -360,24 +360,25 @@ class SheetRenderer():
         context.restore()
 
     def _draw_headers_contents(self,
-                               canvas:  'SheetCanvas',
-                               context: 'Context',
-                               width:   'int',
-                               height:  'int',
-                               display: 'SheetDisplay',
-                               ) ->     'None':
+                               canvas:   'SheetCanvas',
+                               context:  'Context',
+                               width:    'int',
+                               height:   'int',
+                               display:  'SheetDisplay',
+                               document: 'SheetDocument',
+                               ) ->      'None':
         """"""
         context.save()
 
         # Monospace is the best in my opinion for the headers, especially when it comes to the row headers
         # which are numbers so that it can be easier to read because of the good visual alignment.
-        head_font_desc = f'Monospace Normal Bold {display.FONT_SIZE}px #tnum=1'
+        head_font_desc = f'Monospace Normal Regular {display.FONT_SIZE}px #tnum=1'
         head_font_desc = Pango.font_description_from_string(head_font_desc)
 
         # Use system default font family for drawing text
         font_desc = canvas.get_pango_context().get_font_description()
         font_family = font_desc.get_family() if font_desc else 'Sans'
-        body_font_desc = f'{font_family} Normal Bold {display.FONT_SIZE}px #tnum=1'
+        body_font_desc = f'{font_family} Normal Regular {display.FONT_SIZE}px #tnum=1'
         body_font_desc = Pango.font_description_from_string(body_font_desc)
 
         layout = PangoCairo.create_layout(context)
@@ -403,16 +404,34 @@ class SheetRenderer():
         col_index = display.get_starting_column()
         x = display.get_cell_x_from_column(col_index)
 
+        row_index = display.get_starting_row()
+        lrow_index = display.get_lrow_from_row(row_index)
+
+        from .widgets import SheetColumnDType
+        x_table_margin = SheetColumnDType.WIDTH - 7
+
         while x < width:
             lcol_index = display.get_lcolumn_from_column(col_index)
             cell_width = display.get_cell_width_from_column(col_index)
 
-            cell_text = display.get_column_name_from_column(lcol_index)
-#           layout.set_font_description(head_font_desc)
+            opt_table = document.get_table_by_position(lcol_index, lrow_index)
+            _is_table = (isinstance(opt_table, DataTable)        and
+                         opt_table.bounding_box.row < lrow_index and
+                         opt_table.with_header)
+
+            if _is_table:
+                cell_text = opt_table.columns[lcol_index - opt_table.bounding_box.column]
+                layout.set_font_description(body_font_desc)
+            else:
+                cell_text = display.get_column_name_from_column(lcol_index)
+                layout.set_font_description(head_font_desc)
             layout.set_text(cell_text, -1)
 
-            text_width = layout.get_pixel_size()[0]
-            x_text = x + (cell_width - text_width) / 2
+            if _is_table:
+                x_text = x + display.DEFAULT_CELL_PADDING + x_table_margin
+            else:
+                text_width = layout.get_pixel_size()[0]
+                x_text = x + (cell_width - text_width) / 2
 
             context.save()
             context.rectangle(x,
@@ -421,7 +440,7 @@ class SheetRenderer():
                               display.top_locator_height)
             context.clip()
 
-            context.move_to(x_text, 3)
+            context.move_to(x_text, 2)
             PangoCairo.show_layout(context, layout)
 
             context.restore()
@@ -430,8 +449,6 @@ class SheetRenderer():
             col_index += 1
 
         context.restore()
-
-#       layout.set_font_description(head_font_desc)
 
         context.save()
         context.rectangle(0,
@@ -450,7 +467,7 @@ class SheetRenderer():
             text_width = layout.get_pixel_size()[0]
             x = display.left_locator_width - text_width - display.DEFAULT_CELL_PADDING
 
-            context.move_to(x, y + 3)
+            context.move_to(x, y + 2)
             PangoCairo.show_layout(context, layout)
 
             y += display.get_cell_height_from_row(row_index)
@@ -572,7 +589,7 @@ class SheetRenderer():
         # Use system default font family for drawing text
         font_desc = canvas.get_pango_context().get_font_description()
         font_family = font_desc.get_family() if font_desc else 'Sans'
-#       head_font_desc = f'{font_family} Normal Bold {display.FONT_SIZE}px #tnum=1'
+#       head_font_desc = f'{font_family} Normal Regular {display.FONT_SIZE}px #tnum=1'
 #       head_font_desc = Pango.font_description_from_string(head_font_desc)
         body_font_desc = f'{font_family} Normal Regular {display.FONT_SIZE}px #tnum=1'
         body_font_desc = Pango.font_description_from_string(body_font_desc)
@@ -610,8 +627,6 @@ class SheetRenderer():
                 x += cell_width
                 col_index += 1
                 continue # skip out of bound area
-
-#           layout.set_font_description(body_font_desc)
 
             ccontext.save()
             ccontext.rectangle(x, display.top_locator_height, cell_width - 2, height)
@@ -658,9 +673,6 @@ class SheetRenderer():
                     continue # skip out of bound area
 
                 cell_value = document.read_data(lcol_index, lrow_index)
-
-                opt_table = document.get_table_by_position(lcol_index, lrow_index)
-                _is_table = isinstance(opt_table, DataTable)
 
                 # Determine cell data type to decide how to render it properly
                 _is_none = cell_value is None
@@ -715,15 +727,16 @@ class SheetRenderer():
 
                 x_text = x + display.DEFAULT_CELL_PADDING
 
-                if _is_table and opt_table.with_header and lrow_index == 1:
+                opt_table = document.get_table_by_position(lcol_index, lrow_index)
+                if (
+                    isinstance(opt_table, DataTable)             and
+                    lrow_index - opt_table.bounding_box.row == 0 and
+                    opt_table.with_header):
                     x_text += x_head_margin
 
-                ccontext.move_to(x_text, y + 3)
+                ccontext.move_to(x_text, y + 2)
 
                 PangoCairo.show_layout(ccontext, layout)
-
-#               if lrow_index == 1:
-#                   layout.set_font_description(body_font_desc)
 
                 y += cell_height
                 row_index += 1

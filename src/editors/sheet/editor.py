@@ -601,6 +601,12 @@ class SheetEditor(Gtk.Box):
                  sparse: Sparse = {},
                  ) ->    None:
         """"""
+        # Remove existing document widgets
+        widgets = self.document.widgets
+        for widgets in widgets.values():
+            for widget in widgets:
+                widget.unparent()
+
         # Get cached dataframes by query plan
         cache_hits = []
         for index, (tname, (coord, table)) in enumerate(tables.items()):
@@ -746,7 +752,7 @@ class SheetEditor(Gtk.Box):
             row_index += 1
 
         context = self.Canvas.get_pango_context()
-        font_desc = f'Monospace Normal Bold {self.display.FONT_SIZE}px'
+        font_desc = f'Monospace Normal Regular {self.display.FONT_SIZE}px'
         font_desc = Pango.font_description_from_string(font_desc)
 
         layout = Pango.Layout.new(context)

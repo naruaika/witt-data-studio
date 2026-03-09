@@ -17,10 +17,6 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-from datetime import datetime
-from datetime import date
-from datetime import time
-from decimal import Decimal
 from gi.repository import Gtk
 from polars import DataType
 
@@ -28,8 +24,8 @@ class SheetColumnDType(Gtk.Image):
 
     __gtype_name__ = 'SheetColumnDType'
 
-    WIDTH  = 22 + 6
-    HEIGHT = 22
+    WIDTH  = 22 + 8
+    HEIGHT = 22 + 2
 
     x = 0
     y = 0

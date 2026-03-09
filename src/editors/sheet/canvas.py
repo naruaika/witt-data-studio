@@ -52,7 +52,7 @@ class SheetCanvas(Gtk.Overlay):
                              editor.document)
 
         bounds = Graphene.Rect().init(editor.display.left_locator_width,
-                                      editor.display.top_locator_height,
+                                      0,
                                       self.get_width(),
                                       self.get_height())
         snapshot.push_clip(bounds)

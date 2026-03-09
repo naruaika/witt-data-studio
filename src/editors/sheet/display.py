@@ -29,7 +29,7 @@ class SheetDisplay():
     DEFAULT_CELL_PADDING: int = 6
 
     ICON_SIZE: float = 16
-    FONT_SIZE: float = 12
+    FONT_SIZE: float = 13
 
     left_locator_width: int = 45
     top_locator_height: int = 22

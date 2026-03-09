@@ -521,6 +521,8 @@ class SheetDocument(Document):
         for table in self.tables:
             if table.height == 0:
                 continue
+            if not table.with_header:
+                continue
 
             bbox = table.bounding_box
             y = self.display.get_cell_y_from_row(bbox.row)
@@ -583,11 +585,20 @@ class SheetDocument(Document):
 
         widget_index = 0
         for table in self.tables:
-            if table.width <= 1 and table.height == 0:
+            if table.height == 0:
+                continue
+            if not table.with_header:
                 continue
 
             bbox = table.bounding_box
+
             y = self.display.get_cell_y_from_row(bbox.row)
+
+            last_row = bbox.row + bbox.row_span - 1
+            last_row_bottom_y = self.display.get_cell_y_from_row(last_row) + \
+                                self.display.get_cell_height_from_row(last_row)
+            if y < 0 and self.display.top_locator_height < last_row_bottom_y:
+                y = 0
 
             for column_index in range(table.width):
                 column = bbox.column + column_index
@@ -600,12 +611,10 @@ class SheetDocument(Document):
 
                 widget = widgets[widget_index]
                 self._move_column_dtype_widget(widget, x, y)
-
                 widget_index += 1
 
                 widget = widgets[widget_index]
                 self._move_table_filter_widget(widget, x, y, column)
-
                 widget_index += 1
 
         self.Canvas.queue_allocate()
