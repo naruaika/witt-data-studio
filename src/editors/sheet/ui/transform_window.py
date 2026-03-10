@@ -139,11 +139,14 @@ class SheetTransformWindow(Adw.Window):
         if len(item) > 3:
             defaults = item[3]
 
-        custom = dtype.endswith(':custom')
-        dtype = dtype.removesuffix(':custom')
+        custom = ':custom' in dtype
+        dtype = dtype.replace(':custom', '')
 
-        indexed = dtype.endswith(':indexed')
-        dtype = dtype.removesuffix(':indexed')
+        indexed = ':indexed' in dtype
+        dtype = dtype.replace(':indexed', '')
+
+        collapsed = ':collapsed' in dtype
+        dtype = dtype.replace(':collapsed', '')
 
         if dtype != 'group':
             ops_arg = SheetTransformOpsArg()
@@ -166,7 +169,12 @@ class SheetTransformWindow(Adw.Window):
 
             case 'combo':
                 default = defaults[0] if defaults else None
-                self._create_combo_row(title, description, contents, default, custom, ops_arg)
+                self._create_combo_row(title,
+                                       description,
+                                       contents,
+                                       default,
+                                       custom,
+                                       ops_arg)
                 self.n_content += 1
 
             case 'entry':
@@ -175,8 +183,16 @@ class SheetTransformWindow(Adw.Window):
                 self.n_content += 1
 
             case 'spin':
-                lower, upper, digits = contents if contents else (None, None, 0)
-                self._create_spin_row(title, description, lower, upper, digits, ops_arg)
+                if contents:
+                    lower, upper, digits = contents
+                else:
+                    lower, upper, digits = (None, None, 0)
+                self._create_spin_row(title,
+                                      description,
+                                      lower,
+                                      upper,
+                                      digits,
+                                      ops_arg)
                 self.n_content += 1
 
             case 'switch':
@@ -184,7 +200,15 @@ class SheetTransformWindow(Adw.Window):
                 self.n_content += 1
 
             case 'list-check':
-                self._create_list_check(title, description, contents, defaults, indexed, ops_arg)
+                self._create_list_check(title,
+                                        description,
+                                        contents,
+                                        defaults,
+                                        collapsed,
+                                        indexed,
+                                        ops_arg)
+                if collapsed:
+                    self.is_dynamic = True
 
             case 'list-entry':
                 self._create_list_entry(title, contents, ops_arg)
@@ -342,6 +366,7 @@ class SheetTransformWindow(Adw.Window):
                            description: str,
                            options:     list[str],
                            defaults:    list[str],
+                           collapsed:   bool,
                            indexed:     bool,
                            ops_arg:     SheetTransformOpsArg,
                            ) ->         None:
@@ -358,35 +383,43 @@ class SheetTransformWindow(Adw.Window):
                                else args.remove(value)
             ops_arg.value = json.dumps(args)
 
-        row = Adw.PreferencesRow(activatable = False)
+        if collapsed:
+            row = Adw.ExpanderRow(title       = title,
+                                  subtitle    = description,
+                                  activatable = False)
 
-        box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
-        row.set_child(box)
+        else:
+            row = Adw.PreferencesRow(activatable = False)
 
-        box.get_parent().set_activatable(False)
+            box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+            row.set_child(box)
 
-        subbox = Gtk.Box(orientation   = Gtk.Orientation.VERTICAL,
-                         margin_top    = 6,
-                         margin_bottom = 6,
-                         margin_start  = 10,
-                         margin_end    = 10)
-        subbox.add_css_class('title')
-        box.append(subbox)
+            subbox = Gtk.Box(orientation   = Gtk.Orientation.VERTICAL,
+                             margin_top    = 6,
+                             margin_bottom = 6,
+                             margin_start  = 10,
+                             margin_end    = 10)
+            subbox.add_css_class('title')
+            box.append(subbox)
 
-        label_title = Gtk.Label(halign    = Gtk.Align.START,
-                                ellipsize = Pango.EllipsizeMode.END,
-                                label     = title)
-        label_title.add_css_class('title')
-        subbox.append(label_title)
+            if title not in {'', None}:
+                label_title = Gtk.Label(halign    = Gtk.Align.START,
+                                        ellipsize = Pango.EllipsizeMode.END,
+                                        label     = title)
+                label_title.add_css_class('title')
+                subbox.append(label_title)
 
-        if description not in {'', None}:
-            label_description = Gtk.Label(xalign     = 0.0,
-                                          wrap       = True,
-                                          wrap_mode  = Pango.WrapMode.WORD,
-                                          label      = description,
-                                          margin_top = 3)
-            label_description.add_css_class('subtitle')
-            subbox.append(label_description)
+            if description not in {'', None}:
+                label_description = Gtk.Label(xalign     = 0.0,
+                                              wrap       = True,
+                                              wrap_mode  = Pango.WrapMode.WORD,
+                                              label      = description,
+                                              margin_top = 3)
+                label_description.add_css_class('subtitle')
+                subbox.append(label_description)
+
+            if title in {'', None}:
+                subbox.set_visible(False)
 
         list_view = Gtk.FlowBox(margin_top     = 6,
                                 margin_bottom  = 6,
@@ -397,7 +430,13 @@ class SheetTransformWindow(Adw.Window):
                                 selection_mode = Gtk.SelectionMode.NONE,
                                 homogeneous    = True)
         list_view.add_css_class('navigation-sidebar')
-        box.append(list_view)
+
+        if collapsed:
+            row.add_row(list_view)
+            box_row = list_view.get_parent()
+            box_row.set_activatable(False)
+        else:
+            box.append(list_view)
 
         for option in options:
             label = Gtk.Label(halign    = Gtk.Align.START,
@@ -416,17 +455,9 @@ class SheetTransformWindow(Adw.Window):
 
         ops_arg.value = json.dumps(defaults)
 
-        if title in {'', None}:
-            subbox.set_visible(False)
-
         group = Adw.PreferencesGroup()
-        box = group.get_first_child()
-        box = box.get_last_child()
-        list_box = box.get_first_child()
-        list_box.remove_css_class('boxed-list')
-        list_box.add_css_class('boxed-list-separate')
-        self.PreferencesPage.add(group)
         group.add(row)
+        self.PreferencesPage.add(group)
 
         ops_arg.stype = 'strv'
 
