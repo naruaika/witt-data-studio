@@ -175,7 +175,7 @@ class NodeComboButton(Gtk.Button):
                            ) ->     None:
         """"""
         parent.remove_css_class('has-open-popup')
-        GLib.timeout_add(1000, popover.unparent)
+        GLib.timeout_add(250, popover.unparent)
 
     def set_data(self,
                  value: str,

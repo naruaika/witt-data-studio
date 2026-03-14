@@ -274,6 +274,7 @@ class NodeSheet(NodeTemplate):
             if not iscompatible(pair_socket, self_content):
                 if self_content.placeholder:
                     self_content.placeholder = False
+                    self_content.Socket.placeholder = False
                     self._add_input()
                 return
 
@@ -289,6 +290,7 @@ class NodeSheet(NodeTemplate):
 
             if self_content.placeholder:
                 self_content.placeholder = False
+                self_content.Socket.placeholder = False
                 replace_widget(new_title)
                 self._add_input()
 

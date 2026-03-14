@@ -303,7 +303,7 @@ class DatabaseImportWindow(Adw.Window):
             def on_closed(popover: Gtk.PopoverMenu) -> None:
                 """"""
                 parent_box.remove_css_class('has-open-popup')
-                GLib.timeout_add(1000, popover.unparent)
+                GLib.timeout_add(250, popover.unparent)
 
             popover.connect('closed', on_closed)
 

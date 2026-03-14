@@ -629,7 +629,7 @@ class NodeJoinTables(NodeTemplate):
                         param_spec: GObject.ParamSpec,
                         ) ->        None:
             """"""
-            self.frame.data[f'{prefix}column.exp'] = expander.get_expanded()
+            self.frame.data[f'{prefix}column.exp'] = widget.get_expanded()
 
         expander.connect('notify::expanded', on_expanded)
 

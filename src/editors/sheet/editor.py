@@ -24,6 +24,7 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
 from polars import LazyFrame
+from polars import Series
 from polars import Float32
 from polars import Float64
 from polars import Int8
@@ -153,8 +154,9 @@ class SheetEditor(Gtk.Box):
         variables = {}
 
         active = self.selection.current_active_cell
+
         lcolumn = self.display.get_lcolumn_from_column(active.column)
-        lrow = self.display.get_lrow_from_row(active.row)
+        lrow    = self.display.get_lrow_from_row(active.row)
 
         table, column_name = self.document.get_table_column_by_position(lcolumn, lrow)
         table_focus = isinstance(table, DataTable) and not table.placeholder
@@ -369,6 +371,12 @@ class SheetEditor(Gtk.Box):
         create_action('calculate-is-even',      lambda *_: self._transform_table('calculate-is-even'))
         create_action('calculate-is-odd',       lambda *_: self._transform_table('calculate-is-odd'))
         create_action('extract-value-sign',     lambda *_: self._transform_table('extract-value-sign'))
+
+        create_action('quick-sort-rows',        callback   = self._quick_sort_rows,
+                                                param_type = GLib.VariantType('s'))
+        create_action('clear-sort-rows',        callback   = self._clear_sort_rows)
+
+        create_action('clear-filter-rows',      callback   = self._clear_filter_rows)
 
     def _setup_commands(self) -> None:
         """"""
@@ -637,11 +645,40 @@ class SheetEditor(Gtk.Box):
 
         gc.collect()
 
-        def do_finish(table: DataTable) -> None:
-            """"""
-            if self.adjust_columns:
-                self._readjust_column_widths_by_table(table)
+        if self.node:
+            for tname, (coord, table) in tables.items():
+                # Find the related node content
+                contents = self.node.contents[1:-1]
+                for content in contents:
+                    box = content.Widget
+                    label = box.get_first_child()
+                    label = label.get_label()
+                    if label == tname:
+                        break
 
+                # Find the pair socket and node
+                self_content = content
+                self_socket  = self_content.Socket
+                link         = self_socket.links[0]
+                pair_socket  = link.in_socket
+                pair_node    = pair_socket.Frame
+
+                # Collect sorted column names
+                if pair_node.parent.action == 'sort-rows':
+                    columns = []
+                    for value in pair_node.do_save():
+                        columns.append(value[0])
+                    self.document.sorted[tname] = columns
+
+                # Collect filtered column names
+                if pair_node.parent.action == 'filter-rows':
+                    columns = []
+                    for value in pair_node.do_save():
+                        columns.append(value[1])
+                    self.document.filtered[tname] = columns
+
+        def refresh_ui() -> None:
+            """"""
             c_cell = self.selection.current_cursor_cell
             c_lcol = self.display.get_lcolumn_from_column(c_cell.column)
             c_lrow = self.display.get_lrow_from_row(c_cell.row)
@@ -655,6 +692,13 @@ class SheetEditor(Gtk.Box):
 
             self.refresh_ui()
 
+        def do_finish(table: DataTable) -> None:
+            """"""
+            if self.adjust_columns:
+                self._adjust_column_widths_by_table(table)
+
+            refresh_ui()
+
         # Setup tables
         for tname, (coord, table) in tables.items():
             table_index = self.document.create_table(table,
@@ -667,7 +711,7 @@ class SheetEditor(Gtk.Box):
 
             if self.adjust_columns:
                 table = self.document.tables[table_index]
-                self._readjust_column_widths_by_table(table)
+                self._adjust_column_widths_by_table(table)
 
         # Setup sparse
         for coord, value in sparse.items():
@@ -676,7 +720,7 @@ class SheetEditor(Gtk.Box):
                                                   row    = coord[1])
 
             if self.adjust_columns:
-                self._readjust_column_widths_by_value(value, coord[0])
+                self._adjust_column_widths_by_value(value, coord[0])
 
         # Flag the new table instances from cache
         for (index, query_plan) in cache_hits:
@@ -779,8 +823,10 @@ class SheetEditor(Gtk.Box):
         from ...core.utils import print_timedelta
 
         active = self.selection.current_active_cell
+
         lcolumn = self.display.get_lcolumn_from_column(active.column)
-        lrow = self.display.get_lrow_from_row(active.row)
+        lrow    = self.display.get_lrow_from_row(active.row)
+
         table = self.document.get_table_by_position(lcolumn, lrow)
 
         cell_data = self.selection.current_cell_data
@@ -808,9 +854,9 @@ class SheetEditor(Gtk.Box):
         parameter = GLib.Variant('as', [cell_name, cell_data, cell_dtype])
         self.activate_action('formula.update-formula-bar', parameter)
 
-    def _readjust_column_widths_by_table(self,
-                                         table: DataTable,
-                                         ) ->   None:
+    def _adjust_column_widths_by_table(self,
+                                       table: DataTable,
+                                       ) ->   None:
         """"""
         from gi.repository import Pango
         from polars import col
@@ -856,8 +902,8 @@ class SheetEditor(Gtk.Box):
         if table.width and table.height:
             from .widgets import SheetColumnDType
             from .widgets import SheetTableFilter
-            l_margin += SheetColumnDType.WIDTH - 7
-            r_margin += SheetTableFilter.WIDTH - 4
+            l_margin += SheetColumnDType.WIDTH - 5
+            r_margin += SheetTableFilter.WIDTH - 2
 
         for col_index, col_name in enumerate(table.columns):
             # Add table position offset into account
@@ -877,7 +923,7 @@ class SheetEditor(Gtk.Box):
 
             # Find longest table content
             try:
-                expr = col(col_name).cast(String).fill_null('(Blank)')
+                expr = col(col_name).cast(String).fill_null('[Blank]')
                 sample_text = sample_data.with_columns(expr)
 
                 expr = col(col_name).str.len_chars().max()
@@ -912,10 +958,10 @@ class SheetEditor(Gtk.Box):
 
         self.document.reposition_table_widgets()
 
-    def _readjust_column_widths_by_value(self,
-                                         value:  Any,
-                                         column: int,
-                                         ) ->    None:
+    def _adjust_column_widths_by_value(self,
+                                       value:  Any,
+                                       column: int,
+                                       ) ->    None:
         """"""
         from gi.repository import Pango
         from polars import concat
@@ -969,7 +1015,7 @@ class SheetEditor(Gtk.Box):
         active = self.selection.current_active_cell
 
         lcolumn = self.display.get_lcolumn_from_column(active.column)
-        lrow = self.display.get_lrow_from_row(active.row)
+        lrow    = self.display.get_lrow_from_row(active.row)
 
         table, column_name = self.document.get_table_column_by_position(lcolumn, lrow)
 
@@ -994,12 +1040,12 @@ class SheetEditor(Gtk.Box):
                 if label == table.tname:
                     break
 
-            # Find the pair node socket
+            # Find the pair node and socket
             self_content = content
-            self_socket = self_content.Socket
-            link = self_socket.links[0]
-            pair_socket = link.in_socket
-            pair_node = pair_socket.Frame
+            self_socket  = self_content.Socket
+            link         = self_socket.links[0]
+            pair_socket  = link.in_socket
+            pair_node    = pair_socket.Frame
 
             # Create a new appropriate node
             x = self.node.x - 175 - 50
@@ -1125,7 +1171,7 @@ class SheetEditor(Gtk.Box):
         active = self.selection.current_active_cell
 
         lcolumn = self.display.get_lcolumn_from_column(active.column)
-        lrow = self.display.get_lrow_from_row(active.row)
+        lrow    = self.display.get_lrow_from_row(active.row)
 
         table = self.document.get_table_by_position(lcolumn, lrow)
 
@@ -1152,12 +1198,12 @@ class SheetEditor(Gtk.Box):
                 if label == table.tname:
                     break
 
-            # Find the pair node socket
+            # Find the pair node and socket
             self_content = content
-            self_socket = self_content.Socket
-            link = self_socket.links[0]
-            pair_socket = link.in_socket
-            pair_node = pair_socket.Frame
+            self_socket  = self_content.Socket
+            link         = self_socket.links[0]
+            pair_socket  = link.in_socket
+            pair_node    = pair_socket.Frame
 
             # Create a new appropriate node
             x = self.node.x - 175 - 50
@@ -1219,7 +1265,7 @@ class SheetEditor(Gtk.Box):
         active = self.selection.current_active_cell
 
         lcolumn = self.display.get_lcolumn_from_column(active.column)
-        lrow = self.display.get_lrow_from_row(active.row)
+        lrow    = self.display.get_lrow_from_row(active.row)
 
         table = self.document.get_table_by_position(lcolumn, lrow)
 
@@ -1385,7 +1431,7 @@ class SheetEditor(Gtk.Box):
         active = self.selection.current_active_cell
 
         lcolumn = self.display.get_lcolumn_from_column(active.column)
-        lrow = self.display.get_lrow_from_row(active.row)
+        lrow    = self.display.get_lrow_from_row(active.row)
 
         table = self.document.get_table_by_position(lcolumn, lrow)
 
@@ -1408,12 +1454,12 @@ class SheetEditor(Gtk.Box):
                 if label == table.tname:
                     break
 
-            # Find the pair node socket
+            # Find the pair node and socket
             self_content = content
-            self_socket = self_content.Socket
-            link = self_socket.links[0]
-            pair_socket = link.in_socket
-            pair_node = pair_socket.Frame
+            self_socket  = self_content.Socket
+            link         = self_socket.links[0]
+            pair_socket  = link.in_socket
+            pair_node    = pair_socket.Frame
 
             # Create a new appropriate node
             x = self.node.x - 175 - 50
@@ -1483,6 +1529,296 @@ class SheetEditor(Gtk.Box):
         editor.auto_arrange(viewer)
 
         window.history.grouping = False
+
+    def _quick_sort_rows(self,
+                         action:    Gio.SimpleAction,
+                         parameter: GLib.Variant,
+                         ) ->       None:
+        """"""
+        active = self.selection.current_active_cell
+
+        lcolumn = self.display.get_lcolumn_from_column(active.column)
+        lrow    = self.display.get_lrow_from_row(active.row)
+
+        table, column_name = self.document.get_table_column_by_position(lcolumn, lrow)
+
+        direction = parameter.get_string()
+
+        if not isinstance(table, DataTable):
+            return False
+
+        window = self.get_root()
+        editor = window.node_editor
+
+        window.history.grouping = True
+
+        # Find the related node content
+        contents = self.node.contents[1:-1]
+        for content in contents:
+            box = content.Widget
+            label = box.get_first_child()
+            label = label.get_label()
+            if label == table.tname:
+                break
+
+        # Find the pair node and socket
+        self_content = content
+        self_socket  = self_content.Socket
+        link         = self_socket.links[0]
+        pair_socket  = link.in_socket
+        pair_node    = pair_socket.Frame
+
+        # Modify the existing node
+        if pair_node.parent.action == 'sort-rows':
+            old_values = pair_node.do_save()
+            new_values = deepcopy(old_values)
+
+            for value in new_values:
+                if value[0] == column_name:
+                    new_values.remove(value)
+                    break
+
+            new_values.append([column_name, direction])
+
+            from ..node.actions import ActionEditNode
+            values = (old_values, new_values)
+            action = ActionEditNode(editor, pair_node, values)
+            window.do(action)
+
+        # Create a new appropriate node
+        else:
+            x = self.node.x - 175 - 50
+            y = pair_node.y
+            sorter = editor.create_new_node('sort-rows', x, y)
+            sorter.set_data([[column_name, direction]])
+            editor.add_node(sorter)
+            editor.select_by_click(sorter)
+
+            # Manipulate so that the transformer node seem to
+            # be reconnected to the sheet node
+            self_content.node_uid = id(sorter)
+
+            data_key = ''
+            if 'value' in pair_node.data:
+                data_key = 'value'
+            if 'table' in pair_node.data:
+                data_key = 'table'
+            keep_cache = data_key != ''
+
+            # Freeze pair node to prevent from rebuilding data
+            # table from the source
+            if keep_cache:
+                pair_node.is_with_cache = True
+                value = pair_node.data[data_key]
+                pair_node.data[data_key] = table
+
+            # Connect the pair node, new node, and self node
+            content = sorter.contents[0]
+            editor.add_link(content.Socket, self_socket)
+            content = sorter.contents[1]
+            editor.add_link(pair_socket, content.Socket)
+
+            # Restore the pair node state
+            if keep_cache:
+                pair_node.is_with_cache = False
+                pair_node.data[data_key] = value
+
+            editor.auto_arrange(self.node)
+
+        window.history.grouping = False
+
+        self.grab_focus()
+
+    def _clear_sort_rows(self,
+                         action:    Gio.SimpleAction,
+                         parameter: GLib.Variant,
+                         ) ->       None:
+        """"""
+        active = self.selection.current_active_cell
+
+        lcolumn = self.display.get_lcolumn_from_column(active.column)
+        lrow    = self.display.get_lrow_from_row(active.row)
+
+        table, column_name = self.document.get_table_column_by_position(lcolumn, lrow)
+
+        if not isinstance(table, DataTable):
+            return False
+
+        window = self.get_root()
+        editor = window.node_editor
+
+        window.history.grouping = True
+
+        # Find the related node content
+        contents = self.node.contents[1:-1]
+        for content in contents:
+            box = content.Widget
+            label = box.get_first_child()
+            label = label.get_label()
+            if label == table.tname:
+                break
+
+        # Find the pair socket and node
+        self_content = content
+        self_socket  = self_content.Socket
+        link         = self_socket.links[0]
+        pair_socket  = link.in_socket
+        pair_node    = pair_socket.Frame
+
+        # Modify the existing node
+        if pair_node.parent.action == 'sort-rows':
+            old_values = pair_node.do_save()
+            new_values = deepcopy(old_values)
+
+            for value in new_values:
+                if value[0] == column_name:
+                    new_values.remove(value)
+                    break
+
+            from ..node.actions import ActionEditNode
+            values = (old_values, new_values)
+            action = ActionEditNode(editor, pair_node, values)
+            window.do(action)
+
+        window.history.grouping = False
+
+        self.grab_focus()
+
+    def _quick_filter_rows(self,
+                           values: Series,
+                           ) ->    None:
+        """"""
+        active = self.selection.current_active_cell
+
+        lcolumn = self.display.get_lcolumn_from_column(active.column)
+        lrow    = self.display.get_lrow_from_row(active.row)
+
+        table, column_name = self.document.get_table_column_by_position(lcolumn, lrow)
+
+        if not isinstance(table, DataTable):
+            return False
+
+        func_args = []
+        for value in values:
+            func_args.append(['or', column_name, 'equals', value])
+
+        window = self.get_root()
+        editor = window.node_editor
+
+        window.history.grouping = True
+
+        # Find the related node content
+        contents = self.node.contents[1:-1]
+        for content in contents:
+            box = content.Widget
+            label = box.get_first_child()
+            label = label.get_label()
+            if label == table.tname:
+                break
+
+        # Find the pair socket and node
+        self_content = content
+        self_socket  = self_content.Socket
+        link         = self_socket.links[0]
+        pair_socket  = link.in_socket
+        pair_node    = pair_socket.Frame
+
+        # Create a new appropriate node
+        x = self.node.x - 175 - 50
+        y = pair_node.y
+        transformer = editor.create_new_node('filter-rows', x, y)
+        transformer.set_data(*func_args)
+        editor.add_node(transformer)
+        editor.select_by_click(transformer)
+
+        # Manipulate so that the transformer node seem to
+        # be reconnected to the sheet node
+        self_content.node_uid = id(transformer)
+
+        data_key = ''
+        if 'value' in pair_node.data:
+            data_key = 'value'
+        if 'table' in pair_node.data:
+            data_key = 'table'
+        keep_cache = data_key != ''
+
+        # Freeze pair node to prevent from rebuilding data
+        # table from the source
+        if keep_cache:
+            pair_node.is_with_cache = True
+            value = pair_node.data[data_key]
+            pair_node.data[data_key] = table
+
+        # Connect the pair node, new node, and self node
+        content = transformer.contents[0]
+        editor.add_link(content.Socket, self_socket)
+        content = transformer.contents[1]
+        editor.add_link(pair_socket, content.Socket)
+
+        # Restore the pair node state
+        if keep_cache:
+            pair_node.is_with_cache = False
+            pair_node.data[data_key] = value
+
+        editor.auto_arrange(self.node)
+
+        window.history.grouping = False
+
+        self.grab_focus()
+
+    def _clear_filter_rows(self,
+                           action:    Gio.SimpleAction,
+                           parameter: GLib.Variant,
+                           ) ->       None:
+        """"""
+        active = self.selection.current_active_cell
+
+        lcolumn = self.display.get_lcolumn_from_column(active.column)
+        lrow    = self.display.get_lrow_from_row(active.row)
+
+        table, column_name = self.document.get_table_column_by_position(lcolumn, lrow)
+
+        if not isinstance(table, DataTable):
+            return False
+
+        window = self.get_root()
+        editor = window.node_editor
+
+        window.history.grouping = True
+
+        # Find the related node content
+        contents = self.node.contents[1:-1]
+        for content in contents:
+            box = content.Widget
+            label = box.get_first_child()
+            label = label.get_label()
+            if label == table.tname:
+                break
+
+        # Find the pair socket and node
+        self_content = content
+        self_socket  = self_content.Socket
+        link         = self_socket.links[0]
+        pair_socket  = link.in_socket
+        pair_node    = pair_socket.Frame
+
+        # Modify the existing node
+        if pair_node.parent.action == 'filter-rows':
+            old_values = pair_node.do_save()
+            new_values = deepcopy(old_values)
+
+            for value in new_values:
+                if value[1] == column_name:
+                    new_values.remove(value)
+
+            from ..node.actions import ActionEditNode
+            values = (old_values, new_values)
+            action = ActionEditNode(editor, pair_node, values)
+            window.do(action)
+
+        window.history.grouping = False
+
+        self.grab_focus()
 
 from .canvas import SheetCanvas
 from .display import SheetDisplay

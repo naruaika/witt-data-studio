@@ -221,6 +221,6 @@ class NodeRenameColumns(NodeTemplate):
                         param_spec: GObject.ParamSpec,
                         ) ->        None:
             """"""
-            self.frame.data['map.exp'] = expander.get_expanded()
+            self.frame.data['map.exp'] = widget.get_expanded()
 
         expander.connect('notify::expanded', on_expanded)

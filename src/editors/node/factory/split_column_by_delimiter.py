@@ -62,7 +62,7 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
                                            ' ':  _('Space'),
                                            '\t': _('Tab'),
                                            '$':  _('Custom')}
-        self.frame.data['ct.delimiter'] = False
+        self.frame.data['delimiter.ct'] = False
         self.frame.data['n-columns']    = 0
         self.frame.data['split-ats']    = {'every': _('Every Occurrence'),
                                            'first': _('First Occurrence')}
@@ -85,7 +85,7 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
 
         options = self.frame.data['delimiters']
         is_custom = args[1] not in options
-        use_custom = self.frame.data['ct.delimiter']
+        use_custom = self.frame.data['delimiter.ct']
         box = self.frame.contents[3].Widget
         combo = box.get_first_child()
         entry = combo.get_next_sibling()
@@ -94,7 +94,7 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
             combo.set_data(option)
             entry.set_data(args[1])
             entry.set_visible(True)
-            self.frame.data['ct.delimiter'] = True
+            self.frame.data['delimiter.ct'] = True
         else:
             combo.set_data(options[args[1]])
             entry.set_visible(False)
@@ -298,7 +298,7 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
 
         def get_data() -> str:
             """"""
-            if self.frame.data['ct.delimiter']:
+            if self.frame.data['delimiter.ct']:
                 return '$'
             return self.frame.data['delimiter']
 
@@ -309,11 +309,11 @@ class NodeSplitColumnByDelimiter(NodeTemplate):
                 if value == '$':
                     value = entry.get_data()
                     self.frame.data['delimiter'] = value
-                    self.frame.data['ct.delimiter'] = True
+                    self.frame.data['delimiter.ct'] = True
                     entry.set_visible(True)
                 else:
                     self.frame.data['delimiter'] = value
-                    self.frame.data['ct.delimiter'] = False
+                    self.frame.data['delimiter.ct'] = False
                     entry.set_visible(False)
                 self.frame.do_execute(backward = False)
             take_snapshot(self, callback, value)

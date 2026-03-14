@@ -88,6 +88,28 @@ calendar grid .week-number {
     opacity: 0.5;
 }
 
+popover.menu .frame {
+    border-radius: 9px;
+}
+
+.popover-listview {
+    padding: 0;
+}
+.popover-listview row {
+    margin: 0;
+    padding: 0;
+}
+.popover-listview row checkbutton {
+    padding: 8px;
+}
+.popover-listview row checkbutton check {
+    box-shadow: 0 0 0 2px color(srgb 1 1 1 / 0.15) inset;
+}
+.popover-listview row checkbutton check:checked {
+    box-shadow: none;
+    background-color: var(--accent-bg-color);
+}
+
 .sourceview,
 .sourceview border,
 .sourceview border gutter,
@@ -104,11 +126,6 @@ calendar grid .week-number {
     padding: 2px;
     min-height: 20px;
     min-width: 20px;
-}
-
-.menu .separator.title {
-    padding-left: 12px;
-    padding-right: 12px;
 }
 
 .banner,

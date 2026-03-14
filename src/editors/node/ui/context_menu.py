@@ -20,8 +20,6 @@
 from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import Gtk
-import gc
-
 
 class NodeContextMenu(Gtk.PopoverMenu):
 
@@ -38,6 +36,6 @@ class NodeContextMenu(Gtk.PopoverMenu):
 
         def on_closed(popover: Gtk.PopoverMenu) -> None:
             """"""
-            GLib.timeout_add(1000, popover.unparent)
+            GLib.timeout_add(250, popover.unparent)
 
         self.connect('closed', on_closed)

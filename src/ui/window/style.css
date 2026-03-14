@@ -12,10 +12,10 @@
 
 .mwindow .mtabview .editor-view {
     margin: 0 2px;
+    outline: 0 solid color-mix(in srgb, var(--accent-color) 50%, transparent);
     transition-duration: 0.2s;
 }
 .mwindow .mtabview .editor-view:focus-visible {
     outline: 2px solid color-mix(in srgb, var(--accent-color) 50%, transparent);
-    transition: outline;
     transition-duration: 0.2s;
 }

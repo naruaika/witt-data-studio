@@ -160,7 +160,7 @@ class NodeFilterRows(NodeTemplate):
             return expr.str.starts_with(values[0])
 
         if operator == 'does-not-begin-with':
-            return ~expr.str.starts_with(values[0])
+            return expr.str.starts_with(values[0]).not_()
 
         if operator == 'ends-with':
             return expr.str.ends_with(values[0])
@@ -172,7 +172,7 @@ class NodeFilterRows(NodeTemplate):
             return expr.str.contains(values[0], literal = True)
 
         if operator == 'does-not-contain':
-            return ~expr.str.contains(values[0], literal = True)
+            return expr.str.contains(values[0], literal = True).not_()
 
         if operator in {'is-greater-than',
                         'is-after'}:
@@ -194,7 +194,7 @@ class NodeFilterRows(NodeTemplate):
             return expr.is_between(values[0], values[1])
 
         if operator == 'is-not-between':
-            return ~expr.is_between(values[0], values[1])
+            return expr.is_between(values[0], values[1]).not_()
 
         if operator == 'above-average':
             return expr > expr.mean()
@@ -642,6 +642,6 @@ class NodeFilterRows(NodeTemplate):
                         param_spec: GObject.ParamSpec,
                         ) ->        None:
             """"""
-            self.frame.data['clause.exp'] = expander.get_expanded()
+            self.frame.data['clause.exp'] = widget.get_expanded()
 
         expander.connect('notify::expanded', on_expanded)

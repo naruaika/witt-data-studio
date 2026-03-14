@@ -232,6 +232,6 @@ class NodeSortRows(NodeTemplate):
                         param_spec: GObject.ParamSpec,
                         ) ->        None:
             """"""
-            self.frame.data['level.exp'] = expander.get_expanded()
+            self.frame.data['level.exp'] = widget.get_expanded()
 
         expander.connect('notify::expanded', on_expanded)

@@ -44,7 +44,6 @@ class NodeDropdown(Gtk.DropDown):
         list_factory = Gtk.SignalListItemFactory()
         list_factory.connect('setup', self._setup_list_factory)
         list_factory.connect('bind', self._bind_list_factory)
-        list_factory.connect('unbind', self._unbind_list_factory)
         self.set_list_factory(list_factory)
 
         factory_bytes = GLib.Bytes.new(self._get_factory_bytes())
@@ -124,14 +123,9 @@ class NodeDropdown(Gtk.DropDown):
 
         list_item.label.set_label(label)
 
+        if list_item.handler:
+            list_item.disconnect(list_item.handler)
+
         list_item.handler = self.connect('notify::selected', on_selected)
 
         do_select()
-
-    def _unbind_list_factory(self,
-                             list_item_factory: Gtk.SignalListItemFactory,
-                             list_item:         Gtk.ListItem,
-                             ) ->               None:
-        """"""
-        if list_item.handler:
-            list_item.disconnect(list_item.handler)

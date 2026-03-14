@@ -39,6 +39,7 @@ class SheetColumnDType(Gtk.Image):
                  ) ->    None:
         """"""
         from polars import Boolean
+        from polars import Categorical
         from polars import Date
         from polars import Datetime
         from polars import Duration
@@ -52,6 +53,8 @@ class SheetColumnDType(Gtk.Image):
             icon_name = 'xxx-boolean-symbolic'
         if dtype.is_numeric():
             icon_name = 'xxx-character-whole-number-symbolic'
+        if isinstance(dtype, Categorical):
+            icon_name = 'xxx-tag-symbolic'
         if isinstance(dtype, (Date, Datetime)):
             icon_name = 'xxx-calendar-symbolic'
         if isinstance(dtype, Time):

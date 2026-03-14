@@ -18,7 +18,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from gi.repository import Gdk
-from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
 
@@ -83,6 +82,13 @@ class SheetView():
         # Define key-pressing behaviour on the main canvas
         controller = Gtk.EventControllerKey()
         controller.connect('key-pressed', self._on_canvas_key_pressed)
+        self.Canvas.add_controller(controller)
+
+        controller = Gtk.GestureDrag.new()
+        controller.set_button(Gdk.BUTTON_MIDDLE)
+        controller.connect('drag-begin', self._on_pan_begin)
+        controller.connect('drag-update', self._on_pan_update)
+        controller.connect('drag-end', self._on_pan_end)
         self.Canvas.add_controller(controller)
 
     def _on_canvas_scrolled(self,
@@ -224,6 +230,58 @@ class SheetView():
             return Gdk.EVENT_STOP
 
         return Gdk.EVENT_PROPAGATE
+
+    def _on_pan_begin(self,
+                      gesture: Gtk.GestureDrag,
+                      start_x: float,
+                      start_y: float,
+                      ) ->     None:
+        """"""
+        self.Canvas.set_cursor(Gdk.Cursor.new_from_name('grabbing', None))
+
+        vadjustment = self.VerticalScrollbar.get_adjustment()
+        hadjustment = self.HorizontalScrollbar.get_adjustment()
+
+        self._start_scroll_y = vadjustment.get_value()
+        self._start_scroll_x = hadjustment.get_value()
+
+    def _on_pan_update(self,
+                       gesture:  Gtk.GestureDrag,
+                       offset_x: float,
+                       offset_y: float,
+                       ) ->      None:
+        """"""
+        self.is_panning_canvas = True
+        self.is_refreshing_ui = True
+
+        vadjustment = self.VerticalScrollbar.get_adjustment()
+        hadjustment = self.HorizontalScrollbar.get_adjustment()
+
+        scroll_y_upper = max(0, self._start_scroll_y - offset_y + self.Canvas.get_height())
+        scroll_x_upper = max(0, self._start_scroll_x - offset_x + self.Canvas.get_width())
+
+        vadjustment.set_upper(scroll_y_upper)
+        hadjustment.set_upper(scroll_x_upper)
+
+        scroll_y_position = max(0, self._start_scroll_y - offset_y)
+        scroll_x_position = max(0, self._start_scroll_x - offset_x)
+
+        vadjustment.set_value(scroll_y_position)
+        hadjustment.set_value(scroll_x_position)
+
+        self.is_refreshing_ui = False
+
+        self.update_by_scroll()
+
+        self.Canvas.queue_draw()
+
+    def _on_pan_end(self,
+                    gesture:  Gtk.GestureDrag,
+                    offset_x: float,
+                    offset_y: float,
+                    ) ->      None:
+        """"""
+        self.Canvas.set_cursor(self.default_cursor)
 
     def _setup_scrollbars(self) -> None:
         """"""

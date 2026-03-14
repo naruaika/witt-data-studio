@@ -263,6 +263,6 @@ class NodeFillBlankValues(NodeTemplate):
                         param_spec: GObject.ParamSpec,
                         ) ->        None:
             """"""
-            self.frame.data['column.exp'] = expander.get_expanded()
+            self.frame.data['column.exp'] = widget.get_expanded()
 
         expander.connect('notify::expanded', on_expanded)

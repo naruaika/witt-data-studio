@@ -24,6 +24,7 @@ from gi.repository import Graphene
 from gi.repository import Gtk
 from typing import Any
 from typing import TypeAlias
+import gc
 import logging
 
 from ... import environment as env
@@ -183,9 +184,6 @@ class NodeFrame(Adw.Bin):
                        start_y: float,
                        ) ->     None:
         """"""
-        editor = self.get_editor()
-        editor.begin_move_selections()
-
         self._prev_offset_x = 0
         self._prev_offset_y = 0
 
@@ -225,6 +223,9 @@ class NodeFrame(Adw.Bin):
                 self.grab_focus()
 
             self.is_dragging = True
+
+            editor = self.get_editor()
+            editor.begin_move_selections()
 
     def _on_drag_end(self,
                      gesture:  Gtk.GestureDrag,
@@ -478,6 +479,8 @@ class NodeFrame(Adw.Bin):
                     content = link.out_socket.Content
                     content.do_remove(content)
                 link.unlink()
+
+        gc.collect()
 
     def compute_points(self) -> None:
         """"""

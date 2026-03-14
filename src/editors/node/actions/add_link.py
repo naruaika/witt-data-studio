@@ -101,19 +101,22 @@ class ActionAddLink(Action):
                 self.frame2.contents.insert(-1, self.new_content)
                 self.socket2 = self.new_content.Socket
 
-            if self.old_link:
-                content.is_freezing = False
-
             if self.new_data:
                 self.frame2.do_restore(self.new_data)
 
             self.new_link.link()
 
+            if self.old_link:
+                content.is_freezing = False
+
         else:
             self.new_link = NodeLink(self.socket1, self.socket2)
             self.new_link.link()
 
-            if self.socket2.auto_remove:
+            if self.old_link:
+                self.new_data = self.frame2.do_save()
+
+            if self.socket2.placeholder:
                 self.new_content = self.socket2.Content
                 self.new_data = self.frame2.do_save()
 

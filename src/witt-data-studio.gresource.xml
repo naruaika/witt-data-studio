@@ -51,6 +51,7 @@
     <file preprocess="xml-stripblanks">editors/sheet/ui/formula_bar.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/join_tables_window.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/transform_window.ui</file>
+    <file preprocess="xml-stripblanks">editors/sheet/widgets/table_filter.ui</file>
   </gresource>
 
   <gresource prefix="/com/wittara/studio/icons/scalable/actions/">
@@ -70,6 +71,7 @@
     <file preprocess="xml-stripblanks">object-select-symbolic.svg</file>
     <file preprocess="xml-stripblanks">open-menu-symbolic.svg</file>
     <file preprocess="xml-stripblanks">profit-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">regex-symbolic.svg</file>
     <file preprocess="xml-stripblanks">sidebar-show-symbolic.svg</file>
     <file preprocess="xml-stripblanks">table-symbolic.svg</file>
     <file preprocess="xml-stripblanks">up-small-symbolic.svg</file>
@@ -138,6 +140,7 @@
     <file preprocess="xml-stripblanks">xxx-sort-descending-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-sorting-a-to-z-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-split-screen-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-tag-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-text-font-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-time-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-transpose-symbolic.svg</file>

@@ -35,6 +35,11 @@ class Toolbar(Gtk.Box):
 
     HomePage                 = Gtk.Template.Child()
 
+    ClipboardSection         = Gtk.Template.Child()
+    PasteButton              = Gtk.Template.Child()
+    CutButton                = Gtk.Template.Child()
+    CopyButton               = Gtk.Template.Child()
+
     InputOutputSection       = Gtk.Template.Child()
     OpenSourceButton         = Gtk.Template.Child()
     ReadSourceButton         = Gtk.Template.Child()
@@ -66,11 +71,6 @@ class Toolbar(Gtk.Box):
     NewWorkspaceButton       = Gtk.Template.Child()
     NewViewerButton          = Gtk.Template.Child()
     NewConstantsButton       = Gtk.Template.Child()
-
-    ClipboardSection         = Gtk.Template.Child()
-    PasteButton              = Gtk.Template.Child()
-    CutButton                = Gtk.Template.Child()
-    CopyButton               = Gtk.Template.Child()
 
 #   ExecutionSection         = Gtk.Template.Child()
 #   AutoRunButton            = Gtk.Template.Child()
@@ -144,6 +144,41 @@ class Toolbar(Gtk.Box):
                     SheetEditor,
                 ),
                 [
+                    (
+                        self.ClipboardSection,
+                        (
+                            NodeEditor,
+                            ChartEditor,
+                            SheetEditor,
+                        ),
+                        [
+                            (
+                                self.PasteButton,
+                                (
+                                    NodeEditor,
+                                    ChartEditor,
+                                    SheetEditor,
+                                ),
+                            ),
+                            (
+                                self.CutButton,
+                                (
+                                    NodeEditor,
+                                    ChartEditor,
+                                    SheetEditor,
+                                ),
+                            ),
+                            (
+                                self.CopyButton,
+                                (
+                                    NodeEditor,
+                                    ChartEditor,
+                                    SheetEditor,
+                                ),
+                            ),
+                        ],
+                    ),
+
                     (
                         self.InputOutputSection,
                         (
@@ -337,40 +372,6 @@ class Toolbar(Gtk.Box):
                                 self.NewConstantsButton,
                                 (
                                     NodeEditor,
-                                ),
-                            ),
-                        ],
-                    ),
-                    (
-                        self.ClipboardSection,
-                        (
-                            NodeEditor,
-                            ChartEditor,
-                            SheetEditor,
-                        ),
-                        [
-                            (
-                                self.PasteButton,
-                                (
-                                    NodeEditor,
-                                    ChartEditor,
-                                    SheetEditor,
-                                ),
-                            ),
-                            (
-                                self.CutButton,
-                                (
-                                    NodeEditor,
-                                    ChartEditor,
-                                    SheetEditor,
-                                ),
-                            ),
-                            (
-                                self.CopyButton,
-                                (
-                                    NodeEditor,
-                                    ChartEditor,
-                                    SheetEditor,
                                 ),
                             ),
                         ],
@@ -760,7 +761,7 @@ class Toolbar(Gtk.Box):
         window = self.get_root()
         editor = window.get_selected_editor()
 
-        names = [cmd['name'] for cmd in editor.get_command_list()]
+        names = [c['name'] for c in editor.get_command_list()]
 
         for page, owners, sections in self._mapping:
             if not isinstance(editor, owners):
@@ -778,7 +779,21 @@ class Toolbar(Gtk.Box):
                     if not isinstance(editor, owners):
                         widget.set_visible(False)
                         continue
-                    widget.set_sensitive(widget.get_name() in names)
+
+                    is_active = widget.get_name() in names
+
+                    if isinstance(widget, Gtk.Actionable):
+                        action_name = widget.get_action_name()
+                        action_name = action_name.removesuffix(':disabled')
+
+                        if is_active:
+                            widget.set_action_name(action_name)
+                        else:
+                            widget.set_action_name(action_name + ':disabled')
+
+                    else:
+                        widget.set_sensitive(is_active)
+
                     widget.set_visible(True)
 
         for button in [
@@ -794,9 +809,6 @@ class Toolbar(Gtk.Box):
                      targets: list[str],
                      ) ->     None:
         """"""
-        BASE_ACTION = 'win.toolbar'
-        INSENSITIVE = f'{BASE_ACTION}.disabled'
-
         def do_update(menu:    Gio.MenuModel,
                       index:   int,
                       targets: list[str],
@@ -808,16 +820,16 @@ class Toolbar(Gtk.Box):
                 return
 
             action = action.get_string()
-            action = action.removesuffix('.disabled')
+            action = action.removesuffix(':disabled')
 
-            if action != BASE_ACTION:
+            if action != 'win.toolbar':
                 return
 
             target = menu.get_item_attribute_value(index, 'target', None)
             target = target.get_string()
 
             if target not in targets:
-                action = INSENSITIVE
+                action = action + ':disabled'
 
             item = Gio.MenuItem.new_from_model(menu, index)
             item.set_attribute_value('action', GLib.Variant.new_string(action))

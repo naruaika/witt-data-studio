@@ -711,7 +711,7 @@ class NodeEditor(Gtk.Overlay):
         """"""
         Gtk.Box.do_map(self)
 
-        def do_init_setup() -> bool:
+        def do_setup() -> bool:
             """"""
             window = self.get_root()
 
@@ -731,7 +731,7 @@ class NodeEditor(Gtk.Overlay):
 
             return Gdk.EVENT_PROPAGATE
 
-        GLib.idle_add(do_init_setup)
+        GLib.idle_add(do_setup)
 
     def do_snapshot(self,
                     snapshot: Gtk.Snapshot,

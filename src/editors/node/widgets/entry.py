@@ -116,25 +116,25 @@ class NodeEntry(Gtk.Button):
                   ) ->  None:
         """"""
         container, button, label, entry = args
-        text = entry.get_text()
+        value = entry.get_text()
 
         if isinstance(self._get_data(), (int, float)):
             try:
-                text = self._evaluator.evaluate(text)
+                value = self._evaluator.evaluate(value)
                 if isinstance(self._get_data(), int):
-                    text = int(text)
+                    value = int(value)
                 if isinstance(self._get_data(), float):
-                    text = float(text)
+                    value = float(value)
             except:
                 return
 
-        text = self._transform_text(text)
+        text = self._transform_text(value)
 
         label.set_label(text)
         container.insert_child_after(button, entry)
         entry.unparent()
 
-        self._set_data(text)
+        self._set_data(value)
 
     def _on_key_pressed(self,
                         event:   Gtk.EventControllerKey,
@@ -175,8 +175,8 @@ class NodeEntry(Gtk.Button):
                  value: str,
                  ) ->   None:
         """"""
-        value = self._transform_text(value)
+        text = self._transform_text(value)
 
         box = self.get_child()
         label = box.get_last_child()
-        label.set_label(value)
+        label.set_label(text)

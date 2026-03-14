@@ -177,7 +177,7 @@ class Window(Adw.ApplicationWindow):
         # Just want to make it explicit that I'm using this
         # action to trick the application' action lookup so
         # that the target menu items become insensitive >_<
-        disabled = Gio.SimpleAction.new('toolbar.disabled')
+        disabled = Gio.SimpleAction.new('toolbar:disabled')
         disabled.set_enabled(False)
         self.add_action(disabled)
 

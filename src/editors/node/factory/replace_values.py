@@ -210,9 +210,16 @@ class NodeReplaceValues(NodeTemplate):
                           dtype:   DataType,
                           ) ->     Expr:
         """"""
+        from polars import Boolean
         from polars import Datetime
         from polars import Date
         from polars import Time
+
+        # TODO: handle other non-alphanumeric dtypes
+
+        if dtype == Boolean:
+            from ....core.utils import toboolean
+            query = toboolean(query)
 
         if dtype == Datetime:
             from ....core.utils import todatetime
@@ -550,6 +557,6 @@ class NodeReplaceValues(NodeTemplate):
                         param_spec: GObject.ParamSpec,
                         ) ->        None:
             """"""
-            self.frame.data['column.exp'] = expander.get_expanded()
+            self.frame.data['column.exp'] = widget.get_expanded()
 
         expander.connect('notify::expanded', on_expanded)

@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from enum import Enum
+from gi.repository import Gtk
 from polars import DataType
 from polars import DataFrame
 from polars import LazyFrame
@@ -41,12 +42,6 @@ from .widgets import SheetColumnDType
 from .widgets import SheetTableFilter
 
 logger = logging.getLogger(__name__)
-
-Row:        TypeAlias = int
-Column:     TypeAlias = int
-Coordinate: TypeAlias = tuple[Row, Column]
-Tables:     TypeAlias = list[DataTable]
-Sparse:     TypeAlias = dict[Coordinate, Any]
 
 class SheetOperation(Enum):
 
@@ -80,9 +75,20 @@ class SheetDocument(Document):
         self.Canvas  = Canvas
         self.display = display
 
-        self.tables  = []
-        self.sparse  = {}
-        self.widgets = {}
+        Name:       TypeAlias = str
+        Names:      TypeAlias = list[Name]
+        Row:        TypeAlias = int
+        Column:     TypeAlias = int
+        Coordinate: TypeAlias = tuple[Row, Column]
+        Tables:     TypeAlias = list[DataTable]
+        Sparse:     TypeAlias = dict[Coordinate, Any]
+
+        self.tables:  Tables     = []
+        self.sparse:  Sparse     = {}
+        self.widgets: Gtk.Widget = {}
+
+        self.sorted:   dict[Name, Names] = {}
+        self.filtered: dict[Name, Names] = {}
 
         # I don't think the implementation of document'
         # bounding box is useful enough to improve the
@@ -247,6 +253,8 @@ class SheetDocument(Document):
                 dataframe = DataFrame({'#ERROR!': None}).head(0)
                 error_message = str(e)
 
+            # FIXME: near instantly refresh can hurt users
+
             for tindex, table in enumerate(self.tables):
                 if table is old_table:
                     self.replace_table(dataframe, tindex)
@@ -263,6 +271,9 @@ class SheetDocument(Document):
             coroutine = do_load(new_table, to_load)
             asyncio.create_task(coroutine)
 
+        if not is_lazyframe or prefer_sync:
+            on_finish(new_table)
+
         return tindex
 
     def replace_table(self,
@@ -275,11 +286,10 @@ class SheetDocument(Document):
         except:
             return SheetOperation.DO_NOTHING
 
-        column = table.bounding_box.column
-        row = table.bounding_box.row
-        column_span = dataframe.width
-        row_span = dataframe.height
-        row_span += 1 if table.with_header else 0
+        column       = table.bounding_box.column
+        row          = table.bounding_box.row
+        column_span  = dataframe.width
+        row_span     = dataframe.height + 1 if table.with_header else 0
         bounding_box = BoundingBox(column, row, column_span, row_span)
 
         self.tables[table_index] = DataTable(table.tname,
@@ -319,11 +329,11 @@ class SheetDocument(Document):
                 return
 
             tidx = self.get_table_index_by_name(table.tname)
-            new_name = unique_name(_('column'),
-                                   table.columns,
-                                   new_name  = content,
-                                   old_name  = old_name,
-                                   separator = '_')
+            new_name = unique_name(default_name = _('column'),
+                                   list_names   = table.columns,
+                                   new_name     = content,
+                                   old_name     = old_name,
+                                   separator    = '_')
             dataframe = table.rename({old_name: new_name})
             self.tables[tidx] = DataTable(table.tname,
                                           dataframe,
@@ -518,7 +528,7 @@ class SheetDocument(Document):
             widgets[0].unparent()
             del widgets[0]
 
-        for table in self.tables:
+        for tindex, table in enumerate(self.tables):
             if table.height == 0:
                 continue
             if not table.with_header:
@@ -530,8 +540,10 @@ class SheetDocument(Document):
             cschema = table.collect_schema()
             columns = table.columns
 
-            for column_index in range(table.width):
-                column = bbox.column + column_index
+            row = self.display.get_row_from_lrow(bbox.row)
+
+            for cindex in range(table.width):
+                column = bbox.column + cindex
                 column = self.display.get_column_from_lcolumn(column)
 
                 if column < 0:
@@ -539,40 +551,57 @@ class SheetDocument(Document):
 
                 x = self.display.get_cell_x_from_column(column)
 
-                dtype = cschema[columns[column_index]]
-                widget = self._create_column_dtype_widget(bbox, x, y, column, dtype)
+                dtype = cschema[columns[cindex]]
+                widget = self._create_column_dtype_widget(x, y, column, row, dtype)
                 widgets.append(widget)
                 self.Canvas.add_overlay(widget)
 
-                widget = self._create_table_filter_widget(bbox, x, y, column)
+                widget = self._create_table_filter_widget(x, y, column, row, tindex, cindex)
                 widgets.append(widget)
                 self.Canvas.add_overlay(widget)
 
     def _create_column_dtype_widget(self,
-                                    bbox:   BoundingBox,
                                     x:      int,
                                     y:      int,
                                     column: int,
+                                    row:    int,
                                     dtype:  DataType,
                                     ) ->    None:
         """"""
-        widget = SheetColumnDType(0, 0, column, bbox.row, dtype)
+        widget = SheetColumnDType(0, 0, column, row, dtype)
         widget.x = x
         widget.y = y
         return widget
 
     def _create_table_filter_widget(self,
-                                    bbox:   BoundingBox,
                                     x:      int,
                                     y:      int,
                                     column: int,
+                                    row:    int,
+                                    tindex: int,
+                                    cindex: int,
                                     ) ->    None:
         """"""
-        widget = SheetTableFilter(0, 0, column, bbox.row)
+        table = self.tables[tindex]
+
+        sorted = False
+        if table.tname in self.sorted:
+            cnames = self.sorted[table.tname]
+            cname = table.columns[cindex]
+            sorted = cname in cnames
+
+        filtered = False
+        if table.tname in self.filtered:
+            cnames = self.filtered[table.tname]
+            cname = table.columns[cindex]
+            filtered = cname in cnames
+
+        widget = SheetTableFilter(0, 0, column, row, sorted, filtered)
         x = x + self.display.get_cell_width_from_column(column)
         x = x - widget.WIDTH
         widget.x = x
         widget.y = y
+
         return widget
 
     def reposition_table_widgets(self) -> None:

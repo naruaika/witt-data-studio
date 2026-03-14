@@ -65,8 +65,8 @@ class NodeMergeColumns(NodeTemplate):
                                               ' ':  _('Space'),
                                               '\t': _('Tab'),
                                               '$':  _('Custom')}
-        self.frame.data['ct.separator']    = False
-        self.frame.data['alias'       ]    = ''
+        self.frame.data['separator.ct']    = False
+        self.frame.data['alias']           = ''
         self.frame.data['refresh-columns'] = False
         self.frame.data['column.exp']      = False
 
@@ -85,7 +85,7 @@ class NodeMergeColumns(NodeTemplate):
 
         options = self.frame.data['separators']
         is_custom = args[1] not in options
-        use_custom = self.frame.data['ct.separator']
+        use_custom = self.frame.data['separator.ct']
         box = self.frame.contents[2].Widget
         combo = box.get_first_child()
         entry = combo.get_next_sibling()
@@ -94,7 +94,7 @@ class NodeMergeColumns(NodeTemplate):
             combo.set_data(option)
             entry.set_data(args[1])
             entry.set_visible(True)
-            self.frame.data['ct.separator'] = True
+            self.frame.data['separator.ct'] = True
         else:
             combo.set_data(options[args[1]])
             entry.set_visible(False)
@@ -230,7 +230,7 @@ class NodeMergeColumns(NodeTemplate):
 
         def get_data() -> str:
             """"""
-            if self.frame.data['ct.separator']:
+            if self.frame.data['separator.ct']:
                 return '$'
             return self.frame.data['separator']
 
@@ -241,11 +241,11 @@ class NodeMergeColumns(NodeTemplate):
                 if value == '$':
                     value = entry.get_data()
                     self.frame.data['separator'] = value
-                    self.frame.data['ct.separator'] = True
+                    self.frame.data['separator.ct'] = True
                     entry.set_visible(True)
                 else:
                     self.frame.data['separator'] = value
-                    self.frame.data['ct.separator'] = False
+                    self.frame.data['separator.ct'] = False
                     entry.set_visible(False)
                 self.frame.do_execute(backward = False)
             take_snapshot(self, callback, value)
@@ -340,6 +340,6 @@ class NodeMergeColumns(NodeTemplate):
                         param_spec: GObject.ParamSpec,
                         ) ->        None:
             """"""
-            self.frame.data['column.exp'] = expander.get_expanded()
+            self.frame.data['column.exp'] = widget.get_expanded()
 
         expander.connect('notify::expanded', on_expanded)

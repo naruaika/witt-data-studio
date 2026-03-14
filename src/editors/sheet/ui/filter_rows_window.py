@@ -847,7 +847,7 @@ class SheetFilterRowsWindow(Adw.Window):
 
             list_item.label = label
             list_item.image = image
-            list_item.bind_item = None
+            list_item.handler = None
 
         def bind_factory(list_item_factory: Gtk.SignalListItemFactory,
                          list_item:         Gtk.ListItem,
@@ -872,10 +872,10 @@ class SheetFilterRowsWindow(Adw.Window):
 
             list_item.label.set_label(label)
 
-            if list_item.bind_item:
-                list_item.disconnect(list_item.bind_item)
+            if list_item.handler:
+                list_item.disconnect(list_item.handler)
 
-            list_item.bind_item = dropdown.connect('notify::selected', on_selected)
+            list_item.handler = dropdown.connect('notify::selected', on_selected)
 
             do_select()
 

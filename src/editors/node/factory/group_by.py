@@ -266,7 +266,7 @@ class NodeGroupBy(NodeTemplate):
                                   param_spec: GObject.ParamSpec,
                                   ) ->        None:
             """"""
-            self.frame.data['grouping.exp'] = expander.get_expanded()
+            self.frame.data['grouping.exp'] = widget.get_expanded()
 
         expander.connect('notify::expanded', on_groupings_expanded)
 
@@ -304,6 +304,6 @@ class NodeGroupBy(NodeTemplate):
                                      param_spec: GObject.ParamSpec,
                                      ) ->        None:
             """"""
-            self.frame.data['aggregate.exp'] = expander.get_expanded()
+            self.frame.data['aggregate.exp'] = widget.get_expanded()
 
         expander.connect('notify::expanded', on_aggregations_expanded)

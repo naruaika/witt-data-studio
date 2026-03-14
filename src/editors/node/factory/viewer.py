@@ -209,8 +209,8 @@ class NodeViewer(NodeTemplate):
             label = self_content.Widget
             title = label.get_label()
 
-            if pair_socket.data_type in self.SUPPORTED_VIEWS:
-                if not self_content.is_freezing:
+            if not self_content.is_freezing:
+                if pair_socket.data_type in self.SUPPORTED_VIEWS:
                     # Auto-generate the socket label if needed
                     titles = [
                         content.Widget.get_label()
@@ -237,6 +237,7 @@ class NodeViewer(NodeTemplate):
 
             if self_content.placeholder:
                 self_content.placeholder = False
+                self_content.Socket.placeholder = False
                 self._add_input()
 
             self.frame.do_execute(pair_socket,

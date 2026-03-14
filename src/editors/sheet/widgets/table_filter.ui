@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+
+  <menu id="menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Sort Ascending</attribute>
+        <attribute name="action">sheet.quick-sort-rows</attribute>
+        <attribute name="target">ascending</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Sort Descending</attribute>
+        <attribute name="action">sheet.quick-sort-rows</attribute>
+        <attribute name="target">descending</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Clear Sort</attribute>
+        <attribute name="action">sheet.clear-sort-rows</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="custom">filter-box</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Apply Filter</attribute>
+        <attribute name="action">sheet.quick-filter-rows</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Clear Filter</attribute>
+        <attribute name="action">sheet.clear-filter-rows</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <template class="SheetTableFilterMenu" parent="GtkPopoverMenu">
+    <property name="menu-model">menu</property>
+
+    <child type="filter-box">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkBox" id="FilterSearchBox">
+            <property name="orientation">horizontal</property>
+            <property name="spacing">3</property>
+            <child>
+              <object class="GtkEntry" id="FilterSearchEntry">
+                <property name="hexpand">true</property>
+                <property name="placeholder-text">Search...</property>
+                <property name="primary-icon-name">edit-find-symbolic</property>
+                <signal name="activate" handler="_on_filter_search_entry_activated" swapped="no" />
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="FilterUseRegExp">
+                <property name="tooltip-text" translatable="yes">Regular Expression</property>
+                <property name="icon-name">regex-symbolic</property>
+                <signal name="toggled" handler="_on_filter_regular_expression_toggled" swapped="no" />
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkScrolledWindow" id="FilterScrolledWindow">
+                <property name="vexpand">true</property>
+                <property name="width-request">280</property>
+                <property name="min-content-height">68</property>
+                <property name="max-content-height">340</property>
+                <property name="propagate-natural-height">true</property>
+                <child>
+                  <object class="GtkListView" id="FilterListView">
+                    <property name="model">
+                      <object class="GtkNoSelection" id="FilterSelection">
+                        <property name="model">
+                          <object class="GListStore" id="FilterListStore"/>
+                        </property>
+                      </object>
+                    </property>
+                    <style>
+                      <class name="popover-listview"/>
+                    </style>
+                  </object>
+                </child>
+                <style>
+                  <class name="frame"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="FilterStatus">
+                <property name="margin-top">3</property>
+                <property name="margin-start">12</property>
+                <property name="xalign">0.0</property>
+                <property name="visible">false</property>
+                <style>
+                  <class name="caption"/>
+                  <class name="dimmed"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

@@ -417,6 +417,7 @@ class SheetRenderer():
             opt_table = document.get_table_by_position(lcol_index, lrow_index)
             _is_table = (isinstance(opt_table, DataTable)        and
                          opt_table.bounding_box.row < lrow_index and
+                         not opt_table.placeholder               and
                          opt_table.with_header)
 
             if _is_table:
@@ -595,7 +596,7 @@ class SheetRenderer():
         body_font_desc = Pango.font_description_from_string(body_font_desc)
 
         from .widgets import SheetColumnDType
-        x_head_margin = SheetColumnDType.WIDTH - 7
+        x_head_margin = SheetColumnDType.WIDTH - 5
 
         layout = PangoCairo.create_layout(ccontext)
         layout.set_wrap(Pango.WrapMode.NONE)
@@ -728,10 +729,11 @@ class SheetRenderer():
                 x_text = x + display.DEFAULT_CELL_PADDING
 
                 opt_table = document.get_table_by_position(lcol_index, lrow_index)
-                if (
-                    isinstance(opt_table, DataTable)             and
-                    lrow_index - opt_table.bounding_box.row == 0 and
-                    opt_table.with_header):
+                _is_table = (isinstance(opt_table, DataTable)             and
+                             lrow_index - opt_table.bounding_box.row == 0 and
+                             not opt_table.placeholder                    and
+                             opt_table.with_header)
+                if _is_table:
                     x_text += x_head_margin
 
                 ccontext.move_to(x_text, y + 2)
