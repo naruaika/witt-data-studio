@@ -276,7 +276,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                         [
                             _('Search Options'),
                             _('The options below apply only to text columns. '
-                            'Exact match always applies to non-text columns.'),
+                              'Exact match always applies to non-text columns.'),
                         ],
                         'list-check:collapsed:indexed',
                         [
@@ -289,7 +289,7 @@ def get_layout(action_name: str) -> tuple[str, list]:
                         [
                             _('Search On'),
                             _('Select column(s) to search for the value of. '
-                            'Leave blank to search all columns.'),
+                              'Leave blank to search all columns.'),
                         ],
                         'list-check:collapsed',
                         '$all-columns',

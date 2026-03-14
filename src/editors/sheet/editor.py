@@ -153,12 +153,7 @@ class SheetEditor(Gtk.Box):
 
         variables = {}
 
-        active = self.selection.current_active_cell
-
-        lcolumn = self.display.get_lcolumn_from_column(active.column)
-        lrow    = self.display.get_lrow_from_row(active.row)
-
-        table, column_name = self.document.get_table_column_by_position(lcolumn, lrow)
+        table, column_name = self._get_active_table_context()
         table_focus = isinstance(table, DataTable) and not table.placeholder
 
         n_tables = len(self.document.tables)
@@ -822,12 +817,7 @@ class SheetEditor(Gtk.Box):
 
         from ...core.utils import print_timedelta
 
-        active = self.selection.current_active_cell
-
-        lcolumn = self.display.get_lcolumn_from_column(active.column)
-        lrow    = self.display.get_lrow_from_row(active.row)
-
-        table = self.document.get_table_by_position(lcolumn, lrow)
+        table = self._get_active_table_context(with_column = False)
 
         cell_data = self.selection.current_cell_data
 
@@ -1012,82 +1002,20 @@ class SheetEditor(Gtk.Box):
                          func_args: list[Any] = [],
                          ) ->       None:
         """"""
-        active = self.selection.current_active_cell
-
-        lcolumn = self.display.get_lcolumn_from_column(active.column)
-        lrow    = self.display.get_lrow_from_row(active.row)
-
-        table, column_name = self.document.get_table_column_by_position(lcolumn, lrow)
+        table, column_name = self._get_active_table_context()
 
         if not isinstance(table, DataTable):
             return False
 
         window = self.get_root()
-        editor = window.node_editor
 
         def do_transform(func_args: list[Any] = [],
                          **kwargs:  dict,
                          ) ->       bool:
             """"""
             window.history.grouping = True
-
-            # Find the related node content
-            contents = self.node.contents[1:-1]
-            for content in contents:
-                box = content.Widget
-                label = box.get_first_child()
-                label = label.get_label()
-                if label == table.tname:
-                    break
-
-            # Find the pair node and socket
-            self_content = content
-            self_socket  = self_content.Socket
-            link         = self_socket.links[0]
-            pair_socket  = link.in_socket
-            pair_node    = pair_socket.Frame
-
-            # Create a new appropriate node
-            x = self.node.x - 175 - 50
-            y = pair_node.y
-            transformer = editor.create_new_node(func_name, x, y)
-            transformer.set_data(*func_args)
-            editor.add_node(transformer)
-            editor.select_by_click(transformer)
-
-            # Manipulate so that the transformer node seem to
-            # be reconnected to the sheet node
-            self_content.node_uid = id(transformer)
-
-            data_key = ''
-            if 'value' in pair_node.data:
-                data_key = 'value'
-            if 'table' in pair_node.data:
-                data_key = 'table'
-            keep_cache = data_key != ''
-
-            # Freeze pair node to prevent from rebuilding data
-            # table from the source
-            if keep_cache:
-                pair_node.is_with_cache = True
-                value = pair_node.data[data_key]
-                pair_node.data[data_key] = table
-
-            # Connect the pair node, new node, and self node
-            content = transformer.contents[0]
-            editor.add_link(content.Socket, self_socket)
-            content = transformer.contents[1]
-            editor.add_link(pair_socket, content.Socket)
-
-            # Restore the pair node state
-            if keep_cache:
-                pair_node.is_with_cache = False
-                pair_node.data[data_key] = value
-
-            editor.auto_arrange(self.node)
-
+            self._insert_transformer_node(func_name, func_args, table)
             window.history.grouping = False
-
             self.grab_focus()
 
         from .ui.transform_layout import get_layout
@@ -1168,12 +1096,7 @@ class SheetEditor(Gtk.Box):
 
     def _filter_rows(self) -> None:
         """"""
-        active = self.selection.current_active_cell
-
-        lcolumn = self.display.get_lcolumn_from_column(active.column)
-        lrow    = self.display.get_lrow_from_row(active.row)
-
-        table = self.document.get_table_by_position(lcolumn, lrow)
+        table = self._get_active_table_context(with_column = False)
 
         table_schema = table.collect_schema()
 
@@ -1181,71 +1104,14 @@ class SheetEditor(Gtk.Box):
             return False
 
         window = self.get_root()
-        editor = window.node_editor
 
         def do_transform(func_args: list[Any] = [],
                          **kwargs:  dict,
                          ) ->       bool:
             """"""
             window.history.grouping = True
-
-            # Find the related node content
-            contents = self.node.contents[1:-1]
-            for content in contents:
-                box = content.Widget
-                label = box.get_first_child()
-                label = label.get_label()
-                if label == table.tname:
-                    break
-
-            # Find the pair node and socket
-            self_content = content
-            self_socket  = self_content.Socket
-            link         = self_socket.links[0]
-            pair_socket  = link.in_socket
-            pair_node    = pair_socket.Frame
-
-            # Create a new appropriate node
-            x = self.node.x - 175 - 50
-            y = pair_node.y
-            transformer = editor.create_new_node('filter-rows', x, y)
-            transformer.set_data(*func_args)
-            editor.add_node(transformer)
-            editor.select_by_click(transformer)
-
-            # Manipulate so that the transformer node seem to
-            # be reconnected to the sheet node
-            self_content.node_uid = id(transformer)
-
-            data_key = ''
-            if 'value' in pair_node.data:
-                data_key = 'value'
-            if 'table' in pair_node.data:
-                data_key = 'table'
-            keep_cache = data_key != ''
-
-            # Freeze pair node to prevent from rebuilding data
-            # table from the source
-            if keep_cache:
-                pair_node.is_with_cache = True
-                value = pair_node.data[data_key]
-                pair_node.data[data_key] = table
-
-            # Connect the pair node, new node, and self node
-            content = transformer.contents[0]
-            editor.add_link(content.Socket, self_socket)
-            content = transformer.contents[1]
-            editor.add_link(pair_socket, content.Socket)
-
-            # Restore the pair node state
-            if keep_cache:
-                pair_node.is_with_cache = False
-                pair_node.data[data_key] = value
-
-            editor.auto_arrange(self.node)
-
+            self._insert_transformer_node('filter-rows', func_args, table)
             window.history.grouping = False
-
             self.grab_focus()
 
         subtitle = f'{table.tname} @ {self.title}'
@@ -1262,12 +1128,7 @@ class SheetEditor(Gtk.Box):
 
     def _join_tables(self) -> None:
         """"""
-        active = self.selection.current_active_cell
-
-        lcolumn = self.display.get_lcolumn_from_column(active.column)
-        lrow    = self.display.get_lrow_from_row(active.row)
-
-        table = self.document.get_table_by_position(lcolumn, lrow)
+        table = self._get_active_table_context(with_column = False)
 
         if not isinstance(table, DataTable):
             return False
@@ -1286,15 +1147,6 @@ class SheetEditor(Gtk.Box):
             how, order = func_args
 
             window.history.grouping = True
-
-            # Find the related node content
-            contents = self.node.contents[1:-1]
-            for content in contents:
-                box = content.Widget
-                label = box.get_first_child()
-                label = label.get_label()
-                if label == table.tname:
-                    break
 
             # Find all the pair nodes
             sheet1 = self._find_sheet_node_by_address(ltname)
@@ -1428,61 +1280,18 @@ class SheetEditor(Gtk.Box):
 
     def _write_custom_formula(self) -> None:
         """"""
-        active = self.selection.current_active_cell
-
-        lcolumn = self.display.get_lcolumn_from_column(active.column)
-        lrow    = self.display.get_lrow_from_row(active.row)
-
-        table = self.document.get_table_by_position(lcolumn, lrow)
+        table = self._get_active_table_context(with_column = False)
 
         if not isinstance(table, DataTable):
             return False
 
         window = self.get_root()
-        editor = window.node_editor
 
         def do_transform(formula: str) -> None:
             """"""
             window.history.grouping = True
-
-            # Find the related node content
-            contents = self.node.contents[1:-1]
-            for content in contents:
-                box = content.Widget
-                label = box.get_first_child()
-                label = label.get_label()
-                if label == table.tname:
-                    break
-
-            # Find the pair node and socket
-            self_content = content
-            self_socket  = self_content.Socket
-            link         = self_socket.links[0]
-            pair_socket  = link.in_socket
-            pair_node    = pair_socket.Frame
-
-            # Create a new appropriate node
-            x = self.node.x - 175 - 50
-            y = pair_node.y
-            transformer = editor.create_new_node('custom-formula', x, y)
-            transformer.set_data(formula)
-            editor.add_node(transformer)
-            editor.select_by_click(transformer)
-
-            # Manipulate so that the transformer node seem to
-            # be reconnected to the sheet node
-            self_content.node_uid = id(transformer)
-
-            # Connect the pair node, new node, and self node
-            content = transformer.contents[0]
-            editor.add_link(content.Socket, self_socket)
-            content = transformer.contents[1]
-            editor.add_link(pair_socket, content.Socket)
-
-            editor.auto_arrange(self.node)
-
+            self._insert_transformer_node('custom-formula', [formula], table)
             window.history.grouping = False
-
             self.grab_focus()
 
         application = window.get_application()
@@ -1535,12 +1344,7 @@ class SheetEditor(Gtk.Box):
                          parameter: GLib.Variant,
                          ) ->       None:
         """"""
-        active = self.selection.current_active_cell
-
-        lcolumn = self.display.get_lcolumn_from_column(active.column)
-        lrow    = self.display.get_lrow_from_row(active.row)
-
-        table, column_name = self.document.get_table_column_by_position(lcolumn, lrow)
+        table, column_name = self._get_active_table_context()
 
         direction = parameter.get_string()
 
@@ -1587,43 +1391,8 @@ class SheetEditor(Gtk.Box):
 
         # Create a new appropriate node
         else:
-            x = self.node.x - 175 - 50
-            y = pair_node.y
-            sorter = editor.create_new_node('sort-rows', x, y)
-            sorter.set_data([[column_name, direction]])
-            editor.add_node(sorter)
-            editor.select_by_click(sorter)
-
-            # Manipulate so that the transformer node seem to
-            # be reconnected to the sheet node
-            self_content.node_uid = id(sorter)
-
-            data_key = ''
-            if 'value' in pair_node.data:
-                data_key = 'value'
-            if 'table' in pair_node.data:
-                data_key = 'table'
-            keep_cache = data_key != ''
-
-            # Freeze pair node to prevent from rebuilding data
-            # table from the source
-            if keep_cache:
-                pair_node.is_with_cache = True
-                value = pair_node.data[data_key]
-                pair_node.data[data_key] = table
-
-            # Connect the pair node, new node, and self node
-            content = sorter.contents[0]
-            editor.add_link(content.Socket, self_socket)
-            content = sorter.contents[1]
-            editor.add_link(pair_socket, content.Socket)
-
-            # Restore the pair node state
-            if keep_cache:
-                pair_node.is_with_cache = False
-                pair_node.data[data_key] = value
-
-            editor.auto_arrange(self.node)
+            func_args = [[[column_name, direction]]]
+            self._insert_transformer_node('sort-rows', func_args, table)
 
         window.history.grouping = False
 
@@ -1634,12 +1403,7 @@ class SheetEditor(Gtk.Box):
                          parameter: GLib.Variant,
                          ) ->       None:
         """"""
-        active = self.selection.current_active_cell
-
-        lcolumn = self.display.get_lcolumn_from_column(active.column)
-        lrow    = self.display.get_lrow_from_row(active.row)
-
-        table, column_name = self.document.get_table_column_by_position(lcolumn, lrow)
+        table, column_name = self._get_active_table_context()
 
         if not isinstance(table, DataTable):
             return False
@@ -1688,12 +1452,7 @@ class SheetEditor(Gtk.Box):
                            values: Series,
                            ) ->    None:
         """"""
-        active = self.selection.current_active_cell
-
-        lcolumn = self.display.get_lcolumn_from_column(active.column)
-        lrow    = self.display.get_lrow_from_row(active.row)
-
-        table, column_name = self.document.get_table_column_by_position(lcolumn, lrow)
+        table, column_name = self._get_active_table_context()
 
         if not isinstance(table, DataTable):
             return False
@@ -1703,67 +1462,9 @@ class SheetEditor(Gtk.Box):
             func_args.append(['or', column_name, 'equals', value])
 
         window = self.get_root()
-        editor = window.node_editor
-
         window.history.grouping = True
-
-        # Find the related node content
-        contents = self.node.contents[1:-1]
-        for content in contents:
-            box = content.Widget
-            label = box.get_first_child()
-            label = label.get_label()
-            if label == table.tname:
-                break
-
-        # Find the pair socket and node
-        self_content = content
-        self_socket  = self_content.Socket
-        link         = self_socket.links[0]
-        pair_socket  = link.in_socket
-        pair_node    = pair_socket.Frame
-
-        # Create a new appropriate node
-        x = self.node.x - 175 - 50
-        y = pair_node.y
-        transformer = editor.create_new_node('filter-rows', x, y)
-        transformer.set_data(*func_args)
-        editor.add_node(transformer)
-        editor.select_by_click(transformer)
-
-        # Manipulate so that the transformer node seem to
-        # be reconnected to the sheet node
-        self_content.node_uid = id(transformer)
-
-        data_key = ''
-        if 'value' in pair_node.data:
-            data_key = 'value'
-        if 'table' in pair_node.data:
-            data_key = 'table'
-        keep_cache = data_key != ''
-
-        # Freeze pair node to prevent from rebuilding data
-        # table from the source
-        if keep_cache:
-            pair_node.is_with_cache = True
-            value = pair_node.data[data_key]
-            pair_node.data[data_key] = table
-
-        # Connect the pair node, new node, and self node
-        content = transformer.contents[0]
-        editor.add_link(content.Socket, self_socket)
-        content = transformer.contents[1]
-        editor.add_link(pair_socket, content.Socket)
-
-        # Restore the pair node state
-        if keep_cache:
-            pair_node.is_with_cache = False
-            pair_node.data[data_key] = value
-
-        editor.auto_arrange(self.node)
-
+        self._insert_transformer_node('filter-rows', func_args, table)
         window.history.grouping = False
-
         self.grab_focus()
 
     def _clear_filter_rows(self,
@@ -1771,12 +1472,7 @@ class SheetEditor(Gtk.Box):
                            parameter: GLib.Variant,
                            ) ->       None:
         """"""
-        active = self.selection.current_active_cell
-
-        lcolumn = self.display.get_lcolumn_from_column(active.column)
-        lrow    = self.display.get_lrow_from_row(active.row)
-
-        table, column_name = self.document.get_table_column_by_position(lcolumn, lrow)
+        table, column_name = self._get_active_table_context()
 
         if not isinstance(table, DataTable):
             return False
@@ -1807,7 +1503,7 @@ class SheetEditor(Gtk.Box):
             old_values = pair_node.do_save()
             new_values = deepcopy(old_values)
 
-            for value in new_values:
+            for value in old_values:
                 if value[1] == column_name:
                     new_values.remove(value)
 
@@ -1819,6 +1515,79 @@ class SheetEditor(Gtk.Box):
         window.history.grouping = False
 
         self.grab_focus()
+
+    def _get_active_table_context(self,
+                                  with_column: bool = True,
+                                  ) ->         Any:
+        """"""
+        active = self.selection.current_active_cell
+
+        lcolumn = self.display.get_lcolumn_from_column(active.column)
+        lrow    = self.display.get_lrow_from_row(active.row)
+
+        if with_column:
+            return self.document.get_table_column_by_position(lcolumn, lrow)
+        return self.document.get_table_by_position(lcolumn, lrow)
+
+    def _insert_transformer_node(self,
+                                 func_name: str,
+                                 func_args: Any,
+                                 table:     DataTable,
+                                 ) ->       None:
+        """"""
+        window = self.get_root()
+        editor = window.node_editor
+
+        # Find the related node content
+        contents = self.node.contents[1:-1]
+        for content in contents:
+            box = content.Widget
+            label = box.get_first_child()
+            label = label.get_label()
+            if label == table.tname:
+                break
+
+        # Find the pair node and socket
+        self_content = content
+        self_socket  = self_content.Socket
+        link         = self_socket.links[0]
+        pair_socket  = link.in_socket
+        pair_node    = pair_socket.Frame
+
+        # Create a new appropriate node
+        x = self.node.x - 175 - 50
+        y = pair_node.y
+        transformer = editor.create_new_node(func_name, x, y)
+        transformer.set_data(*func_args)
+        editor.add_node(transformer)
+        editor.select_by_click(transformer)
+
+        # Manipulate so that the transformer node seem to
+        # be reconnected to the sheet node
+        self_content.node_uid = id(transformer)
+
+        data_key = next((k for k in ('value', 'table') if k in pair_node.data), '')
+        keep_cache = bool(data_key)
+
+        # Freeze pair node to prevent from rebuilding data
+        # table from the source
+        if keep_cache:
+            pair_node.is_with_cache = True
+            value = pair_node.data[data_key]
+            pair_node.data[data_key] = table
+
+        # Connect the pair node, new node, and self node
+        content = transformer.contents[0]
+        editor.add_link(content.Socket, self_socket)
+        content = transformer.contents[1]
+        editor.add_link(pair_socket, content.Socket)
+
+        # Restore the pair node state
+        if keep_cache:
+            pair_node.is_with_cache = False
+            pair_node.data[data_key] = value
+
+        editor.auto_arrange(self.node)
 
 from .canvas import SheetCanvas
 from .display import SheetDisplay
