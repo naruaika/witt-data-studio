@@ -16,7 +16,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from copy import deepcopy
+from copy          import deepcopy
 from gi.repository import Gtk
 from gi.repository import Pango
 

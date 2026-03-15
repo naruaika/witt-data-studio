@@ -18,7 +18,7 @@
 
 from gi.repository import Gio
 from gi.repository import Gtk
-from typing import Any
+from typing        import Any
 
 class FileDialog():
 

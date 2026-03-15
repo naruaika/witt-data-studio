@@ -19,10 +19,11 @@
 from gi.repository import GLib
 
 from .... import environment as env
+
 from ....core.action import Action
 
 from ..editor import NodeEditor
-from ..link import NodeLink
+from ..link   import NodeLink
 from ..socket import NodeSocket
 
 class ActionAddLink(Action):

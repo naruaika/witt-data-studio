@@ -16,20 +16,20 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from fastexcel import ExcelReader
-from gi.repository import Adw
-from gi.repository import Gdk
-from gi.repository import GLib
-from gi.repository import GObject
-from gi.repository import Gtk
-from gi.repository import Pango
+from fastexcel       import ExcelReader
+from gi.repository   import Adw
+from gi.repository   import Gdk
+from gi.repository   import GLib
+from gi.repository   import GObject
+from gi.repository   import Gtk
+from gi.repository   import Pango
 from multiprocessing import Process
 from multiprocessing import Queue
-from polars import DataFrame
+from polars          import DataFrame
 
 from ...core.constants import *
-from ...core.utils import get_file_format
-from ...backend.file import File
+from ...core.utils     import get_file_format
+from ...backend.file   import File
 
 def load_excel_file(excel_reader: ExcelReader,
                     output_queue: Queue,
@@ -193,7 +193,7 @@ class FileImportWindow(Adw.Window):
 
     def _setup_properties_box(self) -> None:
         """"""
-        from os import stat
+        from os       import stat
         from datetime import datetime
 
         file_stats = stat(self.file_path)

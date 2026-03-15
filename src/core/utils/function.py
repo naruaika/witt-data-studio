@@ -25,7 +25,7 @@ def throttle(seconds):
     def decorator(func):
         """"""
         from functools import wraps
-        from time import time
+        from time      import time
 
         @wraps(func)
         def wrapper(*args, **kwargs):

@@ -18,7 +18,7 @@
 
 from gi.repository import Gtk
 from gi.repository import Pango
-from os.path import basename
+from os.path       import basename
 
 @Gtk.Template(resource_path = '/com/wittara/studio/ui/toolbar/popover_recent_files.ui')
 class RecentFilesPopover(Gtk.Popover):

@@ -16,7 +16,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from copy import deepcopy
+from copy          import deepcopy
 from gi.repository import Adw
 from gi.repository import Gdk
 from gi.repository import Gio
@@ -25,11 +25,10 @@ from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import GtkSource
 from gi.repository import Pango
-from keyring import delete_password
-from keyring import get_password
-from keyring import set_password
-from polars import DataFrame
-import gc
+from keyring       import delete_password
+from keyring       import get_password
+from keyring       import set_password
+from polars        import DataFrame
 
 from ...core.utils import generate_uuid
 

@@ -20,7 +20,8 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import Gtk
 from gi.repository import Pango
-from typing import Any
+from typing        import Any
+
 import datetime
 
 from ....ui.time_picker import TimePicker

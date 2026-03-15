@@ -16,7 +16,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from enum import Enum
+from enum  import Enum
 from numpy import array as narray
 from numpy import ndarray
 

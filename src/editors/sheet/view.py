@@ -20,9 +20,9 @@ from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import Gtk
 
-from .canvas import SheetCanvas
-from .display import SheetDisplay
-from .document import SheetDocument
+from .canvas    import SheetCanvas
+from .display   import SheetDisplay
+from .document  import SheetDocument
 from .selection import SheetSelection
 
 class SheetView():

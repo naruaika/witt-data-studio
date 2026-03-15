@@ -16,35 +16,36 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from copy import deepcopy
+from copy          import deepcopy
 from gi.repository import Gdk
 from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
-from polars import LazyFrame
-from polars import Series
-from polars import Float32
-from polars import Float64
-from polars import Int8
-from polars import Int16
-from polars import Int32
-from polars import Int64
-from polars import String
-from polars import UInt8
-from polars import UInt16
-from polars import UInt32
-from polars import UInt64
-from polars import Date
-from polars import Time
-from polars import Datetime
-from polars import Duration
-from typing import Any
+from polars        import LazyFrame
+from polars        import Series
+from polars        import Float32
+from polars        import Float64
+from polars        import Int8
+from polars        import Int16
+from polars        import Int32
+from polars        import Int64
+from polars        import String
+from polars        import UInt8
+from polars        import UInt16
+from polars        import UInt32
+from polars        import UInt64
+from polars        import Date
+from polars        import Time
+from polars        import Datetime
+from polars        import Duration
+from typing        import Any
+
 import gc
 
-from ...core.construct import *
+from ...core.construct    import *
 from ...core.models.table import DataTable
-from ..node.frame import NodeFrame
+from ..node.frame         import NodeFrame
 
 FLOAT_TYPES    = {Float32, Float64}
 INTEGER_TYPES  = {Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64}

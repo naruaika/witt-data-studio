@@ -20,20 +20,21 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import Gtk
 from gi.repository import Pango
+
 import gc
 import logging
 
 from ._template import NodeTemplate
-from ._utils import isreconnected
+from ._utils    import isreconnected
 
 from ....core.construct import Sheet
-from ....core.utils import unique_name
+from ....core.utils     import unique_name
 
 from ..content import NodeContent
-from ..frame import NodeFrame
-from ..frame import NodeFrameType
-from ..socket import NodeSocket
-from ..socket import NodeSocketType
+from ..frame   import NodeFrame
+from ..frame   import NodeFrameType
+from ..socket  import NodeSocket
+from ..socket  import NodeSocketType
 
 logger = logging.getLogger(__name__)
 

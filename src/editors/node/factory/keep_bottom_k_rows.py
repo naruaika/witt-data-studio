@@ -16,19 +16,20 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from copy import deepcopy
+from copy          import deepcopy
 from gi.repository import GObject
 from gi.repository import Gtk
+
 import logging
 
 from ._template import NodeTemplate
-from ._utils import isdatatable
-from ._utils import take_snapshot
+from ._utils    import isdatatable
+from ._utils    import take_snapshot
 
 from ..content import NodeContent
-from ..frame import NodeFrame
-from ..socket import NodeSocket
-from ..socket import NodeSocketType
+from ..frame   import NodeFrame
+from ..socket  import NodeSocket
+from ..socket  import NodeSocketType
 from ..widgets import NodeCheckGroup
 from ..widgets import NodeLabel
 from ..widgets import NodeSpinButton

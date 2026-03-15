@@ -18,7 +18,7 @@
 
 from typing import TypeAlias
 
-from ...core.models.chart import DataChart
+from ...core.models.chart    import DataChart
 from ...core.models.document import Document
 
 Charts: TypeAlias = list[DataChart]

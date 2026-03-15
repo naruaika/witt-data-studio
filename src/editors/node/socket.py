@@ -16,11 +16,11 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from enum import Enum
+from enum          import Enum
 from gi.repository import Gdk
 from gi.repository import Graphene
 from gi.repository import Gtk
-from typing import Any
+from typing        import Any
 
 class NodeSocketType(Enum):
 

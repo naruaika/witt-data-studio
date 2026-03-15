@@ -17,14 +17,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from __future__ import annotations
-from datetime import datetime
-from datetime import date
-from datetime import time
-from difflib import get_close_matches
-from functools import reduce
-from logging import error
-from sys import executable
-from typing import Any
+from datetime   import datetime
+from datetime   import date
+from datetime   import time
+from difflib    import get_close_matches
+from functools  import reduce
+from logging    import error
+from sys        import executable
+from typing     import Any
+
 import ast
 import numpy
 import operator

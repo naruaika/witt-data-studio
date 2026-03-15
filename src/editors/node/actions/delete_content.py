@@ -17,11 +17,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from .... import environment as env
+
 from ....core.action import Action
 
 from ..content import NodeContent
-from ..editor import NodeEditor
-from ..frame import NodeFrame
+from ..editor  import NodeEditor
+from ..frame   import NodeFrame
 
 class ActionDeleteContent(Action):
 

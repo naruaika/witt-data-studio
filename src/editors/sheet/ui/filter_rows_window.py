@@ -16,11 +16,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from polars import DataType
+from polars        import DataType
 from gi.repository import Adw
 from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import Gtk
+
 import datetime
 import gc
 import polars

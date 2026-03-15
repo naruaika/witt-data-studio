@@ -17,22 +17,23 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from gi.repository import Gtk
+
 import gc
 import logging
 
 from ._template import NodeTemplate
-from ._utils import iscompatible
-from ._utils import isdatatable
-from ._utils import isreconnected
-from ._utils import take_snapshot
+from ._utils    import iscompatible
+from ._utils    import isdatatable
+from ._utils    import isreconnected
+from ._utils    import take_snapshot
 
 from ....core.construct import Sheet
-from ....core.utils import unique_name
+from ....core.utils     import unique_name
 
 from ..content import NodeContent
-from ..frame import NodeFrame
-from ..socket import NodeSocket
-from ..socket import NodeSocketType
+from ..frame   import NodeFrame
+from ..socket  import NodeSocket
+from ..socket  import NodeSocketType
 from ..widgets import NodeLabel
 from ..widgets import NodeSpinButton
 

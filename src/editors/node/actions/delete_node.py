@@ -16,15 +16,17 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from copy import copy
+from copy          import copy
 from gi.repository import GLib
+
 import gc
 
 from .... import environment as env
+
 from ....core.action import Action
 
 from ..editor import NodeEditor
-from ..frame import NodeFrame
+from ..frame  import NodeFrame
 
 class ActionDeleteNode(Action):
 

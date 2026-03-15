@@ -23,6 +23,7 @@ from gi.repository import Gio
 from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Pango
+
 import logging
 
 logger = logging.getLogger(__name__)

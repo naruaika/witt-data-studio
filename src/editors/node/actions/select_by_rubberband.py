@@ -19,10 +19,10 @@
 from copy import copy
 
 from .... import environment as env
+
 from ....core.action import Action
 
 from ..editor import NodeEditor
-from ..frame import NodeFrame
 
 class ActionSelectByRubberband(Action):
 

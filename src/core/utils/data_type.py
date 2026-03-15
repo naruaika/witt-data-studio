@@ -19,8 +19,8 @@
 from datetime import datetime
 from datetime import date
 from datetime import time
-from decimal import Decimal
-from typing import Any
+from decimal  import Decimal
+from typing   import Any
 
 def get_dtype(value: Any) -> str:
     """"""

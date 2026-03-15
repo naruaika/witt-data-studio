@@ -17,7 +17,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from gi.repository import Gtk
-from polars import DataType
+from polars        import DataType
 
 class SheetColumnDType(Gtk.Image):
 

@@ -16,14 +16,14 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from cairo import Antialias
-from cairo import Context
-from cairo import FontOptions
+from cairo         import Antialias
+from cairo         import Context
+from cairo         import FontOptions
 from gi.repository import Adw
 from gi.repository import Graphene
 from gi.repository import Gtk
 
-from .display import ChartDisplay
+from .display  import ChartDisplay
 from .document import ChartDocument
 
 class ChartRenderer():

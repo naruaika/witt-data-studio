@@ -22,7 +22,8 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Pango
-from typing import Any
+from typing        import Any
+
 import json
 
 from ....core.utils import isiterable

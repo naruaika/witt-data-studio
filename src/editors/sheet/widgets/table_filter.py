@@ -24,8 +24,9 @@ from gi.repository import GObject
 from gi.repository import Graphene
 from gi.repository import Gtk
 from gi.repository import Pango
-from polars import DataFrame
-from polars import Series
+from polars        import DataFrame
+from polars        import Series
+
 import math
 
 class SheetTableFilter(Gtk.Widget):

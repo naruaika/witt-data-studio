@@ -63,5 +63,5 @@ class ChartCanvas(Gtk.Overlay):
         editor = self.get_parent()
         return editor
 
-from .editor import ChartEditor
+from .editor   import ChartEditor
 from .renderer import ChartRenderer

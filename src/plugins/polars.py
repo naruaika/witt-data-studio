@@ -16,9 +16,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from polars import Expr
+from polars     import Expr
 from polars.api import register_expr_namespace
-from warnings import deprecated
+from warnings   import deprecated
 
 import witt_strutil as strx
 

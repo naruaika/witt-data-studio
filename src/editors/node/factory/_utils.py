@@ -23,7 +23,7 @@ from ._template import NodeTemplate
 from ....core.utils import isiterable
 
 from ..content import NodeContent
-from ..socket import NodeSocket
+from ..socket  import NodeSocket
 
 def iscompatible(pair_socket:  NodeSocket,
                  self_content: NodeContent,
@@ -130,10 +130,7 @@ def deserialize_data(obj) -> Any:
         return obj
 
     if isinstance(obj, dict):
-        return {
-            key: deserialize_data(value)
-                 for key, value in obj.items()
-        }
+        return {key: deserialize_data(value) for key, value in obj.items()}
 
     if isinstance(obj, list):
         return [deserialize_data(item) for item in obj]

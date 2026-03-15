@@ -16,14 +16,15 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from argparse import ArgumentParser
+from argparse      import ArgumentParser
 from gi.repository import Adw
 from gi.repository import Gdk
 from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
-from typing import Callable
+from typing        import Callable
+
 import logging
 
 from .ui.window.widget import Window
@@ -289,11 +290,11 @@ class Application(Adw.Application):
         GObject.type_register(GtkSource.View)
         GObject.type_register(WebKit.WebView)
 
-        from .ui.status_bar.widget import StatusBar
-        from .ui.toolbar.widget import Toolbar
-        from .editors.node.canvas import NodeCanvas
-        from .editors.node.ui.minimap import NodeMinimap
-        from .editors.sheet.canvas import SheetCanvas
+        from .ui.status_bar.widget         import StatusBar
+        from .ui.toolbar.widget            import Toolbar
+        from .editors.node.canvas          import NodeCanvas
+        from .editors.node.ui.minimap      import NodeMinimap
+        from .editors.sheet.canvas         import SheetCanvas
         from .editors.sheet.ui.formula_bar import SheetFormulaBar
         GObject.type_register(StatusBar)
         GObject.type_register(Toolbar)
@@ -359,9 +360,9 @@ class Application(Adw.Application):
                             on_startup: bool = False,
                             ) ->        None:
         """"""
-        from .backend.file import File
+        from .backend.file       import File
         from .editors.node.frame import NodeFrame
-        from .editors.node.link import NodeLink
+        from .editors.node.link  import NodeLink
 
         content: dict = File.read(file_path)
 
@@ -453,8 +454,8 @@ class Application(Adw.Application):
                                   ) ->       None:
         """"""
         from .editors.node.content import NodeContent
-        from .editors.node.frame import NodeFrame
-        from .editors.node.link import NodeLink
+        from .editors.node.frame   import NodeFrame
+        from .editors.node.link    import NodeLink
 
         for schema in schemas:
             logger.debug(f'Creating node link from schema: {schema}')
@@ -521,7 +522,7 @@ class Application(Adw.Application):
                          window: Window,
                          ) ->    dict:
         """"""
-        from time import strftime
+        from time   import strftime
         from locale import getlocale
 
         from .editors.node.factory import NodeViewer

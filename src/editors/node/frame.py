@@ -16,13 +16,14 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from enum import Enum
+from enum          import Enum
 from gi.repository import Adw
 from gi.repository import Gdk
 from gi.repository import Graphene
 from gi.repository import Gtk
-from typing import Any
-from typing import TypeAlias
+from typing        import Any
+from typing        import TypeAlias
+
 import gc
 import logging
 

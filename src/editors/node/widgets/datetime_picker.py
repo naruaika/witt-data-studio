@@ -17,6 +17,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from gi.repository import Gtk
+
 import datetime
 
 from .date_picker import *

@@ -22,8 +22,8 @@
 
 from gi.repository import Gdk
 from gi.repository import Gtk
-from typing import Literal
-from typing import TypeAlias
+from typing        import Literal
+from typing        import TypeAlias
 
 from ...core.models.table import DataTable
 

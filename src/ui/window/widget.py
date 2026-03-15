@@ -22,18 +22,19 @@ from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
-from typing import TypeAlias
+from typing        import TypeAlias
+
 import logging
 
-from ...core.action import Action
+from ...core.action  import Action
 from ...core.history import History
 
-from ...editors.node.editor import NodeEditor
+from ...editors.node.editor  import NodeEditor
 from ...editors.sheet.editor import SheetEditor
 from ...editors.chart.editor import ChartEditor
 
 from ...editors.node.frame import NodeFrame
-from ...editors.node.link import NodeLink
+from ...editors.node.link  import NodeLink
 
 logger = logging.getLogger(__name__)
 

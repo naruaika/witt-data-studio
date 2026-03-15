@@ -16,26 +16,27 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from enum import Enum
+from enum          import Enum
 from gi.repository import Gtk
-from polars import DataType
-from polars import DataFrame
-from polars import LazyFrame
-from polars import Series
-from typing import Any
-from typing import TypeAlias
+from polars        import DataType
+from polars        import DataFrame
+from polars        import LazyFrame
+from polars        import Series
+from typing        import Any
+from typing        import TypeAlias
+
 import asyncio
 import logging
 
 from ...core.models.document import Document
-from ...core.models.table import BoundingBox
-from ...core.models.table import DataTable
-from ...core.utils import cast_dtype
-from ...core.utils import get_dtype
-from ...core.utils import infer_dtype
-from ...core.utils import unique_name
+from ...core.models.table    import BoundingBox
+from ...core.models.table    import DataTable
+from ...core.utils           import cast_dtype
+from ...core.utils           import get_dtype
+from ...core.utils           import infer_dtype
+from ...core.utils           import unique_name
 
-from .canvas import SheetCanvas
+from .canvas  import SheetCanvas
 from .display import SheetDisplay
 from .widgets import SheetColumnDType
 from .widgets import SheetTableFilter

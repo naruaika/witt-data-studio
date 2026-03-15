@@ -16,7 +16,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from copy import copy
+from copy          import copy
 from gi.repository import Adw
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
@@ -25,7 +25,8 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Graphene
 from gi.repository import Gtk
-from typing import TypeAlias
+from typing        import TypeAlias
+
 import gc
 import logging
 

@@ -19,7 +19,7 @@
 from collections import deque
 
 from .action import Action
-from .utils import generate_uuid
+from .utils  import generate_uuid
 
 class History():
     """"""

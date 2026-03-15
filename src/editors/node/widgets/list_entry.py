@@ -16,14 +16,14 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from copy import deepcopy
+from copy          import deepcopy
 from gi.repository import Adw
 from gi.repository import Gtk
 
 from ....core.utils import isiterable
 
 from .dropdown import *
-from .entry import *
+from .entry    import *
 
 class NodeListEntry(Gtk.Box):
 

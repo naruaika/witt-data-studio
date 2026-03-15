@@ -21,8 +21,8 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
 
-from .canvas import ChartCanvas
-from .display import ChartDisplay
+from .canvas   import ChartCanvas
+from .display  import ChartDisplay
 from .document import ChartDocument
 
 class ChartView():

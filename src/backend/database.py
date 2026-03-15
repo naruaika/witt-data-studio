@@ -20,6 +20,7 @@ from duckdb import connect
 from typing import Any
 from typing import Literal
 from typing import TypeAlias
+
 import logging
 
 from .. import environment as env

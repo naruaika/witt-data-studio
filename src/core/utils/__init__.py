@@ -17,13 +17,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from .data_type import *
-from .file import *
-from .function import *
-from .numeric import *
-from .package import *
-from .polars import *
-from .string import *
-from .temporal import *
+from .file      import *
+from .function  import *
+from .numeric   import *
+from .package   import *
+from .polars    import *
+from .string    import *
+from .temporal  import *
 
 def generate_uuid():
     """"""

@@ -19,6 +19,7 @@
 from polars import Boolean
 from polars import Series
 from polars import UInt32
+
 import re
 
 class SheetDisplay():

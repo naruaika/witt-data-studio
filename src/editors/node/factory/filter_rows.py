@@ -16,24 +16,25 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from datetime import datetime
-from datetime import timedelta
+from datetime      import datetime
+from datetime      import timedelta
 from gi.repository import GObject
 from gi.repository import Gtk
-from polars import DataFrame
-from polars import LazyFrame
+from polars        import DataFrame
+from polars        import LazyFrame
+
 import logging
 
 from ._template import NodeTemplate
-from ._utils import isdatatable
-from ._utils import take_snapshot
-from ._utils import serialize_data
-from ._utils import deserialize_data
+from ._utils    import isdatatable
+from ._utils    import take_snapshot
+from ._utils    import serialize_data
+from ._utils    import deserialize_data
 
 from ..content import NodeContent
-from ..frame import NodeFrame
-from ..socket import NodeSocket
-from ..socket import NodeSocketType
+from ..frame   import NodeFrame
+from ..socket  import NodeSocket
+from ..socket  import NodeSocketType
 from ..widgets import NodeFilterBuilder
 from ..widgets import NodeLabel
 

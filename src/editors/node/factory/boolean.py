@@ -19,10 +19,10 @@
 import logging
 
 from ._template import NodeTemplate
-from ._utils import take_snapshot
+from ._utils    import take_snapshot
 
-from ..frame import NodeFrame
-from ..socket import NodeSocketType
+from ..frame   import NodeFrame
+from ..socket  import NodeSocketType
 from ..widgets import NodeCheckButton
 
 logger = logging.getLogger(__name__)

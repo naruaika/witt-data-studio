@@ -16,28 +16,29 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from cairo import Antialias
-from cairo import Context
-from cairo import FontOptions
-from cairo import FORMAT_ARGB32
-from cairo import ImageSurface
-from datetime import datetime
-from datetime import date
-from datetime import time
-from datetime import timedelta
-from decimal import Decimal
+from cairo         import Antialias
+from cairo         import Context
+from cairo         import FontOptions
+from cairo         import FORMAT_ARGB32
+from cairo         import ImageSurface
+from datetime      import datetime
+from datetime      import date
+from datetime      import time
+from datetime      import timedelta
+from decimal       import Decimal
 from gi.repository import Adw
 from gi.repository import Graphene
 from gi.repository import Gtk
 from gi.repository import Pango
 from gi.repository import PangoCairo
+
 import re
 
 from ...core.models.table import DataTable
-from ...core.utils import print_timedelta
+from ...core.utils        import print_timedelta
 
-from .document import SheetDocument
-from .display import SheetDisplay
+from .document  import SheetDocument
+from .display   import SheetDisplay
 from .selection import SheetSelection
 
 WHITESPACE_PATTERN = re.compile(r'(^\s+)|(\s+$)', re.MULTILINE)

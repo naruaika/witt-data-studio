@@ -148,7 +148,7 @@ class ChartEditor(Gtk.Overlay):
 
         pass
 
-from .canvas import ChartCanvas
-from .display import ChartDisplay
+from .canvas   import ChartCanvas
+from .display  import ChartDisplay
 from .document import ChartDocument
-from .view import ChartView
+from .view     import ChartView

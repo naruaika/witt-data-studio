@@ -19,10 +19,11 @@
 from gi.repository import GLib
 
 from .... import environment as env
+
 from ....core.action import Action
 
 from ..editor import NodeEditor
-from ..frame import NodeFrame
+from ..frame  import NodeFrame
 
 class ActionEditNode(Action):
 

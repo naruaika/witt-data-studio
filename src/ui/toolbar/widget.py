@@ -20,7 +20,7 @@ from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import Gtk
 
-from ...editors.node.editor import NodeEditor
+from ...editors.node.editor  import NodeEditor
 from ...editors.chart.editor import ChartEditor
 from ...editors.sheet.editor import SheetEditor
 

@@ -17,9 +17,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from gi.repository import Gtk
-from locale import format_string
+from locale        import format_string
 
-from ...editors.node.editor import NodeEditor
+from ...editors.node.editor  import NodeEditor
 from ...editors.chart.editor import ChartEditor
 from ...editors.sheet.editor import SheetEditor
 

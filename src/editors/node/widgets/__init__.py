@@ -16,20 +16,20 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from .check_button import *
-from .check_group import *
-from .combo_button import *
+from .check_button    import *
+from .check_group     import *
+from .combo_button    import *
 from .database_reader import *
 from .datetime_picker import *
-from .date_picker import *
-from .dropdown import *
-from .entry import *
-from .file_reader import *
-from .filter_builder import *
-from .formula_editor import *
-from .label import *
-from .list_entry import *
-from .list_item import *
-from .radio_group import *
-from .spin_button import *
-from .time_picker import *
+from .date_picker     import *
+from .dropdown        import *
+from .entry           import *
+from .file_reader     import *
+from .filter_builder  import *
+from .formula_editor  import *
+from .label           import *
+from .list_entry      import *
+from .list_item       import *
+from .radio_group     import *
+from .spin_button     import *
+from .time_picker     import *

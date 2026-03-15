@@ -17,7 +17,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from decimal import Decimal
-from typing import Any
+from typing  import Any
 
 def cast_numeric(value: str) -> Any:
     """"""

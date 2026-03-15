@@ -18,6 +18,7 @@
 
 from gi.repository import Gtk
 from typing import Any
+
 import gc
 
 class NodeContent(Gtk.Widget):

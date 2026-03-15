@@ -16,13 +16,13 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from .add_link import *
-from .add_node import *
-from .delete_content import *
-from .delete_link import *
-from .delete_node import *
-from .edit_node import *
-from .move_node import *
-from .select_by_click import *
+from .add_link             import *
+from .add_node             import *
+from .delete_content       import *
+from .delete_link          import *
+from .delete_node          import *
+from .edit_node            import *
+from .move_node            import *
+from .select_by_click      import *
 from .select_by_rubberband import *
-from .select_viewer import *
+from .select_viewer        import *
