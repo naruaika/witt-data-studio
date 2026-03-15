@@ -7,13 +7,12 @@
 
 
 
-.name-box,
-.formula-box,
-.multiline-formula-bar {
+.name-box {
     font-family: monospace;
 }
 
-.formula-bar {
+.formula-bar,
+.multiline-formula-bar {
     font-feature-settings: "tnum" 1;
 }
 
