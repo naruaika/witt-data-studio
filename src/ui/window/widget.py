@@ -190,10 +190,11 @@ class Window(Adw.ApplicationWindow):
                            ) ->         None:
             """"""
             self.command_list.append({
-                'action-name': action_name,
-                'action-args': action_args,
+                'name':        action_name.split('.', 1)[1],
                 'title':       title,
                 'shortcuts':   shortcuts,
+                'action-name': action_name,
+                'action-args': action_args,
             })
 
         create_command('app.about',         _('About Application'),
@@ -203,6 +204,8 @@ class Window(Adw.ApplicationWindow):
 
         create_command('app.new-window',    _('New Window'),
                                             shortcuts = ['<Shift><Primary>N'])
+
+        create_command('app.recent-files',  '$placeholder')
 
         create_command('win.close-editor',  _('Close Editor'),
                                             shortcuts = ['<Primary>w'])

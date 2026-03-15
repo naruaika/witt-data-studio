@@ -295,17 +295,27 @@ class SheetTabelFilterMenu(Gtk.PopoverMenu):
         """"""
         super().__init__()
 
+        self.editor = editor
+
+        self._setup_controllers()
+        self._setup_actions()
+
+        from threading import Thread
+        thread = Thread(target = self._setup_uinterfaces,
+                        args = [series],
+                        daemon = True)
+        thread.start()
+
+    def _setup_uinterfaces(self,
+                           series: Series,
+                           ) ->    None:
+        """"""
         self.value_counts = series.rename('value') \
                                   .value_counts(parallel = True) \
                                   .sort('value') \
                                   .with_columns(active = True) \
                                   .with_row_index()
         self.curr_vcounts = self.value_counts.clone()
-
-        self.editor = editor
-
-        self._setup_controllers()
-        self._setup_actions()
 
         self._is_toggling = False
 

@@ -326,6 +326,8 @@ class Application(Adw.Application):
         else:
             self._load_workbook_file(file_path, on_startup)
 
+        self.insert_recent_file_list(file_path)
+
     def _load_source_file(self,
                           file_path:  str,
                           callback:   callable = None,
@@ -395,6 +397,32 @@ class Application(Adw.Application):
                         tab_page    = tab_page,
                         file_path   = file_path)
         window.present()
+
+    def get_recent_file_list(self) -> list[str]:
+        """"""
+        APP_ID = self.APP_ID.replace('.Devel', '')
+        settings = Gio.Settings.new(APP_ID)
+
+        from json import loads
+        list_str = settings.get_string('recent-files')
+        list_obj = loads(list_str)
+
+        return list_obj
+
+    def insert_recent_file_list(self,
+                                file_path: str,
+                                ) ->       None:
+        """"""
+        from json import dumps
+        list_obj = self.get_recent_file_list()
+        list_obj.insert(0, file_path)
+        list_obj = list_obj[:500]
+        list_obj = list(dict.fromkeys(list_obj))
+        list_str = dumps(list_obj)
+
+        APP_ID = self.APP_ID.replace('.Devel', '')
+        settings = Gio.Settings.new(APP_ID)
+        settings.set_string('recent-files', list_str)
 
     def _create_nodes_from_schema(self,
                                   schemas:   list,

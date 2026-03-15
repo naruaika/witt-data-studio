@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="witt-data-studio">
 	<schema id="com.wittara.studio" path="/com/wittara/studio/">
-		<key name="connection-list" type="s">
+		<key name="recent-connections" type="s">
 			<default>'[]'</default>
-			<summary>Connection List</summary>
+			<summary>Recent Connection List</summary>
 			<description>List of recently used connections.</description>
+		</key>
+
+		<key name="recent-files" type="s">
+			<default>'[]'</default>
+			<summary>Recent File List</summary>
+			<description>List of recently opened file.</description>
 		</key>
 	</schema>
 </schemalist>

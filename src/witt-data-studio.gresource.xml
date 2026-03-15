@@ -13,6 +13,7 @@
     <file>ui/status_bar/style-dark.css</file>
 
     <file preprocess="xml-stripblanks">ui/toolbar/template.ui</file>
+    <file preprocess="xml-stripblanks">ui/toolbar/popover_recent_files.ui</file>
     <file>ui/toolbar/style.css</file>
     <file>ui/toolbar/style-dark.css</file>
 

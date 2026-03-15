@@ -88,16 +88,20 @@ calendar grid .week-number {
     opacity: 0.5;
 }
 
-popover.menu .frame {
-    border-radius: 9px;
+popover .frame {
+    border-radius: 10px;
 }
 
 .popover-listview {
     padding: 0;
+    background: none;
 }
 .popover-listview row {
     margin: 0;
     padding: 0;
+}
+.popover-listview row button {
+    border-radius: 9px;
 }
 .popover-listview row checkbutton {
     padding: 8px;

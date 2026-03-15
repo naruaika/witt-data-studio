@@ -56,6 +56,9 @@
 .mtoolbar-view image:not(.arrow) {
     -gtk-icon-size: 20px;
 }
+.mtoolbar-view popover image {
+    -gtk-icon-size: 16px;
+}
 
 .mtoolbar-tab {
     margin: -3px 0;

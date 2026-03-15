@@ -177,7 +177,7 @@ class DatabaseImportWindow(Adw.Window):
     def _setup_filter_toggle_button(self) -> None:
         """"""
         button = Gtk.ToggleButton(icon_name    = 'edit-find-symbolic',
-                                  tooltip_text = _('Filter Connection'))
+                                  tooltip_text = _('Search Connections'))
         self.SidebarHeaderBar.pack_start(button)
 
         def on_toggled(button: Gtk.ToggleButton) -> None:
@@ -227,8 +227,8 @@ class DatabaseImportWindow(Adw.Window):
             if self.SplitView.get_collapsed():
                 self.SplitView.set_show_sidebar(False)
 
-            self.ViewStack.set_visible_child_name('query')
-            self.SourceView.grab_focus()
+#           self.ViewStack.set_visible_child_name('query')
+#           self.SourceView.grab_focus()
 
         self.Selection.connect('notify::selected', on_selected)
 
@@ -711,7 +711,7 @@ class DatabaseImportWindow(Adw.Window):
         """"""
         from json import loads
         settings = Gio.Settings.new(self.APPLICATION_ID)
-        list_str = settings.get_string('connection-list')
+        list_str = settings.get_string('recent-connections')
         list_obj = loads(list_str)
 
         for index in range(len(list_obj)):
@@ -729,7 +729,7 @@ class DatabaseImportWindow(Adw.Window):
 
         list_str = dumps(list_obj)
         settings = Gio.Settings.new(self.APPLICATION_ID)
-        settings.set_string('connection-list', list_str)
+        settings.set_string('recent-connections', list_str)
 
     def _populate_connection_list_view(self) -> None:
         """"""
@@ -758,7 +758,7 @@ class DatabaseImportWindow(Adw.Window):
             if selected == Gtk.INVALID_LIST_POSITION:
                 if self.config:
                     list_item = ConnectionListItem(self.config.get('dialect'),
-                                                   _('Unsaved Connection'),
+                                                   f'[{_('New Connection')}]',
                                                    generate_uuid(),
                                                    self.config)
                     self.ListStore.append(list_item)
@@ -935,7 +935,7 @@ class DatabaseImportWindow(Adw.Window):
 
     @Gtk.Template.Callback()
     def _on_search_entry_changed(self,
-                                 entry: Gtk.Entry,
+                                 entry: Gtk.SearchEntry,
                                  ) ->    None:
         """"""
         def auto_select() -> None:

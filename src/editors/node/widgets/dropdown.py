@@ -107,6 +107,8 @@ class NodeDropdown(Gtk.DropDown):
         item_data = list_item.get_item()
         label = item_data.get_string()
 
+        list_item.label.set_label(label)
+
         def do_select() -> bool:
             """"""
             is_selected = list_item.get_selected()
@@ -120,8 +122,6 @@ class NodeDropdown(Gtk.DropDown):
             if do_select():
                 value = next(k for k, v in self._options.items() if v == label)
                 self._set_data(value)
-
-        list_item.label.set_label(label)
 
         if list_item.handler:
             list_item.disconnect(list_item.handler)

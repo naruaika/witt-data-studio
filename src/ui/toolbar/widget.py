@@ -43,7 +43,7 @@ class Toolbar(Gtk.Box):
     InputOutputSection       = Gtk.Template.Child()
     OpenSourceButton         = Gtk.Template.Child()
     ReadSourceButton         = Gtk.Template.Child()
-    RecentSourcesButton      = Gtk.Template.Child()
+    RecentFilesButton        = Gtk.Template.Child()
     ExportDataButton         = Gtk.Template.Child()
     FileUtilitiesButton      = Gtk.Template.Child()
 
@@ -71,16 +71,6 @@ class Toolbar(Gtk.Box):
     NewWorkspaceButton       = Gtk.Template.Child()
     NewViewerButton          = Gtk.Template.Child()
     NewConstantsButton       = Gtk.Template.Child()
-
-#   ExecutionSection         = Gtk.Template.Child()
-#   AutoRunButton            = Gtk.Template.Child()
-#   RunButton                = Gtk.Template.Child()
-#   AutoUpdateButton         = Gtk.Template.Child()
-#   UpdateButton             = Gtk.Template.Child()
-#   UseCacheButton           = Gtk.Template.Child()
-#   RecacheButton            = Gtk.Template.Child()
-#   UseSampleButton          = Gtk.Template.Child()
-#   ResampleButton           = Gtk.Template.Child()
 
     TransformPage            = Gtk.Template.Child()
 
@@ -201,7 +191,7 @@ class Toolbar(Gtk.Box):
                                 ),
                             ),
                             (
-                                self.RecentSourcesButton,
+                                self.RecentFilesButton,
                                 (
                                     NodeEditor,
                                     ChartEditor,
@@ -376,66 +366,6 @@ class Toolbar(Gtk.Box):
                             ),
                         ],
                     ),
-
-#                   (
-#                       self.ExecutionSection,
-#                       (
-#                           NodeEditor,
-#                           ChartEditor,
-#                       ),
-#                       [
-#                           (
-#                               self.AutoRunButton,
-#                               (
-#                                   NodeEditor,
-#                               ),
-#                           ),
-#                           (
-#                               self.RunButton,
-#                               (
-#                                   NodeEditor,
-#                               ),
-#                           ),
-#                           (
-#                               self.AutoUpdateButton,
-#                               (
-#                                   ChartEditor,
-#                               ),
-#                           ),
-#                           (
-#                               self.UpdateButton,
-#                               (
-#                                   ChartEditor,
-#                               ),
-#                           ),
-#                           (
-#                               self.UseCacheButton,
-#                               (
-#                                   NodeEditor,
-#                               ),
-#                           ),
-#                           (
-#                               self.RecacheButton,
-#                               (
-#                                   NodeEditor,
-#                               ),
-#                           ),
-#                           (
-#                               self.UseSampleButton,
-#                               (
-#                                   NodeEditor,
-#                                   ChartEditor,
-#                               ),
-#                           ),
-#                           (
-#                               self.ResampleButton,
-#                               (
-#                                   NodeEditor,
-#                                   ChartEditor,
-#                               ),
-#                           ),
-#                       ],
-#                   ),
                 ],
             ),
 
@@ -756,12 +686,19 @@ class Toolbar(Gtk.Box):
             ),
         ]
 
+        from .popover_recent_files import RecentFilesPopover
+        popover = RecentFilesPopover()
+        self.RecentFilesButton.set_popover(popover)
+
     def populate(self) -> None:
         """"""
         window = self.get_root()
         editor = window.get_selected_editor()
 
-        names = [c['name'] for c in editor.get_command_list()]
+        command_list = window.command_list
+        if hasattr(editor, 'get_command_list'):
+            command_list += editor.get_command_list()
+        names = [c['name'] for c in command_list]
 
         for page, owners, sections in self._mapping:
             if not isinstance(editor, owners):
@@ -844,31 +781,3 @@ class Toolbar(Gtk.Box):
                          Gio.MENU_LINK_SUBMENU}:
                 if link := menu.get_item_link(i, link):
                     self._update_menu(link, targets)
-
-#   @Gtk.Template.Callback()
-#   def _on_auto_run_toggled(self,
-#                            button: Gtk.CheckButton,
-#                            ) ->    None:
-#       """"""
-#       ...
-
-#   @Gtk.Template.Callback()
-#   def _on_auto_update_toggled(self,
-#                               button: Gtk.CheckButton,
-#                               ) ->    None:
-#       """"""
-#       ...
-
-#   @Gtk.Template.Callback()
-#   def _on_auto_cache_toggled(self,
-#                              button: Gtk.CheckButton,
-#                              ) ->    None:
-#       """"""
-#       ...
-
-#   @Gtk.Template.Callback()
-#   def _on_auto_sample_toggled(self,
-#                               button: Gtk.CheckButton,
-#                               ) ->    None:
-#       """"""
-#       ...
