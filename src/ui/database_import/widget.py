@@ -144,11 +144,9 @@ class DatabaseImportWindow(Adw.Window):
 
         close_button.connect('clicked', on_sidebar_closed)
 
-        visible = self.SplitView.get_collapsed()
         active = self.SplitView.get_show_sidebar()
         toggle_button = Gtk.ToggleButton(icon_name = 'sidebar-show-symbolic',
-                                         active    = active,
-                                         visible   = visible)
+                                         active    = active)
         self.ContentHeaderBar.pack_start(toggle_button)
 
         def on_sidebar_toggled(button: Gtk.ToggleButton) -> None:
@@ -164,7 +162,6 @@ class DatabaseImportWindow(Adw.Window):
             """"""
             visible = self.SplitView.get_collapsed()
             close_button.set_visible(visible)
-            toggle_button.set_visible(visible)
 
         self.SplitView.connect('notify::collapsed', on_view_collapsed)
 

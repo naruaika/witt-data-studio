@@ -137,28 +137,27 @@ class FileImportWindow(Adw.Window):
 
     def _setup_sidebar_toggler(self) -> None:
         """"""
+        close_button = Gtk.Button(icon_name = 'go-previous-symbolic',
+                                  visible   = False)
+        self.SidebarHeaderBar.pack_start(close_button)
+
         def on_sidebar_closed(button: Gtk.Button) -> None:
             """"""
             self.SplitView.set_show_sidebar(False)
 
-        close_button = Gtk.Button(icon_name = 'go-previous-symbolic',
-                                  visible   = False)
         close_button.connect('clicked', on_sidebar_closed)
-        self.SidebarHeaderBar.pack_start(close_button)
+
+        active = self.SplitView.get_show_sidebar()
+        toggle_button = Gtk.ToggleButton(icon_name = 'sidebar-show-symbolic',
+                                         active    = active)
+        self.ContentHeaderBar.pack_start(toggle_button)
 
         def on_sidebar_toggled(button: Gtk.ToggleButton) -> None:
             """"""
             toggled = button.get_active()
             self.SplitView.set_show_sidebar(toggled)
 
-        visible = self.SplitView.get_collapsed() and \
-                  not self.StatusBox.get_visible()
-        active = self.SplitView.get_show_sidebar()
-        toggle_button = Gtk.ToggleButton(icon_name = 'sidebar-show-symbolic',
-                                         active    = active,
-                                         visible   = visible)
         toggle_button.connect('toggled', on_sidebar_toggled)
-        self.ContentHeaderBar.pack_start(toggle_button)
 
         def on_view_collapsed(split_view: Adw.OverlaySplitView,
                               param_spec: GObject.ParamSpec,
@@ -167,7 +166,6 @@ class FileImportWindow(Adw.Window):
             visible = self.SplitView.get_collapsed() and \
                       not self.StatusBox.get_visible()
             close_button.set_visible(visible)
-            toggle_button.set_visible(visible)
 
         self.SplitView.connect('notify::collapsed', on_view_collapsed)
 
