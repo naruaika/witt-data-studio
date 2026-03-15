@@ -695,7 +695,7 @@ class Toolbar(Gtk.Box):
         window = self.get_root()
         editor = window.get_selected_editor()
 
-        command_list = window.command_list
+        command_list = window.get_command_list()
         if hasattr(editor, 'get_command_list'):
             command_list += editor.get_command_list()
         names = [c['name'] for c in command_list]

@@ -117,6 +117,11 @@ class Window(Adw.ApplicationWindow):
 
         return Gdk.EVENT_STOP
 
+    def get_command_list(self) -> list[dict]:
+        """"""
+        from copy import copy
+        return copy(self.command_list)
+
     def _setup_uinterfaces(self) -> None:
         """"""
         button = self.TabButton.get_first_child()
@@ -229,10 +234,7 @@ class Window(Adw.ApplicationWindow):
                                    parameter: GLib.Variant,
                                    ) ->       None:
         """"""
-        command_list = []
-
-        for command in self.command_list:
-            command_list.append(command)
+        command_list = self.get_command_list()
 
         if editor := self.get_selected_editor():
             if hasattr(editor, 'get_command_list'):
