@@ -726,6 +726,10 @@ class DatabaseImportWindow(Adw.Window):
         """"""
         from json import dumps
         list_obj = deepcopy(self.connection_list)
+
+        for index in range(len(list_obj)):
+            del list_obj[index]['uuid']
+
         list_str = dumps(list_obj)
         settings = Gio.Settings.new(self.APPLICATION_ID)
         settings.set_string('connection-list', list_str)
