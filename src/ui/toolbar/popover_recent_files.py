@@ -52,8 +52,8 @@ class RecentFilesPopover(Gtk.Popover):
         box = Gtk.Box(orientation   = Gtk.Orientation.VERTICAL,
                       margin_top    = 6,
                       margin_bottom = 6,
-                      margin_start  = 10,
-                      margin_end    = 10)
+                      margin_start  = 6,
+                      margin_end    = 6)
         button.set_child(box)
 
         head = Gtk.Label(xalign    = 0.0,

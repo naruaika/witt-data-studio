@@ -53,7 +53,7 @@
 .mtoolbar-view .caption {
     font-size: 90%;
 }
-.mtoolbar-view image:not(.arrow) {
+.mtoolbar-view image {
     -gtk-icon-size: 20px;
 }
 .mtoolbar-view popover image {
