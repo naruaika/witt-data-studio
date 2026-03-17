@@ -18,6 +18,7 @@
 
 from gi.repository import Adw
 from gi.repository import Gdk
+from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import Gtk
 
@@ -202,8 +203,22 @@ class FileExportWindow(Adw.Window):
                                   button: Gtk.Button,
                                   ) ->    None:
         """"""
+        file_name = self.View.ExportAs.get_text()
+        folder_path = self.View.ExportTo.get_text()
+        file_path = f'{folder_path}/{file_name}.csv'
+
+        from pathlib import Path
+        file_path = str(Path(file_path).expanduser())
+
+        if self._check_file_exists(file_path):
+            return
+
         self.close()
 
+        self._export_table()
+
+    def _export_table(self) -> None:
+        """"""
         if isinstance(self.View, FileExportCSVView):
             self._export_as_csv()
 
@@ -212,6 +227,50 @@ class FileExportWindow(Adw.Window):
 
         if isinstance(self.View, FileExportParquetView):
             self._export_as_parquet()
+
+    def _check_file_exists(self,
+                           file_path: str,
+                           ) ->       bool:
+        """"""
+        file_path = Gio.File.new_for_path(file_path)
+
+        if not file_path.query_exists(None):
+            return False
+
+        from os.path import basename
+        file_basename = basename(file_path)
+
+        alert_dialog = Adw.AlertDialog()
+
+        alert_dialog.set_heading(_('Replace File?'))
+        alert_dialog.set_body(_('A file named "{}" already exists. '
+                                'Do you want to replace it?').format(file_basename))
+
+        alert_dialog.add_response('cancel',  _('_Cancel'))
+        alert_dialog.add_response('replace', _('_Replace'))
+
+        alert_dialog.set_response_appearance('replace', Adw.ResponseAppearance.DESTRUCTIVE)
+        alert_dialog.set_default_response('replace')
+        alert_dialog.set_close_response('cancel')
+
+        def on_dismissed(dialog: Adw.AlertDialog,
+                         result: Gio.Task,
+                         ) ->    None:
+            """"""
+            if result.had_error():
+                return
+
+            if dialog.choose_finish(result) != 'replace':
+                return
+
+            self.close()
+
+            self._export_table()
+
+        window = self.get_root()
+        alert_dialog.choose(window, None, on_dismissed)
+
+        return True
 
     def _export_as_csv(self) -> None:
         """"""
