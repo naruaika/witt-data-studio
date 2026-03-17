@@ -456,13 +456,13 @@ class NodeFilterBuilder(Gtk.Box):
 
             match wtype:
                 case 'column':
-                    widget = NodeDropdown(row_data.get_data,
+                    widget = NodeDropDown(row_data.get_data,
                                           lambda v: on_column_selected(row_data, v),
                                           options)
                     container.append(widget)
 
                 case 'operator':
-                    widget = NodeDropdown(row_data.get_data,
+                    widget = NodeDropDown(row_data.get_data,
                                           lambda v: on_operator_selected(row_data, v),
                                           options)
                     container.append(widget)
@@ -486,7 +486,7 @@ class NodeFilterBuilder(Gtk.Box):
                     container.append(widget)
 
                 case 'dropdown':
-                    widget = NodeDropdown(row_data.get_data,
+                    widget = NodeDropDown(row_data.get_data,
                                           row_data.set_data,
                                           options)
                     container.append(widget)
@@ -498,7 +498,7 @@ class NodeFilterBuilder(Gtk.Box):
                     container.append(widget)
 
                 case 'radio':
-                    widget = NodeDropdown(row_data.get_data,
+                    widget = NodeDropDown(row_data.get_data,
                                           row_data.set_data,
                                           options)
                     container.append(widget)

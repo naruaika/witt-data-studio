@@ -108,7 +108,7 @@ class NodeListItem(Gtk.Box):
 
                 match dtype:
                     case 'dropdown':
-                        widget = NodeDropdown(item_data.get_data,
+                        widget = NodeDropDown(item_data.get_data,
                                               item_data.set_data,
                                               options)
                         subbox.append(widget)

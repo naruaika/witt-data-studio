@@ -36,7 +36,7 @@ class ChartEditor(Gtk.Overlay):
 
     def __init__(self,
                  **kwargs: dict,
-                 ) ->     None:
+                 ) ->      None:
         """"""
         super().__init__(**kwargs)
 

@@ -43,7 +43,7 @@ class Toolbar(Gtk.Box):
     OpenSourceButton         = Gtk.Template.Child()
     ReadSourceButton         = Gtk.Template.Child()
     RecentFilesButton        = Gtk.Template.Child()
-    ExportDataButton         = Gtk.Template.Child()
+    ExportAsButton           = Gtk.Template.Child()
     FileUtilitiesButton      = Gtk.Template.Child()
 
     ManageColumnsSection     = Gtk.Template.Child()
@@ -198,7 +198,7 @@ class Toolbar(Gtk.Box):
                                 ),
                             ),
                             (
-                                self.ExportDataButton,
+                                self.ExportAsButton,
                                 (
                                     SheetEditor,
                                 ),

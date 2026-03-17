@@ -345,12 +345,12 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="ExportDataButton">
-                                    <property name="name">export-data</property>
+                                  <object class="GtkButton" id="ExportAsButton">
+                                    <property name="name">export-as</property>
                                     <property name="vexpand">true</property>
                                     <property name="tooltip-text" translatable="yes">Export As</property>
                                     <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'export-data'</property>
+                                    <property name="action-target">'export-as'</property>
                                     <child>
                                       <object class="GtkBox">
                                         <property name="orientation">horizontal</property>

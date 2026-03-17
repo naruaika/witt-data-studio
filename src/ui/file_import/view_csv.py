@@ -34,10 +34,9 @@ QUOTE_CHAR_OPTS = {'"': _('Double'),
 DECIMAL_COMMA_OPTS = {False: _('Period'),
                       True:  _('Comma')}
 
-
 class FileImportCSVView(GObject.Object):
 
-    __gtype_name__ = 'FileImportCsvView'
+    __gtype_name__ = 'FileImportCSVView'
 
     def __init__(self,
                  preferences_page: Adw.PreferencesPage,

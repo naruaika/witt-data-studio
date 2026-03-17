@@ -167,6 +167,8 @@ class File():
     @staticmethod
     def write(file_path: str,
               content:   Any,
+              *args:     list,
+              **kwargs:  dict,
               ) ->       bool:
         """"""
         from ..core.utils import get_file_format
@@ -181,6 +183,22 @@ class File():
             except Exception as e:
                 logger.error(e, exc_info = True)
                 return False
+
+        from polars import DataFrame
+        if isinstance(content, DataFrame):
+            content = content.lazy()
+
+        from polars import LazyFrame
+        if isinstance(content, LazyFrame):
+            if file_format == 'csv':
+                content.sink_csv(file_path, *args, **kwargs)
+
+            if file_format == 'parquet':
+                content.sink_parquet(file_path, *args, **kwargs)
+
+            if file_format == 'json':
+                content.collect() \
+                       .write_json(file_path, *args, **kwargs)
 
         logger.info(f'Saved file: {file_path}')
         return True

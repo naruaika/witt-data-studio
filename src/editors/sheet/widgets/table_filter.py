@@ -99,18 +99,15 @@ class SheetTableFilter(Gtk.Widget):
         # Draw the background fill
         if active:
             if prefers_dark:
-                context.set_source_rgb(0.75, 0.75, 0.75)
-                context.rectangle(x, y, self.WIDTH-1, self.HEIGHT-3)
-                context.fill()
-            else:
                 context.set_source_rgb(0.25, 0.25, 0.25)
                 context.rectangle(x, y, self.WIDTH-1, self.HEIGHT-3)
                 context.fill()
+            else:
+                context.set_source_rgb(0.75, 0.75, 0.75)
+                context.rectangle(x, y, self.WIDTH-1, self.HEIGHT-3)
+                context.fill()
 
-        if (
-            (prefers_dark and not active) or
-            (not prefers_dark and active)
-        ):
+        if prefers_dark:
             context.set_source_rgb(1.0, 1.0, 1.0)
         else:
             context.set_source_rgb(0.0, 0.0, 0.0)

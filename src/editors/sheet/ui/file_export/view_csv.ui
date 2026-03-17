@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="Adw" version="1.0"/>
+  <template class="FileExportCSVView" parent="AdwPreferencesPage">
+    <child>
+      <object class="AdwPreferencesGroup">
+        <child>
+          <object class="AdwEntryRow" id="ExportTo">
+            <property name="title" translatable="yes">Export To</property>
+            <property name="text">~/Documents</property>
+            <child>
+              <object class="GtkButton">
+                <property name="valign">center</property>
+                <property name="icon-name">folder-symbolic</property>
+                <signal name="clicked" handler="_on_export_to_clicked" swapped="no"/>
+                <style>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwEntryRow" id="ExportAs">
+            <property name="title" translatable="yes">Export As</property>
+            <property name="text" translatable="yes">Output</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <child>
+          <object class="AdwSwitchRow" id="IncludeHeader">
+            <property name="active">true</property>
+            <property name="title" translatable="yes">Header</property>
+            <property name="subtitle" translatable="yes">Includes header at the first row</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Separators</property>
+        <child>
+          <object class="AdwEntryRow" id="Separator">
+            <property name="title" translatable="yes">Value Separator</property>
+            <property name="text">,</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwEntryRow" id="LineTerminator">
+            <property name="title" translatable="yes">Line Terminator</property>
+            <property name="text">\n</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwEntryRow" id="QuoteCharacter">
+            <property name="title" translatable="yes">Quote Character</property>
+            <property name="text">"</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Formatting</property>
+        <child>
+          <object class="AdwEntryRow" id="DatetimeFormat">
+            <property name="title" translatable="yes">Datetime Format</property>
+            <property name="text">%Y-%m-%d %H:%M:%S</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwEntryRow" id="DateFormat">
+            <property name="title" translatable="yes">Date Format</property>
+            <property name="text">%Y-%m-%d</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwEntryRow" id="TimeFormat">
+            <property name="title" translatable="yes">Time Format</property>
+            <property name="text">%H:%M:%S</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <child>
+          <object class="GtkButton">
+            <property name="halign">center</property>
+            <property name="label" translatable="yes">Reset Default</property>
+            <signal name="clicked" handler="_on_reset_default_clicked" swapped="no"/>
+            <style>
+              <class name="flat"/>
+              <class name="destructive-action"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

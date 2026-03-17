@@ -249,6 +249,9 @@ class SheetEditor(Gtk.Box):
         create_action('open-file',              lambda *_: self.activate_action('app.open-file'))
         create_action('open-database',          lambda *_: self.activate_action('app.open-database'))
 
+        create_action('export-as',              callback  = lambda *_: self._export_table(),
+                                                shortcuts = ['<Shift><Primary>e'])
+
         create_action('choose-columns',         lambda *_: self._transform_table('choose-columns'))
         create_action('remove-columns',         lambda *_: self._transform_table('remove-columns'))
 
@@ -412,6 +415,9 @@ class SheetEditor(Gtk.Box):
                                                 shortcuts = ['<Shift><Primary>o'],
                                                 context   = None,
                                                 prefix    = 'app')
+
+        create_command('export-as',             title     = _('Table: Export As...'),
+                                                shortcuts = ['<Shift><Primary>e'],)
 
         create_command('focus-name-box',        title     = _('Focus Name Box'),
                                                 shortcuts = ['<Primary>g'],
@@ -996,6 +1002,26 @@ class SheetEditor(Gtk.Box):
             self.display.column_widths[column - 1] = column_width
 
         self.display.ccolumn_widths = Series(self.display.column_widths).cum_sum()
+
+    def _export_table(self) -> None:
+        """"""
+        window = self.get_root()
+        application = window.get_application()
+
+        table = self._get_active_table_context(with_column = False)
+
+        def do_export(file_path:  str,
+                      parameters: dict = {},
+                      ) ->        None:
+            """"""
+            from ...backend.file import File
+            File.write(file_path, table.content, **parameters)
+
+        from .ui.file_export.widget import FileExportWindow
+        import_window = FileExportWindow(callback      = do_export,
+                                         transient_for = window,
+                                         application   = application)
+        import_window.present()
 
     def _transform_table(self,
                          func_name: str,

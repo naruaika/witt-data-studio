@@ -107,6 +107,7 @@ popover .frame {
     padding: 8px;
 }
 .popover-listview row checkbutton check {
+    color: #ffffff;
     box-shadow: 0 0 0 2px color(srgb 1 1 1 / 0.15) inset;
 }
 .popover-listview row checkbutton check:checked {

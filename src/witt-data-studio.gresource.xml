@@ -48,6 +48,10 @@
     <file>editors/sheet/style-dark.css</file>
 
     <file preprocess="xml-stripblanks">editors/sheet/editor.ui</file>
+    <file preprocess="xml-stripblanks">editors/sheet/ui/file_export/template.ui</file>
+    <file preprocess="xml-stripblanks">editors/sheet/ui/file_export/view_csv.ui</file>
+    <file preprocess="xml-stripblanks">editors/sheet/ui/file_export/view_parquet.ui</file>
+    <file preprocess="xml-stripblanks">editors/sheet/ui/file_export/view_json.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/filter_rows_window.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/formula_bar.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/join_tables_window.ui</file>

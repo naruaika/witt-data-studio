@@ -19,9 +19,9 @@
 from gi.repository import GLib
 from gi.repository import Gtk
 
-class NodeDropdown(Gtk.DropDown):
+class NodeDropDown(Gtk.DropDown):
 
-    __gtype_name__ = 'NodeDropdown'
+    __gtype_name__ = 'NodeDropDown'
 
     def __init__(self,
                  get_data: callable,
@@ -53,31 +53,6 @@ class NodeDropdown(Gtk.DropDown):
             selected = next((i for i, k in enumerate(options) if k == get_data()), 0)
             self.set_selected(selected)
 
-    def _get_factory_bytes(self) -> bytes:
-        """"""
-        return bytes(
-            """
-            <?xml version="1.0" encoding="UTF-8"?>
-            <interface>
-            <template class="GtkListItem">
-                <property name="child">
-                <object class="GtkLabel">
-                    <property name="halign">start</property>
-                    <property name="hexpand">true</property>
-                    <property name="ellipsize">end</property>
-                    <binding name="label">
-                        <lookup name="string" type="GtkStringObject">
-                            <lookup name="item">GtkListItem</lookup>
-                        </lookup>
-                    </binding>
-                </object>
-                </property>
-            </template>
-            </interface>
-            """,
-            'utf-8',
-        )
-
     def _setup_list_factory(self,
                             list_item_factory: Gtk.SignalListItemFactory,
                             list_item:         Gtk.ListItem,
@@ -91,7 +66,7 @@ class NodeDropdown(Gtk.DropDown):
         box.append(label)
 
         image = Gtk.Image(icon_name = 'object-select-symbolic',
-                          opacity = 0.0)
+                          opacity   = 0.0)
         box.append(image)
 
         list_item.label = label
@@ -116,15 +91,40 @@ class NodeDropdown(Gtk.DropDown):
                 self.set_tooltip_text(label)
             return is_selected
 
+        if list_item.handler:
+            list_item.disconnect(list_item.handler)
+
         def on_selected(*args) -> None:
             """"""
             if do_select():
                 value = next(k for k, v in self._options.items() if v == label)
                 self._set_data(value)
 
-        if list_item.handler:
-            list_item.disconnect(list_item.handler)
-
-        list_item.handler = self.connect('notify::selected', on_selected)
+        list_item.handler = self.connect('notify::selected-item', on_selected)
 
         do_select()
+
+    def _get_factory_bytes(self) -> bytes:
+        """"""
+        return bytes(
+            """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <interface>
+              <template class="GtkListItem">
+                <property name="child">
+                  <object class="GtkLabel">
+                    <property name="halign">start</property>
+                    <property name="hexpand">true</property>
+                    <property name="ellipsize">end</property>
+                    <binding name="label">
+                      <lookup name="string" type="GtkStringObject">
+                        <lookup name="item">GtkListItem</lookup>
+                      </lookup>
+                    </binding>
+                  </object>
+                </property>
+              </template>
+            </interface>
+            """,
+            'utf-8',
+        )
