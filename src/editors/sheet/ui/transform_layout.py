@@ -1146,4 +1146,496 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
+        case 'extract-age':
+            return (
+                _('Extract Age'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-date-only':
+            return (
+                _('Extract Date Only'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-year':
+            return (
+                _('Extract Year'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-start-of-year':
+            return (
+                _('Extract Start of Year'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-end-of-year':
+            return (
+                _('Extract End of Year'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-month':
+            return (
+                _('Extract Month'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-start-of-month':
+            return (
+                _('Extract Start of Month'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-end-of-month':
+            return (
+                _('Extract End of Month'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-days-in-month':
+            return (
+                _('Extract Days in Month'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-name-of-month':
+            return (
+                _('Extract Name of Month'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-quarter-of-year':
+            return (
+                _('Extract Quarter of Year'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-start-of-quarter':
+            return (
+                _('Extract Start of Quarter'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-end-of-quarter':
+            return (
+                _('Extract End of Quarter'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-week-of-year':
+            return (
+                _('Extract Week of Year'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-week-of-month':
+            return (
+                _('Extract Week of Month'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-start-of-week':
+            return (
+                _('Extract Start of Week'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-end-of-week':
+            return (
+                _('Extract End of Week'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-day':
+            return (
+                _('Extract Day'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-day-of-week':
+            return (
+                _('Extract Day of Week'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-day-of-year':
+            return (
+                _('Extract Day of Year'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-start-of-day':
+            return (
+                _('Extract Start of Day'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-end-of-day':
+            return (
+                _('Extract End of Day'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-name-of-day':
+            return (
+                _('Extract Name of Day'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$date-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-time-only':
+            return (
+                _('Extract Time Only'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$time-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-hour':
+            return (
+                _('Extract Hour'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$time-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-minute':
+            return (
+                _('Extract Minute'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$time-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-second':
+            return (
+                _('Extract Second'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$time-columns:use-column',
+                    ),
+                ],
+            )
+
+#       case 'calculate-time-subtraction':
+#           return (
+#               _('Calculate Time Subtraction'),
+#               [
+#                   (
+#                       _('Column'),
+#                       'combo',
+#                       '$time-columns:use-column',
+#                   ),
+#               ],
+#           )
+
+        case 'calculate-earliest':
+            return (
+                _('Calculate Earliest'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$temporal-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'calculate-latest':
+            return (
+                _('Calculate Latest'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$temporal-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-days':
+            return (
+                _('Extract Days'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$duration-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-hours':
+            return (
+                _('Extract Hours'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$duration-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-minutes':
+            return (
+                _('Extract Minutes'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$duration-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-seconds':
+            return (
+                _('Extract Seconds'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$duration-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-total-years':
+            return (
+                _('Extract Total Years'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$duration-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-total-days':
+            return (
+                _('Extract Total Days'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$duration-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-total-hours':
+            return (
+                _('Extract Total Hours'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$duration-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-total-minutes':
+            return (
+                _('Extract Total Minutes'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$duration-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'extract-total-seconds':
+            return (
+                _('Extract Total Seconds'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$duration-columns:use-column',
+                    ),
+                ],
+            )
+
+#       case 'calculate-duration-multiplication':
+#           return (
+#               _('Calculate Duration Multiplication'),
+#               [
+#                   (
+#                       _('Column'),
+#                       'combo',
+#                       '$duration-columns:use-column',
+#                   ),
+#               ],
+#           )
+
+#       case 'calculate-duration-division':
+#           return (
+#               _('Calculate Duration Division'),
+#               [
+#                   (
+#                       _('Column'),
+#                       'combo',
+#                       '$duration-columns:use-column',
+#                   ),
+#               ],
+#           )
+
     raise KeyError()

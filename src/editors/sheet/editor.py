@@ -42,10 +42,13 @@ from polars        import Duration
 from typing        import Any
 
 import gc
+import logging
 
 from ...core.construct    import *
 from ...core.models.table import DataTable
 from ..node.frame         import NodeFrame
+
+logger = logging.getLogger(__name__)
 
 FLOAT_TYPES    = {Float32, Float64}
 INTEGER_TYPES  = {Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64}
@@ -156,7 +159,7 @@ class SheetEditor(Gtk.Box):
         table, column_name = self._get_active_table_context()
         table_focus = isinstance(table, DataTable) and not table.placeholder
 
-        n_tables = len(self.document.tables)
+        n_tables  = len(self.document.tables)
         n_columns = table.width if table_focus else 0
 
         n_tables_all = len(self.get_all_tables())
@@ -170,6 +173,10 @@ class SheetEditor(Gtk.Box):
         variables['float_focus']    = False
         variables['integer_focus']  = False
         variables['numeric_focus']  = False
+        variables['date_focus']     = False
+        variables['time_focus']     = False
+        variables['datetime_focus'] = False
+        variables['duration_focus'] = False
         variables['temporal_focus'] = False
 
         if table_focus:
@@ -178,12 +185,20 @@ class SheetEditor(Gtk.Box):
             float_focus    = column_dtype in FLOAT_TYPES
             integer_focus  = column_dtype in INTEGER_TYPES
             numeric_focus  = column_dtype.is_numeric()
-            temporal_focus = column_dtype.is_temporal()
+            date_focus     = column_dtype in [Date, Datetime]
+            time_focus     = column_dtype in [Time, Datetime]
+            datetime_focus = column_dtype == Datetime
+            duration_focus = column_dtype == Duration
+            temporal_focus = column_dtype in [Date, Time, Datetime]
 
             variables['string_focus']   = string_focus
             variables['float_focus']    = float_focus
             variables['integer_focus']  = integer_focus
             variables['numeric_focus']  = numeric_focus
+            variables['date_focus']     = date_focus
+            variables['time_focus']     = time_focus
+            variables['datetime_focus'] = datetime_focus
+            variables['duration_focus'] = duration_focus
             variables['temporal_focus'] = temporal_focus
 
             target_dtypes = []
@@ -196,6 +211,14 @@ class SheetEditor(Gtk.Box):
             if numeric_focus:
                 target_dtypes += list(FLOAT_TYPES)
                 target_dtypes += list(INTEGER_TYPES)
+            if date_focus:
+                target_dtypes += [Date, Datetime]
+            if time_focus:
+                target_dtypes += [Time, Datetime]
+            if datetime_focus:
+                target_dtypes += [Datetime]
+            if duration_focus:
+                target_dtypes += [Duration]
             if temporal_focus:
                 target_dtypes += list(TEMPORAL_TYPES)
             target_dtypes = set(target_dtypes)
@@ -375,6 +398,56 @@ class SheetEditor(Gtk.Box):
         create_action('clear-sort-rows',        callback   = self._clear_sort_rows)
 
         create_action('clear-filter-rows',      callback   = self._clear_filter_rows)
+
+        create_action('extract-age',            lambda *_: self._transform_table('extract-age'))
+        create_action('extract-date-only',      lambda *_: self._transform_table('extract-date-only'))
+        create_action('extract-year',           lambda *_: self._transform_table('extract-year'))
+        create_action('extract-start-of-year',  lambda *_: self._transform_table('extract-start-of-year'))
+        create_action('extract-end-of-year',    lambda *_: self._transform_table('extract-end-of-year'))
+        create_action('extract-month',          lambda *_: self._transform_table('extract-month'))
+        create_action('extract-start-of-month', lambda *_: self._transform_table('extract-start-of-month'))
+        create_action('extract-end-of-month',   lambda *_: self._transform_table('extract-end-of-month'))
+        create_action('extract-days-in-month',  lambda *_: self._transform_table('extract-days-in-month'))
+        create_action('extract-name-of-month',  lambda *_: self._transform_table('extract-name-of-month'))
+        create_action('extract-quarter-of-'
+                      'year',                   lambda *_: self._transform_table('extract-quarter-of-year'))
+        create_action('extract-start-of-'
+                      'quarter',                lambda *_: self._transform_table('extract-start-of-quarter'))
+        create_action('extract-end-of-quarter', lambda *_: self._transform_table('extract-end-of-quarter'))
+        create_action('extract-week-of-year',   lambda *_: self._transform_table('extract-week-of-year'))
+        create_action('extract-week-of-month',  lambda *_: self._transform_table('extract-week-of-month'))
+        create_action('extract-start-of-week',  lambda *_: self._transform_table('extract-start-of-week'))
+        create_action('extract-end-of-week',    lambda *_: self._transform_table('extract-end-of-week'))
+        create_action('extract-day',            lambda *_: self._transform_table('extract-day'))
+        create_action('extract-day-of-week',    lambda *_: self._transform_table('extract-day-of-week'))
+        create_action('extract-day-of-year',    lambda *_: self._transform_table('extract-day-of-year'))
+        create_action('extract-start-of-day',   lambda *_: self._transform_table('extract-start-of-day'))
+        create_action('extract-end-of-day',     lambda *_: self._transform_table('extract-end-of-day'))
+        create_action('extract-name-of-day',    lambda *_: self._transform_table('extract-name-of-day'))
+
+        create_action('extract-time-only',      lambda *_: self._transform_table('extract-time-only'))
+        create_action('extract-hour',           lambda *_: self._transform_table('extract-hour'))
+        create_action('extract-minute',         lambda *_: self._transform_table('extract-minute'))
+        create_action('extract-second',         lambda *_: self._transform_table('extract-second'))
+        create_action('calculate-time-'
+                      'subtraction',            lambda *_: self._transform_table('calculate-time-subtraction'))
+
+        create_action('calculate-earliest',     lambda *_: self._transform_table('calculate-earliest'))
+        create_action('calculate-latest',       lambda *_: self._transform_table('calculate-latest'))
+
+        create_action('extract-days',           lambda *_: self._transform_table('extract-days'))
+        create_action('extract-hours',          lambda *_: self._transform_table('extract-hours'))
+        create_action('extract-minutes',        lambda *_: self._transform_table('extract-minutes'))
+        create_action('extract-seconds',        lambda *_: self._transform_table('extract-seconds'))
+        create_action('extract-total-years',    lambda *_: self._transform_table('extract-total-years'))
+        create_action('extract-total-days',     lambda *_: self._transform_table('extract-total-days'))
+        create_action('extract-total-hours',    lambda *_: self._transform_table('extract-total-hours'))
+        create_action('extract-total-minutes',  lambda *_: self._transform_table('extract-total-minutes'))
+        create_action('extract-total-seconds',  lambda *_: self._transform_table('extract-total-seconds'))
+        create_action('calculate-duration-'
+                      'multiplication',         lambda *_: self._transform_table('calculate-duration-multiplication'))
+        create_action('calculate-duration-'
+                      'division',               lambda *_: self._transform_table('calculate-duration-division'))
 
     def _setup_commands(self) -> None:
         """"""
@@ -605,6 +678,105 @@ class SheetEditor(Gtk.Box):
         create_command('extract-value-sign',    f"{_('Column')}: {get_title_from_layout('extract-value-sign')}...",
                                                 context = 'table_focus and numeric_focus')
 
+        create_command('date-column',           '$placeholder',
+                                                context = 'table_focus and date_focus')
+        create_command('extract-age',           f"{_('Column')}: {get_title_from_layout('extract-age')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-date-only',     f"{_('Column')}: {get_title_from_layout('extract-date-only')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-year',          f"{_('Column')}: {get_title_from_layout('extract-year')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-start-of-year', f"{_('Column')}: {get_title_from_layout('extract-start-of-year')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-end-of-year',   f"{_('Column')}: {get_title_from_layout('extract-end-of-year')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-month',         f"{_('Column')}: {get_title_from_layout('extract-month')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-start-of-'
+                       'month',                 f"{_('Column')}: {get_title_from_layout('extract-start-of-month')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-end-of-month',  f"{_('Column')}: {get_title_from_layout('extract-end-of-month')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-days-in-month', f"{_('Column')}: {get_title_from_layout('extract-days-in-month')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-name-of-month', f"{_('Column')}: {get_title_from_layout('extract-name-of-month')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-quarter-of-'
+                       'year',                  f"{_('Column')}: {get_title_from_layout('extract-quarter-of-year')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-start-of-'
+                       'quarter',               f"{_('Column')}: {get_title_from_layout('extract-start-of-quarter')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-end-of-'
+                       'quarter',               f"{_('Column')}: {get_title_from_layout('extract-end-of-quarter')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-week-of-year',  f"{_('Column')}: {get_title_from_layout('extract-week-of-year')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-week-of-month', f"{_('Column')}: {get_title_from_layout('extract-week-of-month')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-start-of-week', f"{_('Column')}: {get_title_from_layout('extract-start-of-week')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-end-of-week',   f"{_('Column')}: {get_title_from_layout('extract-end-of-week')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-day',           f"{_('Column')}: {get_title_from_layout('extract-day')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-day-of-week',   f"{_('Column')}: {get_title_from_layout('extract-day-of-week')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-day-of-year',   f"{_('Column')}: {get_title_from_layout('extract-day-of-year')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-start-of-day',  f"{_('Column')}: {get_title_from_layout('extract-start-of-day')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-end-of-day',    f"{_('Column')}: {get_title_from_layout('extract-end-of-day')}...",
+                                                context = 'table_focus and date_focus')
+        create_command('extract-name-of-day',   f"{_('Column')}: {get_title_from_layout('extract-name-of-day')}...",
+                                                context = 'table_focus and date_focus')
+
+        create_command('time-column',           '$placeholder',
+                                                context = 'table_focus and time_focus')
+        create_command('extract-time-only',     f"{_('Column')}: {get_title_from_layout('extract-time-only')}...",
+                                                context = 'table_focus and time_focus')
+        create_command('extract-hour',          f"{_('Column')}: {get_title_from_layout('extract-hour')}...",
+                                                context = 'table_focus and time_focus')
+        create_command('extract-minute',        f"{_('Column')}: {get_title_from_layout('extract-minute')}...",
+                                                context = 'table_focus and time_focus')
+        create_command('extract-second',        f"{_('Column')}: {get_title_from_layout('extract-second')}...",
+                                                context = 'table_focus and time_focus')
+#       create_command('calculate-time-'
+#                      'subtraction',           f"{_('Column')}: {get_title_from_layout('calculate-time-subtraction')}...",
+#                                               context = 'table_focus and time_focus')
+
+        create_command('calculate-earliest',    f"{_('Column')}: {get_title_from_layout('calculate-earliest')}...",
+                                                context = 'table_focus and temporal_focus')
+        create_command('calculate-latest',      f"{_('Column')}: {get_title_from_layout('calculate-latest')}...",
+                                                context = 'table_focus and temporal_focus')
+
+        create_command('duration-column',       '$placeholder',
+                                                context = 'table_focus and duration_focus')
+        create_command('extract-days',          f"{_('Column')}: {get_title_from_layout('extract-days')}...",
+                                                context = 'table_focus and duration_focus')
+        create_command('extract-hours',         f"{_('Column')}: {get_title_from_layout('extract-hours')}...",
+                                                context = 'table_focus and duration_focus')
+        create_command('extract-minutes',       f"{_('Column')}: {get_title_from_layout('extract-minutes')}...",
+                                                context = 'table_focus and duration_focus')
+        create_command('extract-seconds',       f"{_('Column')}: {get_title_from_layout('extract-seconds')}...",
+                                                context = 'table_focus and duration_focus')
+        create_command('extract-total-years',   f"{_('Column')}: {get_title_from_layout('extract-total-years')}...",
+                                                context = 'table_focus and duration_focus')
+        create_command('extract-total-days',    f"{_('Column')}: {get_title_from_layout('extract-total-days')}...",
+                                                context = 'table_focus and duration_focus')
+        create_command('extract-total-hours',   f"{_('Column')}: {get_title_from_layout('extract-total-hours')}...",
+                                                context = 'table_focus and duration_focus')
+        create_command('extract-total-minutes', f"{_('Column')}: {get_title_from_layout('extract-total-minutes')}...",
+                                                context = 'table_focus and duration_focus')
+        create_command('extract-total-seconds', f"{_('Column')}: {get_title_from_layout('extract-total-seconds')}...",
+                                                context = 'table_focus and duration_focus')
+#       create_command('calculate-duration-'
+#                      'multiplication',        f"{_('Column')}: {get_title_from_layout('calculate-duration-multiplication')}...",
+#                                               context = 'table_focus and duration_focus')
+#       create_command('calculate-duration-'
+#                      'division',              f"{_('Column')}: {get_title_from_layout('calculate-duration-division')}...",
+#                                               context = 'table_focus and duration_focus')
+
     def set_data(self,
                  tables: Tables = {},
                  sparse: Sparse = {},
@@ -819,10 +991,6 @@ class SheetEditor(Gtk.Box):
 
     def update_formula_bar(self) -> None:
         """"""
-        from datetime import timedelta
-
-        from ...core.utils import print_timedelta
-
         table = self._get_active_table_context(with_column = False)
 
         cell_data = self.selection.current_cell_data
@@ -831,11 +999,6 @@ class SheetEditor(Gtk.Box):
             cell_data = table.error_message
 
         cell_data = '' if cell_data is None else cell_data
-
-        # We don't natively support object types, but in any case the user has perfomed
-        # an operation that returned an object, we want to show it properly in minimal.
-        if isinstance(cell_data, timedelta):
-            cell_data = print_timedelta(cell_data)
 
         cell_name  = self.selection.current_cell_name
         cell_data  = str(cell_data)
@@ -859,6 +1022,7 @@ class SheetEditor(Gtk.Box):
         from polars import concat
         from polars import when
         from polars import Series
+        from polars import Duration
         from polars import String
         from polars import UInt32
 
@@ -919,7 +1083,12 @@ class SheetEditor(Gtk.Box):
 
             # Find longest table content
             try:
-                expr = col(col_name).cast(String).fill_null('[Blank]')
+                if isinstance(table.dtypes[col_index], Duration):
+                    expr = col(col_name).dt.to_string()
+                else:
+                    expr = col(col_name).cast(String)
+
+                expr = expr.fill_null('[Blank]')
                 sample_text = sample_data.with_columns(expr)
 
                 expr = col(col_name).str.len_chars().max()
@@ -937,17 +1106,17 @@ class SheetEditor(Gtk.Box):
 
             # Assumes that the column is non-arbitrary dtype,
             # which is most likely a series, list, or struct.
-            except Exception:
+            except Exception as e:
+                logger.error(e, exc_info = True)
                 self.display.column_widths[col_index] = max_width
                 continue
 
             # Compute text width of table content
-            current_column_width = self.display.column_widths[col_index]
             layout.set_text(sample_text, -1)
             text_width = layout.get_pixel_size()[0]
             column_width = text_width + 2 * self.display.DEFAULT_CELL_PADDING
             column_width = min(max_width, int(column_width))
-            column_width = max(current_column_width, column_width)
+            column_width = max(self.display.column_widths[col_index], column_width)
             self.display.column_widths[col_index] = column_width
 
         self.display.ccolumn_widths = Series(self.display.column_widths).cum_sum()
@@ -1017,8 +1186,11 @@ class SheetEditor(Gtk.Box):
             from ...backend.file import File
             File.write(file_path, table.content, **parameters)
 
+        subtitle = f'{table.tname} @ {self.title}'
+
         from .ui.file_export.widget import FileExportWindow
-        import_window = FileExportWindow(callback      = do_export,
+        import_window = FileExportWindow(subtitle      = subtitle,
+                                         callback      = do_export,
                                          transient_for = window,
                                          application   = application)
         import_window.present()
@@ -1053,10 +1225,36 @@ class SheetEditor(Gtk.Box):
         if not isinstance(win_layout, list):
             win_layout = [win_layout]
 
-        column_strings  = [col for col in table.columns if table[col].dtype == String]
-        column_floats   = [col for col in table.columns if table[col].dtype in FLOAT_TYPES]
-        column_integers = [col for col in table.columns if table[col].dtype in INTEGER_TYPES]
-        column_numerics = column_floats + column_integers
+        column_strings   = []
+        column_floats    = []
+        column_integers  = []
+        column_numerics  = []
+        column_dates     = []
+        column_times     = []
+        column_datetimes = []
+        column_durations = []
+        column_temporals = []
+
+        for column in table.columns:
+            dtype = table[column].dtype
+            if dtype == String:
+                column_strings.append(column)
+            if dtype in FLOAT_TYPES:
+                column_floats.append(column)
+            if dtype in INTEGER_TYPES:
+                column_integers.append(column)
+            if dtype in [Date, Datetime]:
+                column_dates.append(column)
+            if dtype in [Time, Datetime]:
+                column_times.append(column)
+            if dtype == Datetime:
+                column_datetimes.append(column)
+            if dtype == Duration:
+                column_durations.append(column)
+
+        column_numerics  = column_floats + column_integers
+        column_temporals = column_dates + column_times + column_datetimes
+        column_temporals = list(set(column_temporals))
 
         def do_evaluate(ridx: int,
                         rows: list[Any],
@@ -1092,6 +1290,16 @@ class SheetEditor(Gtk.Box):
                         rows[ridx][-1] = column_integers
                     if var == '$numeric-columns':
                         rows[ridx][-1] = column_numerics
+                    if var == '$date-columns':
+                        rows[ridx][-1] = column_dates
+                    if var == '$time-columns':
+                        rows[ridx][-1] = column_times
+                    if var == '$datetime-columns':
+                        rows[ridx][-1] = column_datetimes
+                    if var == '$duration-columns':
+                        rows[ridx][-1] = column_durations
+                    if var == '$temporal-columns':
+                        rows[ridx][-1] = column_temporals
 
                     if check_all:
                         defaults = deepcopy(rows[ridx][-1])

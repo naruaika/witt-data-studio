@@ -35,7 +35,6 @@ from gi.repository import PangoCairo
 import re
 
 from ...core.models.table import DataTable
-from ...core.utils        import print_timedelta
 
 from .document  import SheetDocument
 from .display   import SheetDisplay
@@ -687,7 +686,7 @@ class SheetRenderer():
                 if _is_an_object:
                     match cell_value:
                         case _ if isinstance(cell_value, timedelta):
-                            cell_value = print_timedelta(cell_value)
+                            pass # let polars decide how to display it
                         case __:
                             cell_value = '#VALUE!' # f'[<{type(cell_value).__name__}>]'
 

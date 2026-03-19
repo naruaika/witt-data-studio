@@ -222,10 +222,10 @@ class NodeFrame(Adw.Bin):
                 editor.select_by_click(self, combo)
                 self.grab_focus()
 
-            self.is_dragging = True
-
             editor = self.get_editor()
             editor.begin_move_selections()
+
+            self.is_dragging = True
 
     def _on_drag_end(self,
                      gesture:  Gtk.GestureDrag,
@@ -233,10 +233,13 @@ class NodeFrame(Adw.Bin):
                      offset_y: float,
                      ) ->      None:
         """"""
-        self.is_dragging = False
+        if not self.is_dragging:
+            return
 
         editor = self.get_editor()
         editor.end_move_selections()
+
+        self.is_dragging = False
 
     def set_data(self, *args, **kwargs) -> None:
         """"""

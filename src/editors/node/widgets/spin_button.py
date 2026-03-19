@@ -44,7 +44,7 @@ class NodeSpinButton(Gtk.Button):
                           tooltip_text = title)
         box.append(label)
 
-        label = Gtk.Label(label     = get_data(),
+        label = Gtk.Label(label     = str(get_data()),
                           xalign    = 1.0,
                           ellipsize = Pango.EllipsizeMode.END)
         box.append(label)

@@ -215,6 +215,11 @@ At the moment, I have no time to properly fix the issue.
     border-bottom-right-radius: 0;
 }
 
+windowhandle > box > widget:nth-child(2) > dropdown > .toggle {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
 .time-picker label {
     border-radius: 50%;
     transition-duration: 0.2s;

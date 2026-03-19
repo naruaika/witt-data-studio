@@ -39,12 +39,14 @@ class FileExportWindow(Adw.Window):
     MainContainer = Gtk.Template.Child()
 
     def __init__(self,
+                 subtitle: str,
                  callback: callable,
                  **kwargs: dict,
                  ) ->      None:
         """"""
         super().__init__(**kwargs)
 
+        self.subtitle = subtitle
         self.callback = callback
 
         self._setup_uinterfaces()
@@ -129,29 +131,44 @@ class FileExportWindow(Adw.Window):
     def _get_format_chooser_factory_bytes(self) -> bytes:
         """"""
         return bytes(
-            """
+            f"""
             <?xml version="1.0" encoding="UTF-8"?>
             <interface>
               <template class="GtkListItem">
                 <property name="child">
                   <object class="GtkBox">
-                    <property name="orientation">horizontal</property>
+                    <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkLabel">
-                        <property name="ellipsize">end</property>
-                        <property name="label" translatable="yes">Format: </property>
+                      <object class="GtkBox">
+                        <property name="halign">center</property>
+                        <property name="orientation">horizontal</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="ellipsize">end</property>
+                            <property name="label" translatable="yes">Format: </property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="ellipsize">end</property>
+                            <binding name="label">
+                              <lookup name="string" type="GtkStringObject">
+                                <lookup name="item">GtkListItem</lookup>
+                              </lookup>
+                            </binding>
+                          </object>
+                        </child>
                       </object>
                     </child>
                     <child>
                       <object class="GtkLabel">
-                        <property name="halign">start</property>
                         <property name="hexpand">true</property>
-                        <property name="ellipsize">end</property>
-                        <binding name="label">
-                          <lookup name="string" type="GtkStringObject">
-                            <lookup name="item">GtkListItem</lookup>
-                          </lookup>
-                        </binding>
+                        <property name="label">{self.subtitle}</property>
+                        <style>
+                          <class name="caption"/>
+                          <class name="dimmed"/>
+                          <class name="top-1px"/>
+                        </style>
                       </object>
                     </child>
                   </object>

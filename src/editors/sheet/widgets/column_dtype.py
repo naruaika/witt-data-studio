@@ -54,7 +54,9 @@ class SheetColumnDType(Gtk.Image):
             icon_name = 'xxx-character-whole-number-symbolic'
         if isinstance(dtype, Categorical):
             icon_name = 'xxx-tag-symbolic'
-        if isinstance(dtype, (Date, Datetime)):
+        if isinstance(dtype, Datetime):
+            icon_name = 'xxx-event-schedule-symbolic'
+        if isinstance(dtype, Date):
             icon_name = 'xxx-calendar-symbolic'
         if isinstance(dtype, Time):
             icon_name = 'xxx-time-symbolic'

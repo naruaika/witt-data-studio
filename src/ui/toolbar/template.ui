@@ -2231,7 +2231,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Document–ation</property>
+                                            <property name="label" translatable="yes">Document– ation</property>
                                             <property name="vexpand">true</property>
                                             <property name="valign">start</property>
                                             <property name="lines">2</property>
@@ -3158,6 +3158,18 @@
         <attribute name="target">extract-name-of-day</attribute>
       </item>
     </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Earliest</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-earliest</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Latest</attribute>
+        <attribute name="action">win.toolbar</attribute>
+        <attribute name="target">calculate-latest</attribute>
+      </item>
+    </section>
   </menu>
 
   <menu id="TimeColumnMenu">
@@ -3166,11 +3178,6 @@
         <attribute name="label" translatable="yes">Time Only</attribute>
         <attribute name="action">win.toolbar</attribute>
         <attribute name="target">extract-time-only</attribute>
-      </item>
-      <item>
-        <attribute name="label" translatable="yes">Local Time</attribute>
-        <attribute name="action">win.toolbar</attribute>
-        <attribute name="target">extract-local-time</attribute>
       </item>
     </section>
     <section>
@@ -3190,6 +3197,7 @@
         <attribute name="target">extract-second</attribute>
       </item>
     </section>
+    <!--
     <section>
       <item>
         <attribute name="label" translatable="yes">Subtract</attribute>
@@ -3197,16 +3205,17 @@
         <attribute name="target">calculate-time-subtraction</attribute>
       </item>
     </section>
+    -->
     <section>
       <item>
         <attribute name="label" translatable="yes">Earliest</attribute>
         <attribute name="action">win.toolbar</attribute>
-        <attribute name="target">calculate-time-earliest</attribute>
+        <attribute name="target">calculate-earliest</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">Latest</attribute>
         <attribute name="action">win.toolbar</attribute>
-        <attribute name="target">calculate-time-latest</attribute>
+        <attribute name="target">calculate-latest</attribute>
       </item>
     </section>
   </menu>
@@ -3261,6 +3270,7 @@
         <attribute name="target">extract-total-seconds</attribute>
       </item>
     </section>
+    <!--
     <section>
       <item>
         <attribute name="label" translatable="yes">Multiply</attribute>
@@ -3273,5 +3283,6 @@
         <attribute name="target">calculate-duration-division</attribute>
       </item>
     </section>
+    -->
   </menu>
 </interface>

@@ -685,9 +685,39 @@ class Toolbar(Gtk.Box):
             ),
         ]
 
+        self._setup_recent_files_menu()
+        self._setup_date_column_menu()
+
+    def _setup_recent_files_menu(self) -> None:
+        """"""
         from .popover_recent_files import RecentFilesPopover
         popover = RecentFilesPopover()
         self.RecentFilesButton.set_popover(popover)
+
+    def _setup_date_column_menu(self) -> None:
+        """"""
+        popover = self.DateColumnButton.get_last_child()
+        scrolled = popover.get_child()
+        viewport = scrolled.get_first_child()
+        stack = viewport.get_first_child()
+
+        section = stack.get_first_child()
+        section.set_orientation(Gtk.Orientation.HORIZONTAL)
+        section.set_homogeneous(True)
+        section.set_spacing(6)
+
+        box1 = section.get_first_child()
+
+        box2 = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+        section.append(box2)
+
+        for _ in range(3):
+            box = box1.get_last_child()
+            box.unparent()
+            box2.prepend(box)
+
+            separator = Gtk.Separator(orientation = Gtk.Orientation.HORIZONTAL)
+            box.prepend(separator)
 
     def populate(self) -> None:
         """"""

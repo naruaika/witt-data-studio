@@ -389,6 +389,56 @@ class NodeEditor(Gtk.Overlay):
         create_action('calculate-is-odd',       lambda *_: create_node('calculate-is-odd'))
         create_action('extract-value-sign',     lambda *_: create_node('extract-value-sign'))
 
+        create_action('extract-age',            lambda *_: create_node('extract-age'))
+        create_action('extract-date-only',      lambda *_: create_node('extract-date-only'))
+        create_action('extract-year',           lambda *_: create_node('extract-year'))
+        create_action('extract-start-of-year',  lambda *_: create_node('extract-start-of-year'))
+        create_action('extract-end-of-year',    lambda *_: create_node('extract-end-of-year'))
+        create_action('extract-month',          lambda *_: create_node('extract-month'))
+        create_action('extract-start-of-month', lambda *_: create_node('extract-start-of-month'))
+        create_action('extract-end-of-month',   lambda *_: create_node('extract-end-of-month'))
+        create_action('extract-days-in-month',  lambda *_: create_node('extract-days-in-month'))
+        create_action('extract-name-of-month',  lambda *_: create_node('extract-name-of-month'))
+        create_action('extract-quarter-of-'
+                      'year',                   lambda *_: create_node('extract-quarter-of-year'))
+        create_action('extract-start-of-'
+                      'quarter',                lambda *_: create_node('extract-start-of-quarter'))
+        create_action('extract-end-of-quarter', lambda *_: create_node('extract-end-of-quarter'))
+        create_action('extract-week-of-year',   lambda *_: create_node('extract-week-of-year'))
+        create_action('extract-week-of-month',  lambda *_: create_node('extract-week-of-month'))
+        create_action('extract-start-of-week',  lambda *_: create_node('extract-start-of-week'))
+        create_action('extract-end-of-week',    lambda *_: create_node('extract-end-of-week'))
+        create_action('extract-day',            lambda *_: create_node('extract-day'))
+        create_action('extract-day-of-week',    lambda *_: create_node('extract-day-of-week'))
+        create_action('extract-day-of-year',    lambda *_: create_node('extract-day-of-year'))
+        create_action('extract-start-of-day',   lambda *_: create_node('extract-start-of-day'))
+        create_action('extract-end-of-day',     lambda *_: create_node('extract-end-of-day'))
+        create_action('extract-name-of-day',    lambda *_: create_node('extract-name-of-day'))
+
+        create_action('extract-time-only',      lambda *_: create_node('extract-time-only'))
+        create_action('extract-hour',           lambda *_: create_node('extract-hour'))
+        create_action('extract-minute',         lambda *_: create_node('extract-minute'))
+        create_action('extract-second',         lambda *_: create_node('extract-second'))
+        create_action('calculate-time-'
+                      'subtraction',            lambda *_: create_node('calculate-time-subtraction'))
+
+        create_action('calculate-earliest',     lambda *_: create_node('calculate-earliest'))
+        create_action('calculate-latest',       lambda *_: create_node('calculate-latest'))
+
+        create_action('extract-days',           lambda *_: create_node('extract-days'))
+        create_action('extract-hours',          lambda *_: create_node('extract-hours'))
+        create_action('extract-minutes',        lambda *_: create_node('extract-minutes'))
+        create_action('extract-seconds',        lambda *_: create_node('extract-seconds'))
+        create_action('extract-total-years',    lambda *_: create_node('extract-total-years'))
+        create_action('extract-total-days',     lambda *_: create_node('extract-total-days'))
+        create_action('extract-total-hours',    lambda *_: create_node('extract-total-hours'))
+        create_action('extract-total-minutes',  lambda *_: create_node('extract-total-minutes'))
+        create_action('extract-total-seconds',  lambda *_: create_node('extract-total-seconds'))
+        create_action('calculate-duration-'
+                      'multiplication',         lambda *_: create_node('calculate-duration-multiplication'))
+        create_action('calculate-duration-'
+                      'division',               lambda *_: create_node('calculate-duration-division'))
+
     def _setup_commands(self) -> None:
         """"""
         self._command_list = []
@@ -568,6 +618,60 @@ class NodeEditor(Gtk.Overlay):
         create_command('calculate-is-even',     f"{_('Column')}: {_('Calculate Is Even')}")
         create_command('calculate-is-odd',      f"{_('Column')}: {_('Calculate Is Odd')}")
         create_command('extract-value-sign',    f"{_('Column')}: {_('Extract Value Sign')}")
+
+        create_command('date-column',           '$placeholder')
+        create_command('extract-age',           f"{_('Column')}: {_('Extract Age')}")
+        create_command('extract-date-only',     f"{_('Column')}: {_('Extract Date Only')}")
+        create_command('extract-year',          f"{_('Column')}: {_('Extract Year')}")
+        create_command('extract-start-of-year', f"{_('Column')}: {_('Extract Start of Year')}")
+        create_command('extract-end-of-year',   f"{_('Column')}: {_('Extract End of Year')}")
+        create_command('extract-month',         f"{_('Column')}: {_('Extract Month')}")
+        create_command('extract-start-of-month',f"{_('Column')}: {_('Extract Start of Month')}")
+        create_command('extract-end-of-month',  f"{_('Column')}: {_('Extract End of Month')}")
+        create_command('extract-days-in-month', f"{_('Column')}: {_('Extract Days in Month')}")
+        create_command('extract-name-of-month', f"{_('Column')}: {_('Extract Name of Month')}")
+        create_command('extract-quarter-of-'
+                       'year',                  f"{_('Column')}: {_('Extract Quarter of Year')}")
+        create_command('extract-start-of-'
+                       'quarter',               f"{_('Column')}: {_('Extract Start of Quarter')}")
+        create_command('extract-end-of-'
+                       'quarter',               f"{_('Column')}: {_('Extract End of Quarter')}")
+        create_command('extract-week-of-year',  f"{_('Column')}: {_('Extract Week of Year')}")
+        create_command('extract-week-of-month', f"{_('Column')}: {_('Extract Week of Month')}")
+        create_command('extract-start-of-week', f"{_('Column')}: {_('Extract Start of Week')}")
+        create_command('extract-end-of-week',   f"{_('Column')}: {_('Extract End of Week')}")
+        create_command('extract-day',           f"{_('Column')}: {_('Extract Day')}")
+        create_command('extract-day-of-week',   f"{_('Column')}: {_('Extract Day of Week')}")
+        create_command('extract-day-of-year',   f"{_('Column')}: {_('Extract Day of Year')}")
+        create_command('extract-start-of-day',  f"{_('Column')}: {_('Extract Start of Day')}")
+        create_command('extract-end-of-day',    f"{_('Column')}: {_('Extract End of Day')}")
+        create_command('extract-name-of-day',   f"{_('Column')}: {_('Extract Name of Day')}")
+
+        create_command('time-column',           '$placeholder')
+        create_command('extract-time-only',     f"{_('Column')}: {_('Extract Time Only')}")
+        create_command('extract-hour',          f"{_('Column')}: {_('Extract Hour')}")
+        create_command('extract-minute',        f"{_('Column')}: {_('Extract Minute')}")
+        create_command('extract-second',        f"{_('Column')}: {_('Extract Second')}")
+#       create_command('calculate-time-'
+#                      'subtraction',           f"{_('Column')}: {_('Calculate Time Subtraction')}")
+
+        create_command('calculate-earliest',    f"{_('Column')}: {_('Calculate Earliest')}")
+        create_command('calculate-latest',      f"{_('Column')}: {_('Calculate Latest')}")
+
+        create_command('duration-column',       '$placeholder')
+        create_command('extract-days',          f"{_('Column')}: {_('Extract Days')}")
+        create_command('extract-hours',         f"{_('Column')}: {_('Extract Hours')}")
+        create_command('extract-minutes',       f"{_('Column')}: {_('Extract Minutes')}")
+        create_command('extract-seconds',       f"{_('Column')}: {_('Extract Seconds')}")
+        create_command('extract-total-years',   f"{_('Column')}: {_('Extract Total Years')}")
+        create_command('extract-total-days',    f"{_('Column')}: {_('Extract Total Days')}")
+        create_command('extract-total-hours',   f"{_('Column')}: {_('Extract Total Hours')}")
+        create_command('extract-total-minutes', f"{_('Column')}: {_('Extract Total Minutes')}")
+        create_command('extract-total-seconds', f"{_('Column')}: {_('Extract Total Seconds')}")
+#       create_command('calculate-duration-'
+#                      'multiplication',        f"{_('Column')}: {_('Calculate Duration Multiplication')}")
+#       create_command('calculate-duration-'
+#                      'division',              f"{_('Column')}: {_('Calculate Duration Division')}")
 
     def _setup_controllers(self) -> None:
         """"""

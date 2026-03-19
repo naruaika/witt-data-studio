@@ -115,6 +115,7 @@
     <file preprocess="xml-stripblanks">xxx-document-export-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-document-import-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-education-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-event-schedule-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-filter-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-forum-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-group-resource-symbolic.svg</file>

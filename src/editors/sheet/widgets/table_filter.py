@@ -299,7 +299,7 @@ class SheetTabelFilterMenu(Gtk.PopoverMenu):
 
         from threading import Thread
         thread = Thread(target = self._setup_uinterfaces,
-                        args = [series],
+                        args   = [series],
                         daemon = True)
         thread.start()
 
@@ -518,6 +518,7 @@ class SheetTabelFilterMenu(Gtk.PopoverMenu):
     def populate_filter_list_items(self) -> None:
         """"""
         from polars import col
+        from polars import Duration
         from polars import String
 
         self.FilterListStore.remove_all()
@@ -528,7 +529,11 @@ class SheetTabelFilterMenu(Gtk.PopoverMenu):
         use_regexp = self.FilterUseRegExp.get_active()
 
         if query:
-            expr = col('value').cast(String)
+            dtype = self.curr_vcounts.schema['value']
+            if isinstance(dtype, Duration):
+                expr = col('value').dt.to_string()
+            else:
+                expr = col('value').cast(String)
             if use_regexp:
                 expr = expr.str.contains(f'(?i){query}')
             else:
