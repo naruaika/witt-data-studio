@@ -250,8 +250,8 @@ class SheetView():
                        offset_y: float,
                        ) ->      None:
         """"""
-        self.is_panning_canvas = True
         self.is_refreshing_ui = True
+        self.is_panning_canvas = True
 
         vadjustment = self.VerticalScrollbar.get_adjustment()
         hadjustment = self.HorizontalScrollbar.get_adjustment()

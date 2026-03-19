@@ -196,7 +196,7 @@ class NodeCanvas(Gtk.Fixed):
         self._drag_handler.connect('drag-end', self._on_drag_end)
         self.add_controller(self._drag_handler)
 
-        self._pan_handler = Gtk.GestureDrag.new()
+        self._pan_handler = Gtk.GestureDrag()
         self._pan_handler.set_button(Gdk.BUTTON_MIDDLE)
         self._pan_handler.connect('drag-begin', self._on_pan_begin)
         self._pan_handler.connect('drag-update', self._on_pan_update)
@@ -271,9 +271,9 @@ class NodeCanvas(Gtk.Fixed):
                      offset_y: float,
                      ) ->      None:
         """"""
-        editor = self.get_editor()
         state = gesture.get_current_event_state()
         combo = state & Gdk.ModifierType.SHIFT_MASK != 0
+        editor = self.get_editor()
         editor.select_by_rubberband(combo)
         self.queue_draw()
 
@@ -300,8 +300,10 @@ class NodeCanvas(Gtk.Fixed):
         scroll_y_position = vadjustment.get_value()
         scroll_x_position = hadjustment.get_value()
 
-        vadjustment.set_value(scroll_y_position - offset_y)
-        hadjustment.set_value(scroll_x_position - offset_x)
+        vadjustment.set_value(scroll_y_position - int(offset_y))
+        hadjustment.set_value(scroll_x_position - int(offset_x))
+        # I don't like casting float to integer but
+        # otherwise the viewport will be stuttering
 
     def _on_pan_end(self,
                     gesture:  Gtk.GestureDrag,

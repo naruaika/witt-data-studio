@@ -144,8 +144,10 @@ class SheetEditor(Gtk.Box):
         """"""
         vadjustment = self.VerticalScrollbar.get_adjustment()
         hadjustment = self.HorizontalScrollbar.get_adjustment()
+
         vadjustment.set_page_size(self.Canvas.get_height())
         hadjustment.set_page_size(self.Canvas.get_width())
+
         # FIXME: the scroll view jumps after resize the canvas
         # to smaller, scroll to the right end, and resize back
         # to larger then try scroll with the scroll bar handle
