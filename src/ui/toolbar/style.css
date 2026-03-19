@@ -86,3 +86,11 @@
     box-shadow: 0 -3px color-mix(in srgb, currentColor 5%, transparent),
                 0  3px var(--accent-bg-color);
 }
+
+
+
+@media (prefers-color-scheme: dark) {
+    .mtoolbar-view {
+        background-color: var(--headerbar-bg-color);
+    }
+}

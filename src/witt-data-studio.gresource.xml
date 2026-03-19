@@ -2,24 +2,19 @@
 <gresources>
   <gresource prefix="/com/wittara/studio">
     <file alias="style.css">ui/style.css</file>
-    <file alias="style-dark.css">ui/style-dark.css</file>
 
     <file preprocess="xml-stripblanks">ui/command_palette/template.ui</file>
     <file>ui/command_palette/style.css</file>
-    <file>ui/command_palette/style-dark.css</file>
 
     <file preprocess="xml-stripblanks">ui/status_bar/template.ui</file>
     <file>ui/status_bar/style.css</file>
-    <file>ui/status_bar/style-dark.css</file>
 
     <file preprocess="xml-stripblanks">ui/toolbar/template.ui</file>
     <file preprocess="xml-stripblanks">ui/toolbar/popover_recent_files.ui</file>
     <file>ui/toolbar/style.css</file>
-    <file>ui/toolbar/style-dark.css</file>
 
     <file preprocess="xml-stripblanks">ui/window/template.ui</file>
     <file>ui/window/style.css</file>
-    <file>ui/window/style-dark.css</file>
 
     <file preprocess="xml-stripblanks">ui/database_add/template.ui</file>
     <file preprocess="xml-stripblanks">ui/database_add/view_duckdb.ui</file>
@@ -34,18 +29,15 @@
     <file preprocess="xml-stripblanks">ui/formula_editor/template.ui</file>
 
     <file>editors/chart/style.css</file>
-    <file>editors/chart/style-dark.css</file>
 
     <file preprocess="xml-stripblanks">editors/chart/editor.ui</file>
 
     <file>editors/node/style.css</file>
-    <file>editors/node/style-dark.css</file>
 
     <file preprocess="xml-stripblanks">editors/node/editor.ui</file>
     <file preprocess="xml-stripblanks">editors/node/frame.ui</file>
 
     <file>editors/sheet/style.css</file>
-    <file>editors/sheet/style-dark.css</file>
 
     <file preprocess="xml-stripblanks">editors/sheet/editor.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/file_export/template.ui</file>

@@ -257,3 +257,12 @@ windowhandle > box > widget:nth-child(2) > dropdown > .toggle {
 .right-1px {
     margin-right: -1px;
 }
+
+
+
+@media (prefers-color-scheme: dark) {
+    .sourceview {
+        color: #fff;
+        caret-color: #fff;
+    }
+}

@@ -1,7 +1,7 @@
 {
     "id" : "com.wittara.studio",
     "runtime" : "org.gnome.Platform",
-    "runtime-version" : "49",
+    "runtime-version" : "50",
     "sdk" : "org.gnome.Sdk",
     "command" : "witt-data-studio",
     "finish-args" : [
