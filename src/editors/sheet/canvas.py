@@ -50,7 +50,7 @@ class SheetCanvas(Gtk.Overlay):
                              editor.selection,
                              editor.document)
 
-        bounds = Graphene.Rect().init(editor.display.left_locator_width,
+        bounds = Graphene.Rect().init(editor.display.get_left_locator_width(),
                                       0,
                                       self.get_width(),
                                       self.get_height())

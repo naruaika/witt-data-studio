@@ -27,6 +27,7 @@ from gi.repository import GtkSource
 class SheetFormulaBar(Gtk.Box):
     __gtype_name__ = 'SheetFormulaBar'
 
+    Container              = Gtk.Template.Child()
     NameBox                = Gtk.Template.Child()
     FormulaBox             = Gtk.Template.Child()
     MultilineFormulaBar    = Gtk.Template.Child()

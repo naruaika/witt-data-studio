@@ -20,6 +20,8 @@ from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import Gtk
 
+from ... import environment as env
+
 from ...editors.node.editor  import NodeEditor
 from ...editors.chart.editor import ChartEditor
 from ...editors.sheet.editor import SheetEditor
@@ -34,10 +36,10 @@ class Toolbar(Gtk.Box):
 
     HomePage                 = Gtk.Template.Child()
 
-    ClipboardSection         = Gtk.Template.Child()
-    PasteButton              = Gtk.Template.Child()
-    CutButton                = Gtk.Template.Child()
-    CopyButton               = Gtk.Template.Child()
+#   ClipboardSection         = Gtk.Template.Child()
+#   PasteButton              = Gtk.Template.Child()
+#   CutButton                = Gtk.Template.Child()
+#   CopyButton               = Gtk.Template.Child()
 
     InputOutputSection       = Gtk.Template.Child()
     OpenSourceButton         = Gtk.Template.Child()
@@ -83,7 +85,7 @@ class Toolbar(Gtk.Box):
     RenameColumnsButton      = Gtk.Template.Child()
     ReplaceValuesButton      = Gtk.Template.Child()
     FillBlankCellsButton     = Gtk.Template.Child()
-    PivotColumnsButton       = Gtk.Template.Child()
+#   PivotColumnsButton       = Gtk.Template.Child()
 
     TextColumnSection        = Gtk.Template.Child()
     SplitColumnButton        = Gtk.Template.Child()
@@ -104,9 +106,16 @@ class Toolbar(Gtk.Box):
     TimeColumnButton         = Gtk.Template.Child()
     DurationColumnButton     = Gtk.Template.Child()
 
-    AnalyticsPage            = Gtk.Template.Child()
+#   AnalyticsPage            = Gtk.Template.Child()
 
     ViewPage                 = Gtk.Template.Child()
+
+    ShowSection              = Gtk.Template.Child()
+    ShowGridlinesButton      = Gtk.Template.Child()
+    ShowLocatorsButton       = Gtk.Template.Child()
+    ShowMinimapButton        = Gtk.Template.Child()
+    ShowFormulaBarButton     = Gtk.Template.Child()
+    ShowFocusCellButton      = Gtk.Template.Child()
 
     HelpPage                 = Gtk.Template.Child()
 
@@ -133,40 +142,40 @@ class Toolbar(Gtk.Box):
                     SheetEditor,
                 ),
                 [
-                    (
-                        self.ClipboardSection,
-                        (
-                            NodeEditor,
-                            ChartEditor,
-                            SheetEditor,
-                        ),
-                        [
-                            (
-                                self.PasteButton,
-                                (
-                                    NodeEditor,
-                                    ChartEditor,
-                                    SheetEditor,
-                                ),
-                            ),
-                            (
-                                self.CutButton,
-                                (
-                                    NodeEditor,
-                                    ChartEditor,
-                                    SheetEditor,
-                                ),
-                            ),
-                            (
-                                self.CopyButton,
-                                (
-                                    NodeEditor,
-                                    ChartEditor,
-                                    SheetEditor,
-                                ),
-                            ),
-                        ],
-                    ),
+#                   (
+#                       self.ClipboardSection,
+#                       (
+#                           NodeEditor,
+#                           ChartEditor,
+#                           SheetEditor,
+#                       ),
+#                       [
+#                           (
+#                               self.PasteButton,
+#                               (
+#                                   NodeEditor,
+#                                   ChartEditor,
+#                                   SheetEditor,
+#                               ),
+#                           ),
+#                           (
+#                               self.CutButton,
+#                               (
+#                                   NodeEditor,
+#                                   ChartEditor,
+#                                   SheetEditor,
+#                               ),
+#                           ),
+#                           (
+#                               self.CopyButton,
+#                               (
+#                                   NodeEditor,
+#                                   ChartEditor,
+#                                   SheetEditor,
+#                               ),
+#                           ),
+#                       ],
+#                   ),
 
                     (
                         self.InputOutputSection,
@@ -440,13 +449,13 @@ class Toolbar(Gtk.Box):
                                     SheetEditor,
                                 ),
                             ),
-                            (
-                                self.PivotColumnsButton,
-                                (
-                                    NodeEditor,
-                                    SheetEditor,
-                                ),
-                            ),
+#                           (
+#                               self.PivotColumnsButton,
+#                               (
+#                                   NodeEditor,
+#                                   SheetEditor,
+#                               ),
+#                           ),
                         ],
                     ),
                     (
@@ -570,14 +579,14 @@ class Toolbar(Gtk.Box):
                 ],
             ),
 
-            (
-                self.AnalyticsPage,
-                (
-                    NodeEditor,
-                    SheetEditor,
-                ),
-                [],
-            ),
+#           (
+#               self.AnalyticsPage,
+#               (
+#                   NodeEditor,
+#                   SheetEditor,
+#               ),
+#               [],
+#           ),
 
             (
                 self.ViewPage,
@@ -586,7 +595,49 @@ class Toolbar(Gtk.Box):
                     ChartEditor,
                     SheetEditor,
                 ),
-                [],
+                [
+                    (
+                        self.ShowSection,
+                        (
+                            NodeEditor,
+                            ChartEditor,
+                            SheetEditor,
+                        ),
+                        [
+                            (
+                                self.ShowGridlinesButton,
+                                (
+                                    NodeEditor,
+                                    SheetEditor,
+                                ),
+                            ),
+                            (
+                                self.ShowLocatorsButton,
+                                (
+                                    SheetEditor,
+                                ),
+                            ),
+                            (
+                                self.ShowMinimapButton,
+                                (
+                                    NodeEditor,
+                                ),
+                            ),
+                            (
+                                self.ShowFormulaBarButton,
+                                (
+                                    SheetEditor,
+                                ),
+                            ),
+                            (
+                                self.ShowFocusCellButton,
+                                (
+                                    SheetEditor,
+                                ),
+                            ),
+                        ],
+                    ),
+                ],
             ),
 
             (
@@ -685,6 +736,10 @@ class Toolbar(Gtk.Box):
             ),
         ]
 
+        self.settings = Gio.Settings.new(env.APP_ID)
+
+        self.is_refreshing_ui = False
+
         self._setup_recent_files_menu()
         self._setup_date_column_menu()
 
@@ -721,6 +776,8 @@ class Toolbar(Gtk.Box):
 
     def populate(self) -> None:
         """"""
+        self.is_refreshing_ui = True
+
         window = self.get_root()
         editor = window.get_selected_editor()
 
@@ -749,13 +806,13 @@ class Toolbar(Gtk.Box):
                     is_active = widget.get_name() in names
 
                     if isinstance(widget, Gtk.Actionable):
-                        action_name = widget.get_action_name()
-                        action_name = action_name.removesuffix(':disabled')
+                        if action_name := widget.get_action_name():
+                            action_name = action_name.removesuffix(':disabled')
 
-                        if is_active:
-                            widget.set_action_name(action_name)
-                        else:
-                            widget.set_action_name(action_name + ':disabled')
+                            if is_active:
+                                widget.set_action_name(action_name)
+                            else:
+                                widget.set_action_name(action_name + ':disabled')
 
                     else:
                         widget.set_sensitive(is_active)
@@ -768,12 +825,16 @@ class Toolbar(Gtk.Box):
             self.ColumnStatisticsButton,
         ]:
             menu = button.get_menu_model()
-            self._update_menu(menu, names)
+            self._update_action_names(menu, names)
 
-    def _update_menu(self,
-                     menu:    Gio.MenuModel,
-                     targets: list[str],
-                     ) ->     None:
+        self._update_check_buttons()
+
+        self.is_refreshing_ui = False
+
+    def _update_action_names(self,
+                             menu:    Gio.MenuModel,
+                             targets: list[str],
+                             ) ->     None:
         """"""
         def do_update(menu:    Gio.MenuModel,
                       index:   int,
@@ -809,4 +870,114 @@ class Toolbar(Gtk.Box):
             for link in {Gio.MENU_LINK_SECTION,
                          Gio.MENU_LINK_SUBMENU}:
                 if link := menu.get_item_link(i, link):
-                    self._update_menu(link, targets)
+                    self._update_action_names(link, targets)
+
+    def _update_check_buttons(self) -> None:
+        """"""
+        window = self.get_root()
+        editor = window.get_selected_editor()
+
+        if isinstance(editor, NodeEditor):
+            active = self.settings.get_boolean('node-gridlines')
+            self.ShowGridlinesButton.set_active(active)
+
+            active = self.settings.get_boolean('node-minimap')
+            self.ShowMinimapButton.set_active(active)
+
+        if isinstance(editor, SheetEditor):
+            active = self.settings.get_boolean('sheet-gridlines')
+            self.ShowGridlinesButton.set_active(active)
+
+            active = self.settings.get_boolean('sheet-locators')
+            self.ShowLocatorsButton.set_active(active)
+
+            active = self.settings.get_boolean('sheet-formula-bar')
+            self.ShowFormulaBarButton.set_active(active)
+
+            active = self.settings.get_boolean('sheet-focus-cell')
+            self.ShowFocusCellButton.set_active(active)
+
+    @Gtk.Template.Callback()
+    def _on_gridlines_toggled(self,
+                              button: Gtk.CheckButton,
+                              ) ->    None:
+        """"""
+        if self.is_refreshing_ui:
+            return
+
+        active = button.get_active()
+        window = self.get_root()
+        editor = window.get_selected_editor()
+
+        if isinstance(editor, NodeEditor):
+            self.settings.set_boolean('node-gridlines', active)
+        if isinstance(editor, SheetEditor):
+            self.settings.set_boolean('sheet-gridlines', active)
+
+        self._refresh_selected_editor()
+
+    @Gtk.Template.Callback()
+    def _on_minimap_toggled(self,
+                            button: Gtk.CheckButton,
+                            ) ->    None:
+        """"""
+        if self.is_refreshing_ui:
+            return
+
+        self.settings.set_boolean('node-minimap', button.get_active())
+
+        self._refresh_selected_editor()
+
+    @Gtk.Template.Callback()
+    def _on_locators_toggled(self,
+                             button: Gtk.CheckButton,
+                             ) ->    None:
+        """"""
+        if self.is_refreshing_ui:
+            return
+
+        self.settings.set_boolean('sheet-locators', button.get_active())
+
+        self._refresh_selected_editor()
+
+        window = self.get_root()
+        editor = window.get_selected_editor()
+        editor.view.update_by_scroll()
+        editor.reposition_sheet_widgets()
+
+    @Gtk.Template.Callback()
+    def _on_formula_bar_toggled(self,
+                                button: Gtk.CheckButton,
+                                ) ->    None:
+        """"""
+        if self.is_refreshing_ui:
+            return
+
+        self.settings.set_boolean('sheet-formula-bar', button.get_active())
+
+        self._refresh_selected_editor()
+
+    @Gtk.Template.Callback()
+    def _on_focus_cell_toggled(self,
+                               button: Gtk.CheckButton,
+                               ) ->    None:
+        """"""
+        if self.is_refreshing_ui:
+            return
+
+        self.settings.set_boolean('sheet-focus-cell', button.get_active())
+
+        self._refresh_selected_editor()
+
+    def _refresh_selected_editor(self) -> None:
+        """"""
+        window = self.get_root()
+        editor = window.get_selected_editor()
+
+        if isinstance(editor, SheetEditor):
+            for e in window.get_all_editors():
+                if isinstance(e, SheetEditor):
+                    e.queue_draw(refresh = True)
+
+        else:
+            editor.queue_draw(refresh = True)

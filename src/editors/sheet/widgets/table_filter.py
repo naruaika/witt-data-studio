@@ -64,6 +64,8 @@ class SheetTableFilter(Gtk.Widget):
         self.sorted   = sorted
         self.filtered = filtered
 
+        self._style_manager = Adw.StyleManager.get_default()
+
         self._being_hovered = False
         self._being_focused = False
 
@@ -85,8 +87,7 @@ class SheetTableFilter(Gtk.Widget):
                     snapshot: Gtk.Snapshot,
                     ) ->      None:
         """"""
-        style_manager = Adw.StyleManager.get_default()
-        prefers_dark = style_manager.get_dark()
+        prefers_dark = self._style_manager.get_dark()
 
         x = -1
         y = +2

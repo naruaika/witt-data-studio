@@ -28,6 +28,6 @@ def main(app_id:  str,
      """The application's entry point."""
      app = Application(app_id, version)
 
-     env.app = app
+     env.APP = app
 
      return app.run(argv)

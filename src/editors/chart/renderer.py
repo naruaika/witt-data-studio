@@ -52,8 +52,6 @@ class ChartRenderer():
         bounds = Graphene.Rect().init(0, 0, width, height)
         context = snapshot.append_cairo(bounds)
 
-        self.style_manager = Adw.StyleManager.get_default()
-
         self._setup_cairo_context(context)
         self._draw_placeholders(context, width, height, display, document)
         self._draw_main_contents(canvas, context, width, height, display, document)

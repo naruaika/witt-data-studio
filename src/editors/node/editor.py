@@ -68,7 +68,6 @@ class NodeEditor(Gtk.Overlay):
     ScrolledWindow = Gtk.Template.Child()
     Canvas         = Gtk.Template.Child()
     Minimap        = Gtk.Template.Child()
-    MinimapToggle  = Gtk.Template.Child()
 
     ICON_NAME     = 'user-home-symbolic'
     ACTION_PREFIX = 'node'
@@ -104,9 +103,11 @@ class NodeEditor(Gtk.Overlay):
         self._prev_zoom = 1.0
         self._curr_zoom = 1.0
 
-        style_manager   = Adw.StyleManager.get_default()
-        self._prev_dark = style_manager.get_dark()
-        self._curr_dark = self._prev_dark
+        self.settings = Gio.Settings.new(env.APP_ID)
+
+        self._style_manager = Adw.StyleManager.get_default()
+        self._prev_dark     = self._style_manager.get_dark()
+        self._curr_dark     = self._prev_dark
 
         self._dots_grid_texture = None
 
@@ -185,7 +186,7 @@ class NodeEditor(Gtk.Overlay):
                     links: list['NodeLink']  = [],
                     ) ->   None:
         """"""
-        window = env.app.get_active_main_window()
+        window = env.APP.get_active_main_window()
         window.history.freezing = True
 
         for node in nodes:
@@ -688,10 +689,10 @@ class NodeEditor(Gtk.Overlay):
         hadjustment.connect('value-changed', self._on_scrolled)
         vadjustment.connect('value-changed', self._on_scrolled)
 
-        self.MinimapToggle.bind_property(source_property = 'active',
-                                         target          = self.Minimap,
-                                         target_property = 'visible',
-                                         flags           = GObject.BindingFlags.SYNC_CREATE)
+        self.settings.bind('node-minimap',
+                           self.Minimap,
+                           'visible',
+                           Gio.SettingsBindFlags.DEFAULT)
 
     def _on_unfocused(self,
                       event: Gtk.EventControllerFocus,
@@ -841,7 +842,6 @@ class NodeEditor(Gtk.Overlay):
                     snapshot: Gtk.Snapshot,
                     ) ->      None:
         """"""
-        self._style_manager = Adw.StyleManager.get_default()
         self._curr_dark = self._style_manager.get_dark()
 
         self._draw_dots_grid(snapshot)
@@ -855,6 +855,9 @@ class NodeEditor(Gtk.Overlay):
                         snapshot: Gtk.Snapshot,
                         ) ->      None:
         """"""
+        if not self.settings.get_boolean('node-gridlines'):
+            return
+
         import cairo
         import math
 
@@ -1476,7 +1479,7 @@ class NodeEditor(Gtk.Overlay):
         """"""
         if window := self.get_root():
             return window
-        return env.app.get_active_main_window()
+        return env.APP.get_active_main_window()
 
 from .content import NodeContent
 from .frame import NodeFrame

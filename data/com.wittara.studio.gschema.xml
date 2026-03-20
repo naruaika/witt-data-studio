@@ -4,13 +4,65 @@
 		<key name="recent-connections" type="s">
 			<default>'[]'</default>
 			<summary>Recent Connection List</summary>
-			<description>List of recently used connections.</description>
+			<description>
+				List of recently used connections.
+			</description>
 		</key>
 
 		<key name="recent-files" type="s">
 			<default>'[]'</default>
 			<summary>Recent File List</summary>
-			<description>List of recently opened file.</description>
+			<description>
+				List of recently opened file.
+			</description>
+		</key>
+
+		<key name="node-gridlines" type="b">
+			<default>true</default>
+			<summary>Show Node Gridlines</summary>
+			<description>
+				Whether gridlines should be displayed in the node editor.
+			</description>
+		</key>
+
+		<key name="node-minimap" type="b">
+			<default>false</default>
+			<summary>Show Node Minimap</summary>
+			<description>
+				Whether minimap should be displayed in the node editor.
+			</description>
+		</key>
+
+		<key name="sheet-gridlines" type="b">
+			<default>true</default>
+			<summary>Show Sheet Gridlines</summary>
+			<description>
+				Whether gridlines should be displayed in the sheet editor.
+			</description>
+		</key>
+
+		<key name="sheet-locators" type="b">
+			<default>true</default>
+			<summary>Show Sheet Locators</summary>
+			<description>
+				Whether locators should be displayed in the sheet editor.
+			</description>
+		</key>
+
+		<key name="sheet-formula-bar" type="b">
+			<default>true</default>
+			<summary>Show Sheet Formula Bar</summary>
+			<description>
+				Whether formula bar should be displayed in the sheet editor.
+			</description>
+		</key>
+
+		<key name="sheet-focus-cell" type="b">
+			<default>false</default>
+			<summary>Enable Sheet Focus Cell</summary>
+			<description>
+				Whether focus cell should be enabled in the sheet editor.
+			</description>
 		</key>
 	</schema>
 </schemalist>

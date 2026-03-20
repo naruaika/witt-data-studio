@@ -340,10 +340,10 @@ class SheetView():
         active = self.selection.current_active_cell
 
         canvas_height = self.Canvas.get_height()
-        canvas_width = self.Canvas.get_width()
+        canvas_width  = self.Canvas.get_width()
 
-        viewport_height = canvas_height - self.display.top_locator_height
-        viewport_width = canvas_width - self.display.left_locator_width
+        viewport_height = canvas_height - self.display.get_top_locator_height()
+        viewport_width  = canvas_width  - self.display.get_left_locator_width()
 
         if follow_cursor:
             self.display.scroll_to_position(cursor.column,
@@ -392,8 +392,8 @@ class SheetView():
             n_remaining_columns = bounding_box.column_span - len(self.display.ccolumn_widths)
             content_width += n_remaining_columns * self.display.DEFAULT_CELL_WIDTH
 
-        content_height += self.display.top_locator_height + 50
-        content_width  += self.display.left_locator_width + 50
+        content_height += self.display.get_top_locator_height() + 50
+        content_width  += self.display.get_left_locator_width() + 50
 
         new_y_upper = max(content_height, scroll_y_position + self.Canvas.get_height())
         new_x_upper = max(content_width,  scroll_x_position + self.Canvas.get_width())

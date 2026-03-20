@@ -626,7 +626,7 @@ class SheetDocument(Document):
             last_row = bbox.row + bbox.row_span - 1
             last_row_bottom_y = self.display.get_cell_y_from_row(last_row) + \
                                 self.display.get_cell_height_from_row(last_row)
-            if y < 0 and self.display.top_locator_height < last_row_bottom_y:
+            if y < 0 and self.display.get_top_locator_height() < last_row_bottom_y:
                 y = 0
 
             for column_index in range(table.width):

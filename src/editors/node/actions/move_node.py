@@ -35,7 +35,7 @@ class ActionMoveNode(Action):
                  positions: list[tuple],
                  ) ->       None:
         """"""
-        window = env.app.get_active_main_window()
+        window = env.APP.get_active_main_window()
         owner = window.node_editor
 
         super().__init__(owner)
@@ -78,7 +78,7 @@ class ActionMoveNode(Action):
 
     def undo(self) -> bool:
         """"""
-        window = env.app.get_active_main_window()
+        window = env.APP.get_active_main_window()
         freezing = window.history.freezing
         window.history.freezing = True
 

@@ -30,6 +30,8 @@ from keyring       import get_password
 from keyring       import set_password
 from polars        import DataFrame
 
+from ... import environment as env
+
 from ...core.utils import generate_uuid
 
 class ConnectionListItem(GObject.Object):
@@ -87,8 +89,6 @@ class DatabaseImportWindow(Adw.Window):
     RunButton        = Gtk.Template.Child()
     RunSpinner       = Gtk.Template.Child()
     ImportButton     = Gtk.Template.Child()
-
-    APPLICATION_ID = 'com.wittara.studio'
 
     def __init__(self,
                  query:    str      = None,
@@ -463,7 +463,7 @@ class DatabaseImportWindow(Adw.Window):
             if password is not None:
                 from ...backend.database import Database
                 username = Database.hash_config(config)
-                set_password(self.APPLICATION_ID, username, password)
+                set_password(env.APP_ID, username, password)
 
             if 'password' in config:
                 del config['password']
@@ -573,11 +573,11 @@ class DatabaseImportWindow(Adw.Window):
             password = new_config.get('password')
             if password is not None:
                 username = Database.hash_config(config)
-                if get_password(self.APPLICATION_ID, username):
-                    delete_password(self.APPLICATION_ID, username)
+                if get_password(env.APP_ID, username):
+                    delete_password(env.APP_ID, username)
 
                 username = Database.hash_config(new_config)
-                set_password(self.APPLICATION_ID, username, password)
+                set_password(env.APP_ID, username, password)
 
             if 'password' in new_config:
                 del new_config['password']
@@ -614,7 +614,7 @@ class DatabaseImportWindow(Adw.Window):
 
         if config.get('host'):
             username = Database.hash_config(config)
-            password = get_password(self.APPLICATION_ID, username)
+            password = get_password(env.APP_ID, username)
             if password is not None:
                 add_window.set_password(password)
 
@@ -708,7 +708,7 @@ class DatabaseImportWindow(Adw.Window):
     def _restore_connection_list(self) -> None:
         """"""
         from json import loads
-        settings = Gio.Settings.new(self.APPLICATION_ID)
+        settings = Gio.Settings.new(env.APP_ID)
         list_str = settings.get_string('recent-connections')
         list_obj = loads(list_str)
 
@@ -726,7 +726,7 @@ class DatabaseImportWindow(Adw.Window):
             del list_obj[index]['uuid']
 
         list_str = dumps(list_obj)
-        settings = Gio.Settings.new(self.APPLICATION_ID)
+        settings = Gio.Settings.new(env.APP_ID)
         settings.set_string('recent-connections', list_str)
 
     def _populate_connection_list_view(self) -> None:
@@ -850,7 +850,7 @@ class DatabaseImportWindow(Adw.Window):
             # Get password from system keyring
             if config.get('host'):
                 username = Database.hash_config(config)
-                password = get_password(self.APPLICATION_ID, username)
+                password = get_password(env.APP_ID, username)
                 config['password'] = password
 
             from ...backend.database import Database

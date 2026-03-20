@@ -35,7 +35,7 @@ class ActionDeleteNode(Action):
                  nodes:  list[NodeFrame],
                  ) ->    None:
         """"""
-        window = env.app.get_active_main_window()
+        window = env.APP.get_active_main_window()
         owner = window.node_editor
 
         super().__init__(owner)
@@ -100,7 +100,7 @@ class ActionDeleteNode(Action):
 
     def undo(self) -> bool:
         """"""
-        window = env.app.get_active_main_window()
+        window = env.APP.get_active_main_window()
         freezing = window.history.freezing
         window.history.freezing = True
 

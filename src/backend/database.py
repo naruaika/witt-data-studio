@@ -58,7 +58,7 @@ class Database():
 
             connection.execute(cschema['curl'])
 
-            if env.debug:
+            if env.DEBUG:
                 kwargs = "level='debug', storage='stdout'"
                 connection.execute(f'CALL enable_logging({kwargs});')
 

@@ -83,6 +83,7 @@
                     <property name="spacing">6</property>
 
                     <!-- Clipboard Section -->
+                    <!--
                     <child>
                       <object class="GtkBox" id="ClipboardSection">
                         <property name="name">clipboard</property>
@@ -221,6 +222,7 @@
                         </child>
                       </object>
                     </child>
+                    -->
 
                     <!-- Input & Output Section -->
                     <child>
@@ -1469,6 +1471,7 @@
                                     </style>
                                   </object>
                                 </child>
+                                <!--
                                 <child>
                                   <object class="GtkMenuButton" id="PivotColumnsButton">
                                     <property name="name">pivot-columns</property>
@@ -1507,6 +1510,7 @@
                                     </style>
                                   </object>
                                 </child>
+                                -->
                               </object>
                             </child>
                             <child>
@@ -2107,6 +2111,9 @@
           <object class="AdwViewStackPage" id="AnalyticsPage">
             <property name="name">analytics</property>
             <property name="title">Analytics</property>
+
+            <property name="visible">False</property>
+
             <property name="child">
               <object class="GtkScrolledWindow">
                 <property name="vscrollbar-policy">never</property>
@@ -2137,6 +2144,107 @@
                   <object class="GtkBox">
                     <property name="orientation">horizontal</property>
                     <property name="spacing">6</property>
+
+                    <!-- Show Section -->
+                    <child>
+                      <object class="GtkBox" id="ShowSection">
+                        <property name="name">show</property>
+                        <property name="orientation">horizontal</property>
+                        <property name="spacing">6</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <property name="vexpand">false</property>
+                            <property name="halign">start</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkGrid">
+                                <property name="vexpand">true</property>
+                                <child>
+                                  <object class="GtkCheckButton" id="ShowGridlinesButton">
+                                    <property name="name">show-gridlines</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Gridlines</property>
+                                    <property name="label" translatable="yes">Gridlines</property>
+                                    <signal name="toggled" handler="_on_gridlines_toggled" swapped="no"/>
+                                    <layout>
+                                      <property name="column">0</property>
+                                      <property name="row">0</property>
+                                    </layout>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkCheckButton" id="ShowMinimapButton">
+                                    <property name="name">show-minimap</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Minimap</property>
+                                    <property name="label" translatable="yes">Minimap</property>
+                                    <signal name="toggled" handler="_on_minimap_toggled" swapped="no"/>
+                                    <layout>
+                                      <property name="column">0</property>
+                                      <property name="row">1</property>
+                                    </layout>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkCheckButton" id="ShowLocatorsButton">
+                                    <property name="name">show-locators</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Locators</property>
+                                    <property name="label" translatable="yes">Locators</property>
+                                    <signal name="toggled" handler="_on_locators_toggled" swapped="no"/>
+                                    <layout>
+                                      <property name="column">0</property>
+                                      <property name="row">1</property>
+                                    </layout>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkCheckButton" id="ShowFormulaBarButton">
+                                    <property name="name">show-formula-bar</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Formula Bar</property>
+                                    <property name="label" translatable="yes">Formula Bar</property>
+                                    <signal name="toggled" handler="_on_formula_bar_toggled" swapped="no"/>
+                                    <layout>
+                                      <property name="column">1</property>
+                                      <property name="row">0</property>
+                                    </layout>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkCheckButton" id="ShowFocusCellButton">
+                                    <property name="name">show-focus-cell</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Focus Cell</property>
+                                    <property name="label" translatable="yes">Focus Cell</property>
+                                    <signal name="toggled" handler="_on_focus_cell_toggled" swapped="no"/>
+                                    <layout>
+                                      <property name="column">1</property>
+                                      <property name="row">1</property>
+                                    </layout>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Show</property>
+                                <style>
+                                  <class name="caption"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSeparator">
+                            <property name="orientation">vertical</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
                   </object>
                 </child>
               </object>

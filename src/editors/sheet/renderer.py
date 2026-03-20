@@ -27,12 +27,15 @@ from datetime      import time
 from datetime      import timedelta
 from decimal       import Decimal
 from gi.repository import Adw
+from gi.repository import Gio
 from gi.repository import Graphene
 from gi.repository import Gtk
 from gi.repository import Pango
 from gi.repository import PangoCairo
 
 import re
+
+from ... import environment as env
 
 from ...core.models.table import DataTable
 
@@ -47,6 +50,8 @@ class SheetRenderer():
     def __init__(self) -> None:
         """"""
         super().__init__()
+
+        self.settings = Gio.Settings.new(env.APP_ID)
 
         self.style_manager = Adw.StyleManager.get_default()
 
@@ -71,12 +76,9 @@ class SheetRenderer():
         bounds = Graphene.Rect().init(0, 0, width, height)
         context = snapshot.append_cairo(bounds)
 
-        self.style_manager = Adw.StyleManager.get_default()
-
         # We may not want to change the order of these calls for any reasons :)
         self._check_render_caches(width, height, selection)
         self._setup_cairo_context(context)
-        self._draw_headers_backgrounds(context, width, height, display)
         self._draw_selection_backgrounds(context, width, height, display, selection)
         self._draw_headers_contents(canvas, context, width, height, display, document)
         self._draw_cells_contents(canvas, context, width, height, display, document)
@@ -93,6 +95,14 @@ class SheetRenderer():
         if prefers_dark != self.prefers_dark:
             self.prefers_dark = prefers_dark
             self.render_cache = {}
+
+        if 'gridlines' not in self.render_cache:
+            self.render_cache['gridlines'] = \
+                self.settings.get_boolean('sheet-gridlines')
+
+        if 'focus-cell' not in self.render_cache:
+            self.render_cache['focus-cell'] = \
+                self.settings.get_boolean('sheet-focus-cell')
 
         self.color_accent = self.style_manager.get_accent_color_rgba()
 
@@ -150,35 +160,6 @@ class SheetRenderer():
         context.set_font_options(font_options)
         context.set_antialias(Antialias.NONE)
 
-    def _draw_headers_backgrounds(self,
-                                  context: Context,
-                                  width:   int,
-                                  height:  int,
-                                  display: SheetDisplay,
-                                  ) ->     None:
-        """"""
-        context.save()
-
-        # The only reason is because we want to separate the headers from the contents.
-        # I do agree that it's not always good to hardcode like this, so let's flag it
-        # as a TODO for now.
-        if self.prefers_dark:
-            context.set_source_rgb(0.13, 0.13, 0.15)
-        else:
-            context.set_source_rgb(1.00, 1.00, 1.00)
-
-        context.rectangle(0,
-                          0,
-                          width,
-                          display.top_locator_height)
-        context.rectangle(0,
-                          display.top_locator_height,
-                          display.left_locator_width,
-                          height)
-        context.fill()
-
-        context.restore()
-
     def _draw_selection_backgrounds(self,
                                     context:   Context,
                                     width:     int,
@@ -207,21 +188,21 @@ class SheetRenderer():
         # I didn't adjust the width and height as it's not worth the complexity.
         if arange.column == 0:
             context.rectangle(-1,
-                              display.top_locator_height - 1,
+                              display.get_top_locator_height() - 1,
                               width,
                               height)
             context.clip()
         # Clipping for when the user selects the entire column(s)
         if arange.row == 0:
-            context.rectangle(display.left_locator_width - 1,
+            context.rectangle(display.get_left_locator_width() - 1,
                               -1,
                               width,
                               height)
             context.clip()
         # Clipping for general use cases
         if arange.column > 0 and arange.row > 0:
-            context.rectangle(display.left_locator_width - 1,
-                              display.top_locator_height - 1,
+            context.rectangle(display.get_left_locator_width() - 1,
+                              display.get_top_locator_height() - 1,
                               width,
                               height)
             context.clip()
@@ -231,6 +212,26 @@ class SheetRenderer():
         accent_rgba = list(self.color_accent)
         accent_rgba[3] = 0.2
         context.set_source_rgba(*accent_rgba)
+
+        # Highlight column and row of the selection
+        if self.render_cache['focus-cell']:
+            context.rectangle(range_x,
+                              display.get_top_locator_height(),
+                              range_width,
+                              range_y - display.get_top_locator_height())
+            context.rectangle(range_x,
+                              range_y + range_height,
+                              range_width,
+                              height - (range_y + range_height))
+            context.rectangle(display.get_left_locator_width(),
+                              range_y,
+                              range_x - display.get_left_locator_width(),
+                              range_height)
+            context.rectangle(range_x + range_width,
+                              range_y,
+                              width - (range_x + range_width),
+                              range_height)
+            context.fill()
 
         # Draw the selection only if it's perceivable
         if range_width > 0 and range_height > 0:
@@ -244,24 +245,24 @@ class SheetRenderer():
         if arange.column > 0 and arange.row == 0:
             context.reset_clip()
             context.rectangle(0,
-                              display.top_locator_height,
-                              display.left_locator_width,
+                              display.get_top_locator_height(),
+                              display.get_left_locator_width(),
                               height)
             context.fill()
 
         # Indicates that the user has selected the entire row(s) by highlighting all the column headers
         if arange.column == 0 and arange.row > 0:
             context.reset_clip()
-            context.rectangle(display.left_locator_width,
+            context.rectangle(display.get_left_locator_width(),
                               0,
                               width,
-                              display.top_locator_height)
+                              display.get_top_locator_height())
             context.fill()
 
         # Indicates that the user has a selection by highlighting the row and column header(s)
         if arange.column > 0 and arange.row > 0:
             context.reset_clip()
-            context.rectangle(display.left_locator_width - 1,
+            context.rectangle(display.get_left_locator_width() - 1,
                               0,
                               width,
                               height)
@@ -269,18 +270,18 @@ class SheetRenderer():
             context.rectangle(range_x,
                               0,
                               range_width,
-                              display.top_locator_height)
+                              display.get_top_locator_height())
             context.fill()
 
             context.reset_clip()
             context.rectangle(0,
-                              display.top_locator_height - 1,
+                              display.get_top_locator_height() - 1,
                               width,
                               height)
             context.clip()
             context.rectangle(0,
                               range_y,
-                              display.left_locator_width,
+                              display.get_left_locator_width(),
                               range_height)
             context.fill()
 
@@ -292,24 +293,24 @@ class SheetRenderer():
         # Bold highlight all the headers if the user has selected the entire sheet
         if arange.column == 0 and arange.row == 0:
             context.reset_clip()
-            context.rectangle(display.left_locator_width,
+            context.rectangle(display.get_left_locator_width(),
                               range_y,
                               width,
-                              display.top_locator_height)
+                              display.get_top_locator_height())
             context.rectangle(range_x,
-                              display.top_locator_height,
-                              display.left_locator_width,
+                              display.get_top_locator_height(),
+                              display.get_left_locator_width(),
                               range_height)
             context.rectangle(0,
                               0,
-                              display.left_locator_width,
-                              display.top_locator_height)
+                              display.get_left_locator_width(),
+                              display.get_top_locator_height())
             context.fill()
 
         # Bold highlight the selected column(s) header
         if arange.column > 0 and arange.row == 0:
             context.reset_clip()
-            context.rectangle(display.left_locator_width - 1,
+            context.rectangle(display.get_left_locator_width() - 1,
                               -1,
                               width,
                               height)
@@ -317,20 +318,20 @@ class SheetRenderer():
             context.rectangle(range_x,
                               range_y,
                               range_width,
-                              display.top_locator_height)
+                              display.get_top_locator_height())
             context.fill()
 
         # Bold highlight the selected row(s) header
         if arange.column == 0 and arange.row > 0:
             context.reset_clip()
             context.rectangle(-1,
-                              display.top_locator_height - 1,
+                              display.get_top_locator_height() - 1,
                               width,
                               height)
             context.clip()
             context.rectangle(range_x,
                               range_y,
-                              display.left_locator_width,
+                              display.get_left_locator_width(),
                               range_height)
             context.fill()
 
@@ -345,8 +346,8 @@ class SheetRenderer():
         cell = selection.current_active_cell
 
         context.reset_clip()
-        context.rectangle(display.left_locator_width - 1,
-                          display.top_locator_height - 1,
+        context.rectangle(display.get_left_locator_width() - 1,
+                          display.get_top_locator_height() - 1,
                           width,
                           height)
         context.clip()
@@ -391,7 +392,7 @@ class SheetRenderer():
         context.set_source_rgb(*text_color)
 
         context.save()
-        context.rectangle(display.left_locator_width,
+        context.rectangle(display.get_left_locator_width(),
                           0,
                           width,
                           height)
@@ -437,7 +438,7 @@ class SheetRenderer():
             context.rectangle(x,
                               0,
                               cell_width - 2,
-                              display.top_locator_height)
+                              display.get_top_locator_height())
             context.clip()
 
             context.move_to(x_text, 2)
@@ -452,7 +453,7 @@ class SheetRenderer():
 
         context.save()
         context.rectangle(0,
-                          display.top_locator_height,
+                          display.get_top_locator_height(),
                           width,
                           height)
         context.clip()
@@ -465,7 +466,7 @@ class SheetRenderer():
             cell_text = display.get_lrow_from_row(row_index)
             layout.set_text(str(cell_text), -1)
             text_width = layout.get_pixel_size()[0]
-            x = display.left_locator_width - text_width - display.DEFAULT_CELL_PADDING
+            x = display.get_left_locator_width() - text_width - display.DEFAULT_CELL_PADDING
 
             context.move_to(x, y + 2)
             PangoCairo.show_layout(context, layout)
@@ -488,8 +489,8 @@ class SheetRenderer():
             return # skip when no data
 
         # Drawing loop boundaries
-        x_start = display.left_locator_width
-        y_start = display.top_locator_height
+        x_start = display.get_left_locator_width()
+        y_start = display.get_top_locator_height()
         x_end = width
         y_end = height
 
@@ -629,7 +630,7 @@ class SheetRenderer():
                 continue # skip out of bound area
 
             ccontext.save()
-            ccontext.rectangle(x, display.top_locator_height, cell_width - 2, height)
+            ccontext.rectangle(x, display.get_top_locator_height(), cell_width - 2, height)
             ccontext.clip()
 
             row_index = display.get_starting_row()
@@ -674,6 +675,9 @@ class SheetRenderer():
 
                 cell_value = document.read_data(lcol_index, lrow_index)
 
+                # TODO: decide how to properly show the sticky table header row
+                # for when the locators are hidden
+
                 # Determine cell data type to decide how to render it properly
                 _is_none = cell_value is None
                 _is_string = not _is_none and isinstance(cell_value, str)
@@ -687,7 +691,7 @@ class SheetRenderer():
                     match cell_value:
                         case _ if isinstance(cell_value, timedelta):
                             pass # let polars decide how to display it
-                        case __:
+                        case _:
                             cell_value = '#VALUE!' # f'[<{type(cell_value).__name__}>]'
 
                 if cell_value in {'', None}:
@@ -770,8 +774,8 @@ class SheetRenderer():
         # I bet this is better than a thick line!
         context.set_hairline(True)
 
-        x_start = display.left_locator_width
-        y_start = display.top_locator_height
+        x_start = display.get_left_locator_width()
+        y_start = display.get_top_locator_height()
 
         # Draw separator line between headers and contents
         context.move_to(0, y_start)
@@ -783,7 +787,7 @@ class SheetRenderer():
         # Draw horizontal lines
         context.reset_clip()
         context.rectangle(0,
-                          display.top_locator_height,
+                          display.get_top_locator_height(),
                           width,
                           height)
         context.clip()
@@ -821,7 +825,9 @@ class SheetRenderer():
 
             # Draw line in the content area
             context.move_to(x_start, y)
-            context.line_to(width, y)
+            context.line_to(width if self.render_cache['gridlines']
+                                  else display.get_left_locator_width(),
+                            y)
 
             y += display.get_cell_height_from_row(nrow_index)
             nrow_index += 1
@@ -831,7 +837,7 @@ class SheetRenderer():
 
         # Draw vertical lines
         context.reset_clip()
-        context.rectangle(display.left_locator_width,
+        context.rectangle(display.get_left_locator_width(),
                           0,
                           width,
                           height)
@@ -870,7 +876,9 @@ class SheetRenderer():
 
             # Draw line in the content area
             context.move_to(x, y_start)
-            context.line_to(x, height)
+            context.line_to(x,
+                            height if self.render_cache['gridlines']
+                                   else display.get_top_locator_height())
 
             x += display.get_cell_width_from_column(ncol_index)
             ncol_index += 1
@@ -903,21 +911,21 @@ class SheetRenderer():
         # I didn't adjust the width and height as it's not worth the complexity.
         if arange.column == 0:
             context.rectangle(0,
-                              display.top_locator_height - 1,
+                              display.get_top_locator_height() - 1,
                               width,
                               height)
             context.clip()
         # Clipping for when the user selects the entire column(s)
         if arange.row == 0:
-            context.rectangle(display.left_locator_width - 1,
+            context.rectangle(display.get_left_locator_width() - 1,
                               0,
                               width,
                               height)
             context.clip()
         # Clipping for general use cases
         if arange.column > 0 and arange.row > 0:
-            context.rectangle(display.left_locator_width - 1,
-                              display.top_locator_height - 1,
+            context.rectangle(display.get_left_locator_width() - 1,
+                              display.get_top_locator_height() - 1,
                               width,
                               height)
             context.clip()
@@ -929,23 +937,23 @@ class SheetRenderer():
         # Indicates that the user has selected the entire column(s) by drawing a vertical line
         # next to the row headers
         if arange.column > 0 and arange.row == 0:
-            context.move_to(display.left_locator_width, display.top_locator_height - 1)
-            context.line_to(display.left_locator_width, height)
+            context.move_to(display.get_left_locator_width(), display.get_top_locator_height() - 1)
+            context.line_to(display.get_left_locator_width(), height)
             context.stroke()
 
         # Indicates that the user has selected the entire row(s) by drawing a horizontal line
         # next to the column headers
         if arange.column == 0 and arange.row > 0:
-            context.move_to(display.left_locator_width - 1, display.top_locator_height)
-            context.line_to(width, display.top_locator_height)
+            context.move_to(display.get_left_locator_width() - 1, display.get_top_locator_height())
+            context.line_to(width, display.get_top_locator_height())
             context.stroke()
 
         # Indicates that the user has a selection by drawing a line next to the row and column header(s)
         if arange.column > 0 and arange.row > 0:
-            context.move_to(range_x, display.top_locator_height)
-            context.line_to(range_x + range_width, display.top_locator_height)
-            context.move_to(display.left_locator_width, range_y)
-            context.line_to(display.left_locator_width, range_y + range_height)
+            context.move_to(range_x, display.get_top_locator_height())
+            context.line_to(range_x + range_width, display.get_top_locator_height())
+            context.move_to(display.get_left_locator_width(), range_y)
+            context.line_to(display.get_left_locator_width(), range_y + range_height)
             context.stroke()
 
         # Don't render the active selection when the user selects the entire sheet
@@ -977,8 +985,8 @@ class SheetRenderer():
             # Hide the top of the selection if it is exceeded by the scroll viewport
             if range_y < 0:
                 range_height += range_y
-                range_y = display.top_locator_height
-                range_height -= display.top_locator_height
+                range_y = display.get_top_locator_height()
+                range_height -= display.get_top_locator_height()
             # Hide the entire selection if it is exceeded by the scroll viewport
             if range_height < 0:
                 range_height = 0
@@ -993,8 +1001,8 @@ class SheetRenderer():
             # Hide the left of the selection if it is exceeded by the scroll viewport
             if range_x < 0:
                 range_width += range_x
-                range_x = display.left_locator_width
-                range_width -= display.left_locator_width
+                range_x = display.get_left_locator_width()
+                range_width -= display.get_left_locator_width()
             # Hide the entire selection if it is exceeded by the scroll viewport
             if range_width < 0:
                 range_width = 0

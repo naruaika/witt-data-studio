@@ -31,7 +31,7 @@ class ActionSelectByRubberband(Action):
                  combo:  bool = False,
                  ) ->    None:
         """"""
-        window = env.app.get_active_main_window()
+        window = env.APP.get_active_main_window()
         owner = window.node_editor
 
         super().__init__(owner)

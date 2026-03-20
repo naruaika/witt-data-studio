@@ -16,13 +16,14 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+from gi.repository import GObject
 from polars import Boolean
 from polars import Series
 from polars import UInt32
 
 import re
 
-class SheetDisplay():
+class SheetDisplay(GObject.Object):
 
     DEFAULT_CELL_HEIGHT:  int = 22
     DEFAULT_CELL_WIDTH:   int = 65
@@ -40,6 +41,8 @@ class SheetDisplay():
 
     scroll_y_position: int = 0
     scroll_x_position: int = 0
+
+    show_locators = GObject.Property(type = bool, default = True)
 
     # Holds the visibility flags for each row and column.
     # The row vflags includes the virtual row for the
@@ -74,6 +77,18 @@ class SheetDisplay():
         self.column_vseries = Series(dtype = UInt32)
         self.column_widths  = Series(dtype = UInt32)
         self.ccolumn_widths = Series(dtype = UInt32)
+
+    def get_left_locator_width(self) -> int:
+        """"""
+        if not self.show_locators:
+            return 0
+        return self.left_locator_width
+
+    def get_top_locator_height(self) -> int:
+        """"""
+        if not self.show_locators:
+            return 0
+        return self.top_locator_height
 
     def get_lcolumn_from_column(self,
                                 column: int,
@@ -247,11 +262,11 @@ class SheetDisplay():
                               after_scroll: bool = True,
                               ) ->          int:
         """Get the visual column index that is visible from the given point."""
-        if with_locator and x <= self.left_locator_width:
+        if with_locator and x <= self.get_left_locator_width():
             return 0
 
         if with_locator:
-            x -= self.left_locator_width
+            x -= self.get_left_locator_width()
 
         if after_scroll:
             x += self.scroll_x_position
@@ -275,11 +290,11 @@ class SheetDisplay():
                            after_scroll: bool = True,
                            ) ->          int:
         """Get the visual row index that is visible from the given point."""
-        if with_locator and y <= self.top_locator_height:
+        if with_locator and y <= self.get_top_locator_height():
             return 0
 
         if with_locator:
-            y -= self.top_locator_height
+            y -= self.get_top_locator_height()
 
         if after_scroll:
             y += self.scroll_y_position
@@ -325,7 +340,7 @@ class SheetDisplay():
             return 0
 
         # Apply offset by the locator and scroll position
-        x = self.left_locator_width - self.scroll_x_position
+        x = self.get_left_locator_width() - self.scroll_x_position
 
         if column == 1: # the first cell
             return x
@@ -350,7 +365,7 @@ class SheetDisplay():
             return 0
 
         # Apply offset by the locator and scroll position
-        y = self.top_locator_height - self.scroll_y_position
+        y = self.get_top_locator_height() - self.scroll_y_position
 
         if row == 1: # the first cell
             return y
@@ -391,7 +406,7 @@ class SheetDisplay():
         """Get the width of the cell at the given visual column index."""
         lcolumn = self.get_lcolumn_from_column(column)
         if lcolumn == 0:
-            return self.left_locator_width
+            return self.get_left_locator_width()
         if 0 < lcolumn <= len(self.column_widths):
             return self.column_widths[lcolumn - 1]
         return self.DEFAULT_CELL_WIDTH
@@ -402,7 +417,7 @@ class SheetDisplay():
         """Get the height of the cell at the given visual row index."""
         lrow = self.get_lrow_from_row(row)
         if lrow == 0:
-            return self.top_locator_height
+            return self.get_top_locator_height()
         if 0 < lrow <= len(self.row_heights):
             return self.row_heights[lrow - 1]
         return self.DEFAULT_CELL_HEIGHT
@@ -689,8 +704,8 @@ class SheetDisplay():
         cell_width  = self.get_cell_width_from_column(column)
         cell_height = self.get_cell_height_from_row(row)
 
-        x_offset = self.left_locator_width - self.scroll_x_position
-        y_offset = self.top_locator_height - self.scroll_y_position
+        x_offset = self.get_left_locator_width() - self.scroll_x_position
+        y_offset = self.get_top_locator_height() - self.scroll_y_position
 
         top_offset  = cell_y - y_offset
         left_offset = cell_x - x_offset
@@ -731,8 +746,8 @@ class SheetDisplay():
         cell_width  = self.get_cell_width_from_column(column)
         cell_height = self.get_cell_height_from_row(row)
 
-        x_offset = self.left_locator_width - self.scroll_x_position
-        y_offset = self.top_locator_height - self.scroll_y_position
+        x_offset = self.get_left_locator_width() - self.scroll_x_position
+        y_offset = self.get_top_locator_height() - self.scroll_y_position
 
         bottom_offset = cell_y + cell_height - y_offset
         top_offset    = cell_y - y_offset

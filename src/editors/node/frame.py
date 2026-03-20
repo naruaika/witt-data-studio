@@ -261,7 +261,7 @@ class NodeFrame(Adw.Bin):
             return
 
         if self.get_editor():
-            if env.debug:
+            if env.DEBUG:
                 parameters = {'backward':  backward,
                               'forward':   forward,
                               'specified': specified,

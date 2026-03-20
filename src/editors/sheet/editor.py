@@ -44,6 +44,8 @@ from typing        import Any
 import gc
 import logging
 
+from ... import environment as env
+
 from ...core.construct    import *
 from ...core.models.table import DataTable
 from ..node.frame         import NodeFrame
@@ -101,6 +103,7 @@ class SheetEditor(Gtk.Box):
 
         self._setup_actions()
         self._setup_commands()
+        self._setup_controllers()
 
         self.set_data(tables, sparse)
 
@@ -779,6 +782,18 @@ class SheetEditor(Gtk.Box):
 #                      'division',              f"{_('Column')}: {get_title_from_layout('calculate-duration-division')}...",
 #                                               context = 'table_focus and duration_focus')
 
+    def _setup_controllers(self) -> None:
+        """"""
+        self.settings = Gio.Settings.new(env.APP_ID)
+        self.settings.bind('sheet-formula-bar',
+                           self.FormulaBar.Container,
+                           'visible',
+                           Gio.SettingsBindFlags.DEFAULT)
+        self.settings.bind('sheet-locators',
+                           self.display,
+                           'show-locators',
+                           Gio.SettingsBindFlags.DEFAULT)
+
     def set_data(self,
                  tables: Tables = {},
                  sparse: Sparse = {},
@@ -958,13 +973,16 @@ class SheetEditor(Gtk.Box):
 
     def resize_sheet_locators(self) -> None:
         """"""
+        if not self.display.show_locators:
+            return
+
         from gi.repository import Pango
 
         row_index = self.display.get_starting_row()
         max_row_number = row_index
 
         # Compute the last visible row number
-        y = self.display.top_locator_height
+        y = self.display.get_top_locator_height()
         while y < self.Canvas.get_height():
             max_row_number = self.display.get_lrow_from_row(row_index)
             y += self.display.DEFAULT_CELL_HEIGHT
@@ -983,7 +1001,7 @@ class SheetEditor(Gtk.Box):
         locator_width = int(text_width + cell_padding * 2 + 0.5)
         locator_width = max(45, locator_width)
 
-        if locator_width != self.display.left_locator_width:
+        if locator_width != self.display.get_left_locator_width():
             self.display.left_locator_width = locator_width
             self.Canvas.cleanup()
 

@@ -17,6 +17,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from .application import Application
-app: Application = None
 
-debug: int = 0
+APP: Application = None
+
+APP_ID: str = 'com.wittara.studio'
+
+DEBUG: int = 0

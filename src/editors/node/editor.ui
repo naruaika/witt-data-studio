@@ -49,18 +49,6 @@
             </style>
           </object>
         </child>
-        <child>
-          <object class="GtkToggleButton" id="MinimapToggle">
-            <property name="valign">start</property>
-            <property name="icon-name">compass2-symbolic</property>
-            <property name="tooltip-text" translatable="yes">Toggle Minimap</property>
-            <style>
-              <class name="view"/>
-              <class name="frame"/>
-              <class name="circular"/>
-            </style>
-          </object>
-        </child>
       </object>
     </child>
     <style>

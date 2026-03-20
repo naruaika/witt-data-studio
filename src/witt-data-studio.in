@@ -102,6 +102,6 @@ if __name__ == '__main__':
     from witt_data_studio import environment as env
     from witt_data_studio import main
 
-    env.debug = debug_mode
+    env.DEBUG = debug_mode
 
     sys.exit(main.main(APP_ID, VERSION))
