@@ -206,7 +206,7 @@ class Application(Adw.Application):
                                  application_icon   = self.APP_ID,
                                  version            = self.VERSION,
                                  copyright          = '© 2025 Naufan Rusyda Faikar',
-                                 license_type       = Gtk.License.AGPL_3_0,
+                                 license_type       = Gtk.License.APACHE_2_0,
                                  designers          = ['Naufan Rusyda Faikar <hello@naruaika.me>'],
                                  developer_name     = 'Naufan Rusyda Faikar',
                                  developers         = ['Naufan Rusyda Faikar <hello@naruaika.me>'],
