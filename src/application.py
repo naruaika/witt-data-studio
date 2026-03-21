@@ -490,7 +490,7 @@ class Application(Adw.Application):
             not window.history.undo_stack and
             not window.history.redo_stack
         ):
-            window.close()
+            GLib.idle_add(window.close)
 
     def save(self,
              window: Window,
