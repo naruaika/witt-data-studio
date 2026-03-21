@@ -20,22 +20,11 @@ Currently in early development. Please don't expect anything to work at this sta
 
 ## Documentation
 
-Please visit [our official wiki](https://github.com/naruaika/witt-data-studio/wiki). It's not completely finished yet, but it should help you get started.
-
-## Roadmap
-
-Currently, we're only outlining the tasks we'll be performing, not the sequence in which they'll be completed. We're not providing a comprehensive to-do list, but rather listing the most interesting features only.
-
-- [ ] Stable node-based data pipeline
-- [ ] Spreadsheet view bound to pipeline
-- [ ] Interactive charts with linked views
-- [ ] Automatic pipeline execution
-- [ ] Self-hostable dashboard
-- [ ] Low-code application builder
+Please visit [our official wiki](https://github.com/naruaika/witt-data-studio/wiki). It should help you get started.
 
 ## Contributing
 
-We're currently accepting all but external code contributions. Please feel free to fork our repository in any case.
+We're currently accepting all but external code contributions.
 
 ## Licenses
 
