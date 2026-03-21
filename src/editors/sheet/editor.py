@@ -1126,8 +1126,7 @@ class SheetEditor(Gtk.Box):
 
             # Assumes that the column is non-arbitrary dtype,
             # which is most likely a series, list, or struct.
-            except Exception as e:
-                logger.error(e, exc_info = True)
+            except Exception:
                 self.display.column_widths[col_index] = max_width
                 continue
 
@@ -1173,8 +1172,8 @@ class SheetEditor(Gtk.Box):
             self.display.column_widths = Series(default_column_widths, dtype = UInt32)
             n_column_widths = len(self.display.column_widths)
 
-        # Expand with default column widths
         if n_column_widths < column:
+            # Expand with default column widths
             n_missing = column - n_column_widths
             default_column_widths = [self.display.DEFAULT_CELL_WIDTH] * n_missing
             default_column_widths = Series(default_column_widths, dtype = UInt32)
@@ -1182,13 +1181,19 @@ class SheetEditor(Gtk.Box):
                                                  default_column_widths])
 
             # Compute the width of the text
-            current_column_width = self.display.column_widths[column - 1]
-            layout.set_text(value, -1)
-            text_width = layout.get_pixel_size()[0]
-            column_width = text_width + 2 * self.display.DEFAULT_CELL_PADDING
-            column_width = min(max_width, int(column_width))
-            column_width = max(current_column_width, column_width)
-            self.display.column_widths[column - 1] = column_width
+            try:
+                current_column_width = self.display.column_widths[column - 1]
+                layout.set_text(value, -1)
+                text_width = layout.get_pixel_size()[0]
+                column_width = text_width + 2 * self.display.DEFAULT_CELL_PADDING
+                column_width = min(max_width, int(column_width))
+                column_width = max(current_column_width, column_width)
+                self.display.column_widths[column - 1] = column_width
+
+            # Assumes that the column is non-arbitrary dtype,
+            # which is most likely a series, list, or struct.
+            except Exception:
+                pass
 
         self.display.ccolumn_widths = Series(self.display.column_widths).cum_sum()
 

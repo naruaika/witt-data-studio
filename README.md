@@ -26,13 +26,9 @@ The difficulty of performing business performance analysis is largely a conseque
 
 Currently in early development. Please don't expect anything to work at this stage. Follow our repository for real-time updates and get ready to transform your data workflow!
 
-## Use Cases
+## Documentation
 
-[TODO]
-
-## Tutorial
-
-[TODO]
+Please visit [our official wiki](https://github.com/naruaika/witt-data-studio/wiki). It's not completely finished yet, but it should help you get started.
 
 ## Roadmap
 
