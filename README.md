@@ -16,11 +16,11 @@ The word "witt", we believe, is the past form of "wit" which means "understandin
 
 ## Status
 
-Currently in early development. Please don't expect anything to work at this stage. Follow our repository for real-time updates and get ready to transform your data workflow!
+Currently in early development.
 
 ## Documentation
 
-Please visit [our official wiki](https://github.com/naruaika/witt-data-studio/wiki). It should help you get started.
+Please visit [our official wiki](https://github.com/naruaika/witt-data-studio/wiki).
 
 ## Contributing
 
@@ -28,7 +28,7 @@ We're currently accepting all but external code contributions.
 
 ## Licenses
 
-This project is distributed under the [Apache License Version 2](LICENSE). Please note that the application logo isn't covered under the same license as the source code.
+This project, excluding files related to brand identity, is distributed under the [Apache License Version 2](LICENSE).
 
 We use [GTK](https://www.gtk.org/) and [Libadwaita](https://gitlab.gnome.org/GNOME/libadwaita) to build the user interface, which are licensed under the [GNU Lesser General Public License Version 2.1](https://www.gnu.org/licenses/lgpl-2.1.en.html) (LGPL-2.1). The backend for data manipulation uses [Polars](https://pola.rs/), which is distributed under the [MIT License](https://opensource.org/license/mit). For other dependencies, see the `build-aux/requirements.txt` file. We use icons from [Carbon Design System](https://carbondesignsystem.com/elements/icons/library/), which is distributed under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
 
