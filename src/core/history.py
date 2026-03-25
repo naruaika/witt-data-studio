@@ -18,8 +18,12 @@
 
 from collections import deque
 
+import logging
+
 from .action import Action
 from .utils  import generate_uuid
+
+logger = logging.getLogger(__name__)
 
 class History():
     """"""
@@ -106,7 +110,12 @@ class History():
 
         action = self.undo_stack.pop()
 
-        if not action.undo():
+        try:
+            if not action.undo():
+                return (False, actions)
+
+        except Exception as e:
+            logger.error(e, exc_info = True)
             return (False, actions)
 
         action.clean()
@@ -127,7 +136,12 @@ class History():
 
             action = self.undo_stack.pop()
 
-            if not action.undo():
+            try:
+                if not action.undo():
+                    return (False, actions)
+
+            except Exception as e:
+                logger.error(e, exc_info = True)
                 return (False, actions)
 
             action.clean()
@@ -143,7 +157,12 @@ class History():
 
         action = self.redo_stack.pop()
 
-        if not action.do():
+        try:
+            if not action.do():
+                return (False, actions)
+
+        except Exception as e:
+            logger.error(e, exc_info = True)
             return (False, actions)
 
         actions.append(action)
@@ -163,7 +182,12 @@ class History():
 
             action = self.redo_stack.pop()
 
-            if not action.do():
+            try:
+                if not action.do():
+                    return (False, actions)
+
+            except Exception as e:
+                logger.error(e, exc_info = True)
                 return (False, actions)
 
             actions.append(action)

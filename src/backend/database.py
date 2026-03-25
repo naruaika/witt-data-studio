@@ -96,9 +96,6 @@ class Database():
 
             logger.error(e, exc_info = True)
 
-        finally:
-            connection.close()
-
         log_info = {
             'query':    query,
             'success':  success,
@@ -113,6 +110,8 @@ class Database():
         logger.info(f'Query executed: {query}')
 
         logger.debug(f'With output: {output}')
+
+        connection.close()
 
         return output, log_info
 

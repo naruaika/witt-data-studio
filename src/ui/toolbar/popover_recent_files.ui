@@ -20,7 +20,7 @@
             <property name="overflow">hidden</property>
             <property name="width-request">280</property>
             <property name="min-content-height">98</property>
-            <property name="max-content-height">340</property>
+            <property name="max-content-height">343</property>
             <property name="propagate-natural-height">true</property>
             <child>
               <object class="GtkListView" id="ListView">

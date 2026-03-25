@@ -63,6 +63,9 @@ class _ColoredFormatter(logging.Formatter):
             f"{self.MESSAGE_COLOR}{record.getMessage()}{self.RESET_COLOR}"
         )
 
+        if record.exc_info:
+            formatted += '\n\n' + self.formatException(record.exc_info) + '\n'
+
         return formatted
 
 

@@ -415,20 +415,21 @@ class SheetRenderer():
             cell_width = display.get_cell_width_from_column(col_index)
 
             opt_table = document.get_table_by_position(lcol_index, lrow_index)
-            _is_table = (isinstance(opt_table, DataTable)        and
+            is_ctable = (isinstance(opt_table, DataTable)        and
                          opt_table.bounding_box.row < lrow_index and
                          not opt_table.placeholder               and
                          opt_table.with_header)
 
-            if _is_table:
+            if is_ctable:
                 cell_text = opt_table.columns[lcol_index - opt_table.bounding_box.column]
                 layout.set_font_description(body_font_desc)
             else:
                 cell_text = display.get_column_name_from_column(lcol_index)
                 layout.set_font_description(head_font_desc)
+
             layout.set_text(cell_text, -1)
 
-            if _is_table:
+            if is_ctable:
                 x_text = x + display.DEFAULT_CELL_PADDING + x_table_margin
             else:
                 text_width = layout.get_pixel_size()[0]
@@ -732,11 +733,11 @@ class SheetRenderer():
                 x_text = x + display.DEFAULT_CELL_PADDING
 
                 opt_table = document.get_table_by_position(lcol_index, lrow_index)
-                _is_table = (isinstance(opt_table, DataTable)             and
+                is_ctable = (isinstance(opt_table, DataTable)             and
                              lrow_index - opt_table.bounding_box.row == 0 and
                              not opt_table.placeholder                    and
                              opt_table.with_header)
-                if _is_table:
+                if is_ctable:
                     x_text += x_head_margin
 
                 ccontext.move_to(x_text, y + 2)

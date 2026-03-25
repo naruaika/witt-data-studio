@@ -110,13 +110,15 @@ class ActionAddLink(Action):
                 content.is_freezing = False
 
         else:
+            is_placeholder = self.socket2.placeholder
+
             self.new_link = NodeLink(self.socket1, self.socket2)
             self.new_link.link()
 
             if self.old_link:
                 self.new_data = self.frame2.do_save()
 
-            if self.socket2.placeholder:
+            if is_placeholder:
                 self.new_content = self.socket2.Content
                 self.new_data = self.frame2.do_save()
 

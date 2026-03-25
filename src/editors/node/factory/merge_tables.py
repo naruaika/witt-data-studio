@@ -1,4 +1,4 @@
-# join_tables.py
+# merge_tables.py
 #
 # Copyright 2025 Naufan Rusyda Faikar <hello@naruaika.me>
 #
@@ -36,18 +36,18 @@ from ..widgets import NodeLabel
 
 logger = logging.getLogger(__name__)
 
-class NodeJoinTables(NodeTemplate):
+class NodeMergeTables(NodeTemplate):
 
-    ndname = _('Join Tables')
+    ndname = _('Merge Tables')
 
-    action = 'join-tables'
+    action = 'merge-tables'
 
     @staticmethod
     def new(x:   int = 0,
             y:   int = 0,
             ) -> NodeFrame:
         """"""
-        self = NodeJoinTables(x, y)
+        self = NodeMergeTables(x, y)
 
         self.frame.set_data   = self.set_data
         self.frame.do_process = self.do_process

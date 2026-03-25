@@ -114,18 +114,19 @@ class NodeCustomFormula(NodeTemplate):
         if self.frame.data['signature'] == signature:
             return
 
+        self.frame.CacheButton.set_visible(False)
+
         # Evaluate custom formula
         from ....core.evaluators.formula import Evaluator
         try:
             variables = {'value': value}
             value = Evaluator(variables).evaluate(formula)
             out_socket.set_data_type(type(value))
+
         except Exception as e:
-            logger.error(e, exc_info = True)
-            self.frame.ErrorButton.set_tooltip_text(str(e))
-            self.frame.ErrorButton.set_visible(True)
-        else:
-            self.frame.ErrorButton.set_visible(False)
+            self.frame.data['value'] = None
+            out_socket.set_data_type(Any)
+            raise e
 
         from polars import DataFrame
         from polars import LazyFrame
@@ -137,8 +138,6 @@ class NodeCustomFormula(NodeTemplate):
             value = value.lazy()
             self.frame.data['signature'] = signature
             self.frame.CacheButton.set_visible(True)
-        else:
-            self.frame.CacheButton.set_visible(False)
 
         self.frame.data['value'] = value
 

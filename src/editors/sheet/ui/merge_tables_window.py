@@ -1,4 +1,4 @@
-# join_tables_window.py
+# merge_tables_window.py
 #
 # Copyright 2025 Naufan Rusyda Faikar <hello@naruaika.me>
 #
@@ -38,10 +38,10 @@ ORDER_OPTS = {'none':       _('None'),
               'left_right': _('Left-Right'),
               'right_left': _('Right-Left')}
 
-@Gtk.Template(resource_path = '/com/wittara/studio/editors/sheet/ui/join_tables_window.ui')
-class SheetJoinTablesWindow(Adw.Window):
+@Gtk.Template(resource_path = '/com/wittara/studio/editors/sheet/ui/merge_tables_window.ui')
+class SheetMergeTablesWindow(Adw.Window):
 
-    __gtype_name__ = 'SheetJoinTablesWindow'
+    __gtype_name__ = 'SheetMergeTablesWindow'
 
     SplitView        = Gtk.Template.Child()
 
@@ -59,7 +59,7 @@ class SheetJoinTablesWindow(Adw.Window):
     MaintainOrderRow = Gtk.Template.Child()
 
     OutputView       = Gtk.Template.Child()
-    JoinButton       = Gtk.Template.Child()
+    MergeButton      = Gtk.Template.Child()
 
     def __init__(self,
                  tname:    str,
@@ -367,9 +367,9 @@ class SheetJoinTablesWindow(Adw.Window):
         self.Editor.set_data(tables)
 
     @Gtk.Template.Callback()
-    def _on_join_button_clicked(self,
-                                button: Gtk.Button,
-                                ) ->    None:
+    def _on_merge_button_clicked(self,
+                                 button: Gtk.Button,
+                                 ) ->    None:
         """"""
         selected = self.LeftTableRow.get_selected()
         ltname, ltable = self.tables[selected]

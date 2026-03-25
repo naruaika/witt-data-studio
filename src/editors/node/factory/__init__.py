@@ -48,7 +48,10 @@ from .remove_duplicate_rows import *
 from .sort_rows   import *
 from .filter_rows import *
 
-from .join_tables     import *
+from .merge_tables import *
+
+from .duplicate_column import *
+
 from .group_by        import *
 from .transpose_table import *
 from .reverse_rows    import *
@@ -203,7 +206,10 @@ _registered_nodes = [
     NodeSortRows(),
     NodeFilterRows(),
 
-    NodeJoinTables(),
+    NodeMergeTables(),
+
+    NodeDuplicateColumn(),
+
     NodeGroupBy(),
     NodeTransposeTable(),
     NodeReverseRows(),

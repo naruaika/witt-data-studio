@@ -203,6 +203,18 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
+        case 'duplicate-column':
+            return (
+                _('Duplicate Column'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$all-columns:use-column',
+                    ),
+                ],
+            )
+
         case 'transpose-table':
             return (
                 _('Transpose Table'),

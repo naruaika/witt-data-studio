@@ -591,8 +591,8 @@ class NodeFrame(Adw.Bin):
             return None
 
         viewport = canvas.get_parent()
-        window = viewport.get_parent()
-        box = window.get_parent()
+        scrolled = viewport.get_parent()
+        box = scrolled.get_parent()
         editor = box.get_parent()
 
         return editor

@@ -61,12 +61,23 @@ class Toolbar(Gtk.Box):
     FilterRowsButton         = Gtk.Template.Child()
 
     TransformSection         = Gtk.Template.Child()
-    JoinTablesQButton        = Gtk.Template.Child()
     GroupByQButton           = Gtk.Template.Child()
     SplitColumnQButton       = Gtk.Template.Child()
     ChangeDataTypeQButton    = Gtk.Template.Child()
     ReplaceValuesQButton     = Gtk.Template.Child()
     CustomFormulaButton      = Gtk.Template.Child()
+
+    CombineSection           = Gtk.Template.Child()
+    MergeTablesButton        = Gtk.Template.Child()
+    AppendTablesButton       = Gtk.Template.Child()
+
+    NewTableSection          = Gtk.Template.Child()
+    DuplicateTableButton     = Gtk.Template.Child()
+    ReferenceTableButton     = Gtk.Template.Child()
+
+    NewColumnSection         = Gtk.Template.Child()
+    DuplicateColumnButton    = Gtk.Template.Child()
+    ConditionalColumnButton  = Gtk.Template.Child()
 
     WorkflowSection          = Gtk.Template.Child()
     NewWorkspaceButton       = Gtk.Template.Child()
@@ -81,11 +92,11 @@ class Toolbar(Gtk.Box):
     ReverseRowsButton        = Gtk.Template.Child()
 
     AnyColumnSection         = Gtk.Template.Child()
-    ChangeDataTypeButton     = Gtk.Template.Child()
     RenameColumnsButton      = Gtk.Template.Child()
+    ChangeDataTypeButton     = Gtk.Template.Child()
     ReplaceValuesButton      = Gtk.Template.Child()
     FillBlankCellsButton     = Gtk.Template.Child()
-#   PivotColumnsButton       = Gtk.Template.Child()
+    PivotColumnsButton       = Gtk.Template.Child()
 
     TextColumnSection        = Gtk.Template.Child()
     SplitColumnButton        = Gtk.Template.Child()
@@ -301,13 +312,6 @@ class Toolbar(Gtk.Box):
                         ),
                         [
                             (
-                                self.JoinTablesQButton,
-                                (
-                                    NodeEditor,
-                                    SheetEditor,
-                                ),
-                            ),
-                            (
                                 self.GroupByQButton,
                                 (
                                     NodeEditor,
@@ -337,6 +341,75 @@ class Toolbar(Gtk.Box):
                             ),
                             (
                                 self.CustomFormulaButton,
+                                (
+                                    NodeEditor,
+                                    SheetEditor,
+                                ),
+                            ),
+                        ],
+                    ),
+
+                    (
+                        self.CombineSection,
+                        (
+                            NodeEditor,
+                            SheetEditor,
+                        ),
+                        [
+                            (
+                                self.MergeTablesButton,
+                                (
+                                    NodeEditor,
+                                    SheetEditor,
+                                ),
+                            ),
+                            (
+                                self.AppendTablesButton,
+                                (
+                                    NodeEditor,
+                                    SheetEditor,
+                                ),
+                            ),
+                        ],
+                    ),
+
+                    (
+                        self.NewTableSection,
+                        (
+                            SheetEditor,
+                        ),
+                        [
+                            (
+                                self.DuplicateTableButton,
+                                (
+                                    SheetEditor,
+                                ),
+                            ),
+                            (
+                                self.ReferenceTableButton,
+                                (
+                                    SheetEditor,
+                                ),
+                            ),
+                        ],
+                    ),
+
+                    (
+                        self.NewColumnSection,
+                        (
+                            NodeEditor,
+                            SheetEditor,
+                        ),
+                        [
+                            (
+                                self.DuplicateColumnButton,
+                                (
+                                    NodeEditor,
+                                    SheetEditor,
+                                ),
+                            ),
+                            (
+                                self.ConditionalColumnButton,
                                 (
                                     NodeEditor,
                                     SheetEditor,
@@ -422,14 +495,14 @@ class Toolbar(Gtk.Box):
                         ),
                         [
                             (
-                                self.ChangeDataTypeButton,
+                                self.RenameColumnsButton,
                                 (
                                     NodeEditor,
                                     SheetEditor,
                                 ),
                             ),
                             (
-                                self.RenameColumnsButton,
+                                self.ChangeDataTypeButton,
                                 (
                                     NodeEditor,
                                     SheetEditor,
@@ -449,13 +522,13 @@ class Toolbar(Gtk.Box):
                                     SheetEditor,
                                 ),
                             ),
-#                           (
-#                               self.PivotColumnsButton,
-#                               (
-#                                   NodeEditor,
-#                                   SheetEditor,
-#                               ),
-#                           ),
+                            (
+                                self.PivotColumnsButton,
+                                (
+                                    NodeEditor,
+                                    SheetEditor,
+                                ),
+                            ),
                         ],
                     ),
                     (

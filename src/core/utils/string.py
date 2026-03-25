@@ -29,8 +29,9 @@ def unique_name(default_name: str,
         """"""
         import re
         suffix = 1
+        pattern = rf'{in_name}{separator}(\d+)'
         for ex_name in list_names:
-            if match := re.match(rf'{in_name}{separator}(\d+)', ex_name):
+            if match := re.match(pattern, ex_name):
                 suffix = max(suffix, int(match.group(1)) + 1)
         return f'{in_name}{separator}{suffix}'
 
@@ -45,7 +46,8 @@ def unique_name(default_name: str,
     new_name = new_name.strip().strip('@$!:')
 
     # Generate a new column name if needed only
-    if new_name != old_name and new_name in list_names:
+    if new_name != old_name and \
+            new_name in list_names:
         return do_generate(new_name)
 
     return new_name

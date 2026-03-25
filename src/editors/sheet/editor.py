@@ -48,6 +48,7 @@ from ... import environment as env
 
 from ...core.construct    import *
 from ...core.models.table import DataTable
+from ..node.content       import NodeContent
 from ..node.frame         import NodeFrame
 
 logger = logging.getLogger(__name__)
@@ -280,6 +281,8 @@ class SheetEditor(Gtk.Box):
         create_action('export-as',              callback  = lambda *_: self._export_table(),
                                                 shortcuts = ['<Shift><Primary>e'])
 
+        create_action('duplicate-table',        lambda *_: self._duplicate_table())
+
         create_action('choose-columns',         lambda *_: self._transform_table('choose-columns'))
         create_action('remove-columns',         lambda *_: self._transform_table('remove-columns'))
 
@@ -299,10 +302,13 @@ class SheetEditor(Gtk.Box):
         create_action('sort-rows',              lambda *_: self._transform_table('sort-rows'))
         create_action('filter-rows',            lambda *_: self._filter_rows())
 
+        create_action('merge-tables',           lambda *_: self._merge_tables())
+
+        create_action('duplicate-column',       lambda *_: self._transform_table('duplicate-column'))
+
         create_action('new-sheet',              lambda *_: self._add_new_workspace('new-sheet'))
         create_action('custom-formula',         lambda *_: self._write_custom_formula())
 
-        create_action('join-tables',            lambda *_: self._join_tables())
         create_action('group-by',               lambda *_: self._transform_table('group-by'))
         create_action('transpose-table',        lambda *_: self._transform_table('transpose-table'))
         create_action('reverse-rows',           lambda *_: self._transform_table('reverse-rows'))
@@ -482,6 +488,15 @@ class SheetEditor(Gtk.Box):
             title, _ = get_layout(action_name)
             return title
 
+        create_command('focus-name-box',        title     = _('Focus Name Box'),
+                                                shortcuts = ['<Primary>g'],
+                                                context   = None,
+                                                prefix    = 'formula')
+        create_command('focus-formula-box',     title     = _('Focus Formula Box'),
+                                                shortcuts = ['F2'],
+                                                context   = None,
+                                                prefix    = 'formula')
+
         create_command('open-source',           '$placeholder',
                                                 context = None)
 
@@ -495,16 +510,9 @@ class SheetEditor(Gtk.Box):
                                                 prefix    = 'app')
 
         create_command('export-as',             title     = _('Table: Export As...'),
-                                                shortcuts = ['<Shift><Primary>e'],)
+                                                shortcuts = ['<Shift><Primary>e'])
 
-        create_command('focus-name-box',        title     = _('Focus Name Box'),
-                                                shortcuts = ['<Primary>g'],
-                                                context   = None,
-                                                prefix    = 'formula')
-        create_command('focus-formula-box',     title     = _('Focus Formula Box'),
-                                                shortcuts = ['F2'],
-                                                context   = None,
-                                                prefix    = 'formula')
+        create_command('duplicate-table',       f"{_('Table')}: {_('Duplicate Table')}")
 
         create_command('choose-columns',        f"{_('Table')}: {get_title_from_layout('choose-columns')}...")
         create_command('remove-columns',        f"{_('Table')}: {get_title_from_layout('remove-columns')}...")
@@ -527,14 +535,17 @@ class SheetEditor(Gtk.Box):
         create_command('sort-rows',             f"{_('Table')}: {get_title_from_layout('sort-rows')}...")
         create_command('filter-rows',           f"{_('Table')}: {_('Filter Rows')}...")
 
+        create_command('merge-tables',          f"{_('Table')}: {_('Merge Tables')}...",
+                                                context = 'table_focus and n_tables_all > 1')
+
+        create_command('duplicate-column',      f"{_('Table')}: {get_title_from_layout('duplicate-column')}...")
+
         create_command('new-workspace',         '$placeholder',
                                                 context = None)
         create_command('new-sheet',             f"{_('Create')}: {_('Sheet')}",
                                                 context = None)
         create_command('custom-formula',        f"{_('Table')}: {_('Write Custom Formula')}...")
 
-        create_command('join-tables',           f"{_('Table')}: {_('Join Tables')}...",
-                                                context = 'table_focus and n_tables_all > 1')
         create_command('group-by',              f"{_('Table')}: {get_title_from_layout('group-by')}...")
         create_command('transpose-table',       f"{_('Table')}: {get_title_from_layout('transpose-table')}...")
         create_command('reverse-rows',          f"{_('Table')}: {get_title_from_layout('reverse-rows')}")
@@ -1079,11 +1090,15 @@ class SheetEditor(Gtk.Box):
 
         l_margin = 0
         r_margin = 0
-        if table.width and table.height:
+
+        if table.width:
             from .widgets import SheetColumnDType
-            from .widgets import SheetTableFilter
             l_margin += SheetColumnDType.WIDTH - 5
-            r_margin += SheetTableFilter.WIDTH - 2
+
+            if table.height:
+                if not self.view_read_only:
+                    from .widgets import SheetTableFilter
+                    r_margin += SheetTableFilter.WIDTH - 2
 
         for col_index, col_name in enumerate(table.columns):
             # Add table position offset into account
@@ -1103,7 +1118,7 @@ class SheetEditor(Gtk.Box):
 
             # Find longest table content
             try:
-                if isinstance(table.dtypes[col_index], Duration):
+                if isinstance(table.schema[col_name], Duration):
                     expr = col(col_name).dt.to_string()
                 else:
                     expr = col(col_name).cast(String)
@@ -1220,6 +1235,63 @@ class SheetEditor(Gtk.Box):
                                          application   = application)
         import_window.present()
 
+    def _duplicate_table(self) -> None:
+        """"""
+        table = self._get_active_table_context(with_column = False)
+
+        if not isinstance(table, DataTable):
+            return
+
+        window = self.get_root()
+        editor = window.node_editor
+
+        window.history.grouping = True
+
+        # Find the related node content
+        contents = self.node.contents[1:-1]
+        for content in contents:
+            box = content.Widget
+            label = box.get_first_child()
+            label = label.get_label()
+            if label == table.tname:
+                break
+
+        # Find the pair socket
+        self_content = content
+        self_socket  = self_content.Socket
+        link         = self_socket.links[0]
+        pair_socket  = link.in_socket
+        pair_node    = pair_socket.Frame
+
+        viewer = self._find_active_viewer_node()
+
+        # Create a new sheet node
+        position = (viewer.x - 175 - 50, viewer.y)
+        sheet = editor.create_new_node('new-sheet', *position)
+        editor.add_node(sheet)
+        editor.select_by_click(sheet)
+
+        def do_link() -> None:
+            """"""
+            # Link the pair node to the sheet node
+            out_socket = sheet.contents[-1].Socket
+            editor.add_link(pair_socket, out_socket)
+
+            # Link the sheet to the viewer node
+            in_socket = sheet.contents[0].Socket
+            out_socket = viewer.contents[-1].Socket
+            editor.add_link(in_socket, out_socket)
+
+        self._cache_transformer_node(self_content = self_content,
+                                     pair_node    = pair_node,
+                                     target_node  = sheet,
+                                     node_data    = table,
+                                     callback     = do_link)
+
+        editor.auto_arrange(viewer)
+
+        window.history.grouping = False
+
     def _transform_table(self,
                          func_name: str,
                          func_args: list[Any] = [],
@@ -1228,7 +1300,7 @@ class SheetEditor(Gtk.Box):
         table, column_name = self._get_active_table_context()
 
         if not isinstance(table, DataTable):
-            return False
+            return
 
         window = self.get_root()
 
@@ -1360,7 +1432,7 @@ class SheetEditor(Gtk.Box):
         table_schema = table.collect_schema()
 
         if not isinstance(table, DataTable):
-            return False
+            return
 
         window = self.get_root()
 
@@ -1385,12 +1457,12 @@ class SheetEditor(Gtk.Box):
                                        application   = application)
         dialog.present()
 
-    def _join_tables(self) -> None:
+    def _merge_tables(self) -> None:
         """"""
         table = self._get_active_table_context(with_column = False)
 
         if not isinstance(table, DataTable):
-            return False
+            return
 
         window = self.get_root()
         editor = window.node_editor
@@ -1424,20 +1496,20 @@ class SheetEditor(Gtk.Box):
             sheet3 = editor.create_new_node('new-sheet', x, y)
             editor.add_node(sheet3)
 
-            # Create a new joiner node
+            # Create a new merger node
             x = sheet3.x - 175 - 50
             y = sheet3.y
-            joiner = editor.create_new_node('join-tables', x, y)
-            joiner.set_data(*func_args)
-            editor.add_node(joiner)
-            editor.select_by_click(joiner)
+            merger = editor.create_new_node('merge-tables', x, y)
+            merger.set_data(*func_args)
+            editor.add_node(merger)
+            editor.select_by_click(merger)
 
-            # Connect all the pair nodes from/to the joiner node
-            content = joiner.contents[3]
+            # Connect all the pair nodes from/to the merger node
+            content = merger.contents[3]
             editor.add_link(content.Socket, sheet1.contents[0].Socket)
-            content = joiner.contents[4]
+            content = merger.contents[4]
             editor.add_link(content.Socket, sheet2.contents[0].Socket)
-            content = joiner.contents[0]
+            content = merger.contents[0]
             editor.add_link(content.Socket, sheet3.contents[-1].Socket)
             content = sheet3.contents[0]
             editor.add_link(content.Socket, viewer.contents[-1].Socket)
@@ -1452,8 +1524,8 @@ class SheetEditor(Gtk.Box):
 
         application = window.get_application()
 
-        from .ui.join_tables_window import SheetJoinTablesWindow
-        dialog = SheetJoinTablesWindow(tname         = tname,
+        from .ui.merge_tables_window import SheetMergeTablesWindow
+        dialog = SheetMergeTablesWindow(tname         = tname,
                                        tables        = tables,
                                        callback      = do_join,
                                        transient_for = window,
@@ -1542,7 +1614,7 @@ class SheetEditor(Gtk.Box):
         table = self._get_active_table_context(with_column = False)
 
         if not isinstance(table, DataTable):
-            return False
+            return
 
         window = self.get_root()
 
@@ -1575,19 +1647,13 @@ class SheetEditor(Gtk.Box):
 
         window.history.grouping = True
 
-        # Find the current active viewer node
-        viewer = None
-        for node in editor.nodes:
-            if isinstance(node.parent, NodeViewer) and node.is_active():
-                viewer = node
-                break
+        viewer = self._find_active_viewer_node()
 
         # Create a new sheet node
         position = (viewer.x - 175 - 50, viewer.y)
         sheet = editor.create_new_node(name, *position)
-        if sheet:
-            editor.add_node(sheet)
-            editor.select_by_click(sheet)
+        editor.add_node(sheet)
+        editor.select_by_click(sheet)
 
         # Link the sheet to the viewer node
         in_socket = sheet.contents[0].Socket
@@ -1608,7 +1674,7 @@ class SheetEditor(Gtk.Box):
         direction = parameter.get_string()
 
         if not isinstance(table, DataTable):
-            return False
+            return
 
         window = self.get_root()
         editor = window.node_editor
@@ -1665,7 +1731,7 @@ class SheetEditor(Gtk.Box):
         table, column_name = self._get_active_table_context()
 
         if not isinstance(table, DataTable):
-            return False
+            return
 
         window = self.get_root()
         editor = window.node_editor
@@ -1714,7 +1780,7 @@ class SheetEditor(Gtk.Box):
         table, column_name = self._get_active_table_context()
 
         if not isinstance(table, DataTable):
-            return False
+            return
 
         func_args = []
         for value in values:
@@ -1734,7 +1800,7 @@ class SheetEditor(Gtk.Box):
         table, column_name = self._get_active_table_context()
 
         if not isinstance(table, DataTable):
-            return False
+            return
 
         window = self.get_root()
         editor = window.node_editor
@@ -1816,37 +1882,53 @@ class SheetEditor(Gtk.Box):
         # Create a new appropriate node
         x = self.node.x - 175 - 50
         y = pair_node.y
-        transformer = editor.create_new_node(func_name, x, y)
-        transformer.set_data(*func_args)
-        editor.add_node(transformer)
-        editor.select_by_click(transformer)
+        new_node = editor.create_new_node(func_name, x, y)
+        new_node.set_data(*func_args)
+        editor.add_node(new_node)
+        editor.select_by_click(new_node)
 
-        # Manipulate so that the transformer node seem to
-        # be reconnected to the sheet node
-        self_content.node_uid = id(transformer)
+        def do_link() -> None:
+            """"""
+            # Connect the pair node, new node, and self node
+            content = new_node.contents[0]
+            editor.add_link(content.Socket, self_socket)
+            content = new_node.contents[1]
+            editor.add_link(pair_socket, content.Socket)
+
+        self._cache_transformer_node(self_content = self_content,
+                                     pair_node    = pair_node,
+                                     target_node  = new_node,
+                                     node_data    = table,
+                                     callback     = do_link)
+
+        editor.auto_arrange(self.node)
+
+    def _cache_transformer_node(self,
+                                self_content: NodeContent,
+                                pair_node:    NodeFrame,
+                                target_node:  NodeFrame,
+                                node_data:    Any,
+                                callback:     callable,
+                                ) ->          None:
+        """"""
+        # Manipulate so that the target node seem to be reconnected
+        self_content.node_uid = id(target_node)
 
         data_key = next((k for k in ('value', 'table') if k in pair_node.data), '')
         keep_cache = bool(data_key)
 
-        # Freeze pair node to prevent from rebuilding data
-        # table from the source
+        # Freeze pair node to prevent from potential data rebuilding
         if keep_cache:
             pair_node.is_with_cache = True
             value = pair_node.data[data_key]
-            pair_node.data[data_key] = table
+            pair_node.data[data_key] = node_data
 
-        # Connect the pair node, new node, and self node
-        content = transformer.contents[0]
-        editor.add_link(content.Socket, self_socket)
-        content = transformer.contents[1]
-        editor.add_link(pair_socket, content.Socket)
+        callback()
 
         # Restore the pair node state
         if keep_cache:
             pair_node.is_with_cache = False
             pair_node.data[data_key] = value
-
-        editor.auto_arrange(self.node)
 
 from .canvas import SheetCanvas
 from .display import SheetDisplay

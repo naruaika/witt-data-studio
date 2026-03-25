@@ -77,6 +77,11 @@ class NodeContent(Gtk.Widget):
 
         widget.set_hexpand(True)
 
+    def post_link(self) -> None:
+        """"""
+        self.placeholder = False
+        self.Socket.placeholder = False
+
     def do_link(self,
                 pair_socket:  'NodeSocket',
                 self_content: 'NodeContent',

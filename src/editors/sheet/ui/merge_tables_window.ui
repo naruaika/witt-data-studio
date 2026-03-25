@@ -2,12 +2,12 @@
 <interface>
   <requires lib="gtk" version="4.0"/>
   <requires lib="Adw" version="1.0"/>
-  <template class="SheetJoinTablesWindow" parent="AdwWindow">
+  <template class="SheetMergeTablesWindow" parent="AdwWindow">
     <property name="width-request">362</property>
     <property name="height-request">362</property>
     <property name="default-width">1280</property>
     <property name="default-height">800</property>
-    <property name="title" translatable="yes">Join Tables</property>
+    <property name="title" translatable="yes">Merge Tables</property>
     <child>
       <object class="AdwBreakpoint">
         <condition>max-width: 640sp</condition>
@@ -21,7 +21,7 @@
         <property name="min-sidebar-width">320sp</property>
         <property name="sidebar">
           <object class="AdwNavigationPage">
-            <property name="title" translatable="yes">Join Tables</property>
+            <property name="title" translatable="yes">Merge Tables</property>
             <property name="child">
               <object class="AdwToolbarView">
                 <child type="top">
@@ -72,7 +72,7 @@
                     </child>
                     <child>
                       <object class="AdwPreferencesGroup">
-                        <property name="title" translatable="yes">Which to Join With?</property>
+                        <property name="title" translatable="yes">Which to Merge With?</property>
                         <child>
                           <object class="AdwComboRow" id="RightTableRow">
                             <property name="title" translatable="yes">Table</property>
@@ -176,9 +176,9 @@
                     <property name="margin-start">12</property>
                     <property name="margin-end">12</property>
                     <property name="end-widget">
-                      <object class="GtkButton" id="JoinButton">
-                        <property name="label" translatable="yes">Join</property>
-                        <signal name="clicked" handler="_on_join_button_clicked" swapped="no"/>
+                      <object class="GtkButton" id="MergeButton">
+                        <property name="label" translatable="yes">Merge</property>
+                        <signal name="clicked" handler="_on_merge_button_clicked" swapped="no"/>
                         <style>
                           <class name="pill"/>
                           <class name="suggested-action"/>

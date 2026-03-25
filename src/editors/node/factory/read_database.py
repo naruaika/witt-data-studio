@@ -25,6 +25,8 @@ import logging
 from ._template import NodeTemplate
 from ._utils    import take_snapshot
 
+from .... import environment as env
+
 from ..content import NodeContent
 from ..frame   import NodeFrame
 from ..frame   import NodeFrameType
@@ -129,12 +131,12 @@ class NodeReadDatabase(NodeTemplate):
         if config.get('host'):
             from keyring import get_password
             username = Database.hash_config(config)
-            password = get_password('com.wittara.studio', username)
+            password = get_password(env.APP_ID, username)
             config['password'] = password or ''
 
         output, log_info = Database.execute(dialect = config['dialect'],
-                                                     config  = config,
-                                                     query   = query)
+                                            config  = config,
+                                            query   = query)
 
         # Hide password from log message
         if (password := config.get('password')) and (message := log_info['message']):

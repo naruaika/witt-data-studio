@@ -46,7 +46,7 @@
     <file preprocess="xml-stripblanks">editors/sheet/ui/file_export/view_json.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/filter_rows_window.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/formula_bar.ui</file>
-    <file preprocess="xml-stripblanks">editors/sheet/ui/join_tables_window.ui</file>
+    <file preprocess="xml-stripblanks">editors/sheet/ui/merge_tables_window.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/transform_window.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/widgets/table_filter.ui</file>
   </gresource>
@@ -96,9 +96,11 @@
     <file preprocess="xml-stripblanks">xxx-code-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-column-delete-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-column-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-condition-wait-point-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-copy-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-cut-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-data-set-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-data-table-reference-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-data-table-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-database-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-decision-tree-symbolic.svg</file>
@@ -118,9 +120,9 @@
     <file preprocess="xml-stripblanks">xxx-insert-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-join-inner-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-label-symbolic.svg</file>
-    <file preprocess="xml-stripblanks">xxx-object-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-migrate-alt-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-notebook-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-object-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-parameter-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-paste-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-play-symbolic.svg</file>
@@ -129,6 +131,7 @@
     <file preprocess="xml-stripblanks">xxx-replicate-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-repo-artifact-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-row-delete-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">xxx-row-expand-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-row-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-search-symbolic.svg</file>
     <file preprocess="xml-stripblanks">xxx-select-01-symbolic.svg</file>

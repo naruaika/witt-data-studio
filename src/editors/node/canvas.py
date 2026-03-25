@@ -291,6 +291,12 @@ class NodeCanvas(Gtk.Fixed):
                        offset_y: float,
                        ) ->      None:
         """"""
+        if (
+            abs(offset_x) <= 0.5 and
+            abs(offset_y) <= 0.5
+        ):
+            return
+
         editor = self.get_editor()
         window = editor.ScrolledWindow
 
@@ -300,10 +306,8 @@ class NodeCanvas(Gtk.Fixed):
         scroll_y_position = vadjustment.get_value()
         scroll_x_position = hadjustment.get_value()
 
-        vadjustment.set_value(scroll_y_position - int(offset_y))
-        hadjustment.set_value(scroll_x_position - int(offset_x))
-        # I don't like casting float to integer but
-        # otherwise the viewport will be stuttering
+        vadjustment.set_value(scroll_y_position - offset_y)
+        hadjustment.set_value(scroll_x_position - offset_x)
 
     def _on_pan_end(self,
                     gesture:  Gtk.GestureDrag,
@@ -316,8 +320,8 @@ class NodeCanvas(Gtk.Fixed):
     def get_editor(self) -> 'NodeEditor':
         """"""
         viewport = self.get_parent()
-        window = viewport.get_parent()
-        box = window.get_parent()
+        scrolled = viewport.get_parent()
+        box = scrolled.get_parent()
         editor = box.get_parent()
         return editor
 

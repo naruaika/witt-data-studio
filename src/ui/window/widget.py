@@ -30,8 +30,8 @@ from ...core.action  import Action
 from ...core.history import History
 
 from ...editors.node.editor  import NodeEditor
-from ...editors.sheet.editor import SheetEditor
 from ...editors.chart.editor import ChartEditor
+from ...editors.sheet.editor import SheetEditor
 
 from ...editors.node.frame import NodeFrame
 from ...editors.node.link  import NodeLink

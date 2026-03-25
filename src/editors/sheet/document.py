@@ -179,18 +179,26 @@ class SheetDocument(Document):
         """"""
         is_lazyframe = isinstance(content, LazyFrame)
 
-        if is_lazyframe:
-            if prefer_sync:
-                is_lazyframe = False
-                try:
-                    content = content.collect()
-                except Exception as e:
-                    logger.error(e, exc_info = True)
-                    content = DataFrame({'#ERROR!': None}).head(0)
+        placeholder = is_lazyframe
+        error_message = None
 
-            else:
-                to_load = content
-                content = DataFrame({'#LOADING!': None}).head(0)
+        if prefer_sync:
+            try:
+                if isinstance(content, LazyFrame):
+                    content = content.collect()
+                placeholder = False
+
+            except Exception as e:
+                logger.error(e, exc_info = True)
+                content = DataFrame({'#ERROR!': None}).head(0)
+                placeholder = True
+                error_message = str(e)
+
+            is_lazyframe = False
+
+        if is_lazyframe:
+            to_load = content
+            content = DataFrame({'#LOADING!': None}).head(0)
 
         if not isinstance(content, DataFrame):
             from io import BytesIO
@@ -214,19 +222,18 @@ class SheetDocument(Document):
                                    infer_schema  = False)
             with_header = True
 
-        column_span = content.width
-        row_span = content.height
-        row_span += 1 if with_header else 0
-        bounding_box = BoundingBox(column, row, column_span, row_span)
+        row_span = content.height + 1 if with_header else 0
+        bounding_box = BoundingBox(column, row, content.width, row_span)
 
         table_names = [table.tname for table in self.tables]
         new_name = unique_name(_('Table'), table_names, table_name)
 
-        new_table = DataTable(tname        = new_name,
-                              content      = content,
-                              with_header  = with_header,
-                              bounding_box = bounding_box,
-                              placeholder  = is_lazyframe)
+        new_table = DataTable(tname         = new_name,
+                              content       = content,
+                              with_header   = with_header,
+                              bounding_box  = bounding_box,
+                              placeholder   = placeholder,
+                              error_message = error_message)
 
         self.tables.append(new_table)
 
@@ -235,9 +242,6 @@ class SheetDocument(Document):
                 break
 
         self._update_bounding_box(bounding_box)
-
-        if not is_lazyframe:
-            self.repopulate_table_widgets() # TODO: not efficient!
 
         async def do_load(old_table: DataTable,
                           lazyframe: LazyFrame,
@@ -253,26 +257,37 @@ class SheetDocument(Document):
                 dataframe = DataFrame({'#ERROR!': None}).head(0)
                 error_message = str(e)
 
-            # FIXME: near instantly refresh can hurt users
+            # FIXME: near instantly refresh can confuses users
 
             for tindex, table in enumerate(self.tables):
-                if table is old_table:
-                    self.replace_table(dataframe, tindex)
-                    table = self.tables[tindex]
-                    if error_message:
-                        table.placeholder = True
-                        table.error_message = error_message
-                    else:
-                        table.query_plan = lazyframe.serialize()
-                    on_finish(table)
-                    break
+                if table is not old_table:
+                    continue
 
-        if is_lazyframe and not prefer_sync:
+                self.replace_table(dataframe, tindex)
+                table = self.tables[tindex]
+
+                if error_message:
+                    table.placeholder = True
+                    table.error_message = error_message
+
+                else:
+                    table.query_plan = lazyframe.serialize()
+                    table.placeholder = False
+
+                if on_finish:
+                    on_finish(table)
+
+                break
+
+        if is_lazyframe:
             coroutine = do_load(new_table, to_load)
             asyncio.create_task(coroutine)
 
-        if not is_lazyframe or prefer_sync:
-            on_finish(new_table)
+        else:
+            self.repopulate_table_widgets() # TODO: not efficient!
+
+            if on_finish:
+                on_finish(new_table)
 
         return tindex
 
@@ -519,6 +534,8 @@ class SheetDocument(Document):
 
     def repopulate_table_widgets(self) -> None:
         """"""
+        editor = self.Canvas.get_editor()
+
         if 'table' not in self.widgets:
             self.widgets['table'] = []
 
@@ -529,7 +546,7 @@ class SheetDocument(Document):
             del widgets[0]
 
         for tindex, table in enumerate(self.tables):
-            if table.height == 0:
+            if table.placeholder:
                 continue
             if not table.with_header:
                 continue
@@ -555,6 +572,11 @@ class SheetDocument(Document):
                 widget = self._create_column_dtype_widget(x, y, column, row, dtype)
                 widgets.append(widget)
                 self.Canvas.add_overlay(widget)
+
+                if editor.view_read_only:
+                    continue
+                if table.height == 0:
+                    continue
 
                 widget = self._create_table_filter_widget(x, y, column, row, tindex, cindex)
                 widgets.append(widget)
@@ -606,6 +628,8 @@ class SheetDocument(Document):
 
     def reposition_table_widgets(self) -> None:
         """"""
+        editor = self.Canvas.get_editor()
+
         if 'table' not in self.widgets:
             self.widgets['table'] = []
             return
@@ -614,7 +638,7 @@ class SheetDocument(Document):
 
         widget_index = 0
         for table in self.tables:
-            if table.height == 0:
+            if table.placeholder:
                 continue
             if not table.with_header:
                 continue
@@ -641,6 +665,11 @@ class SheetDocument(Document):
                 widget = widgets[widget_index]
                 self._move_column_dtype_widget(widget, x, y)
                 widget_index += 1
+
+                if editor.view_read_only:
+                    continue
+                if table.height == 0:
+                    continue
 
                 widget = widgets[widget_index]
                 self._move_table_filter_widget(widget, x, y, column)

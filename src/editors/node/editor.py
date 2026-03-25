@@ -285,6 +285,10 @@ class NodeEditor(Gtk.Overlay):
         create_action('sort-rows',              lambda *_: create_node('sort-rows'))
         create_action('filter-rows',            lambda *_: create_node('filter-rows'))
 
+        create_action('merge-tables',           lambda *_: create_node('merge-tables'))
+
+        create_action('duplicate-column',       lambda *_: create_node('duplicate-column'))
+
         create_action('new-sheet',              lambda *_: create_node('new-sheet'))
         create_action('custom-formula',         lambda *_: create_node('custom-formula'))
         create_action('new-viewer',             lambda *_: create_node('new-viewer'))
@@ -294,7 +298,6 @@ class NodeEditor(Gtk.Overlay):
         create_action('new-integer',            lambda *_: create_node('new-integer'))
         create_action('new-string',             lambda *_: create_node('new-string'))
 
-        create_action('join-tables',            lambda *_: create_node('join-tables'))
         create_action('group-by',               lambda *_: create_node('group-by'))
         create_action('transpose-table',        lambda *_: create_node('transpose-table'))
         create_action('reverse-rows',           lambda *_: create_node('reverse-rows'))
@@ -504,6 +507,10 @@ class NodeEditor(Gtk.Overlay):
         create_command('sort-rows',             f"{_('Table')}: {_('Sort Rows')}")
         create_command('filter-rows',           f"{_('Table')}: {_('Filter Rows')}")
 
+        create_command('merge-tables',          f"{_('Table')}: {_('Merge Tables')}")
+
+        create_command('duplicate-column',      f"{_('Column')}: {_('Duplicate Column')}")
+
         create_command('new-workspace',         '$placeholder')
         create_command('new-sheet',             f"{_('Create')}: {_('Sheet')}")
 
@@ -516,7 +523,6 @@ class NodeEditor(Gtk.Overlay):
         create_command('new-integer',           f"{_('Create')}: {_('Constant')} {_('Integer')}")
         create_command('new-string',            f"{_('Create')}: {_('Constant')} {_('String')}")
 
-        create_command('join-tables',           f"{_('Table')}: {_('Join Tables')}")
         create_command('group-by',              f"{_('Table')}: {_('Group By')}")
         create_command('transpose-table',       f"{_('Table')}: {_('Transpose Table')}")
         create_command('reverse-rows',          f"{_('Table')}: {_('Reverse Rows')}")
@@ -751,9 +757,9 @@ class NodeEditor(Gtk.Overlay):
 
         window = self.get_root()
 
-        canvas_width = self.Canvas.get_width()
+        canvas_width  = self.Canvas.get_width()
         canvas_height = self.Canvas.get_height()
-        viewport_width = window.TabView.get_width()
+        viewport_width  = window.TabView.get_width()
         viewport_height = window.TabView.get_height()
 
         scroll_x_position = (canvas_width  - viewport_width)  / 2
@@ -762,6 +768,11 @@ class NodeEditor(Gtk.Overlay):
         offset = 175 / 2 + 50 / 2
         x_position = scroll_x_position + (viewport_width  - 175) / 2
         y_position = scroll_y_position + (viewport_height - 125) / 2
+
+        # Prevent cache rendering glitch
+        # due to floating point numbers.
+        x_position = int(x_position)
+        y_position = int(y_position)
 
         viewer = NodeViewer.new(x_position + offset, y_position)
         sheet = NodeSheet.new(x_position - offset, y_position)

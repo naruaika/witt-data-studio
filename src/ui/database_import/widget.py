@@ -1005,9 +1005,9 @@ class DatabaseImportWindow(Adw.Window):
 
         editor = window.node_editor
 
-        canvas_width = editor.Canvas.get_width()
+        canvas_width  = editor.Canvas.get_width()
         canvas_height = editor.Canvas.get_height()
-        viewport_width = window.TabView.get_width()
+        viewport_width  = window.TabView.get_width()
         viewport_height = window.TabView.get_height()
 
         window.history.grouping = True

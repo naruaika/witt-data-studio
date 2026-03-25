@@ -236,8 +236,7 @@ class NodeViewer(NodeTemplate):
                     GLib.idle_add(self.add_sheet_editor, *args)
 
             if self_content.placeholder:
-                self_content.placeholder = False
-                self_content.Socket.placeholder = False
+                self_content.post_link()
                 self._add_input()
 
             self.frame.do_execute(pair_socket,

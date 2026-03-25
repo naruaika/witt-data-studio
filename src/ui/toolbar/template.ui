@@ -461,6 +461,9 @@
                                         <child>
                                           <object class="GtkImage">
                                             <property name="icon-name">xxx-column-symbolic</property>
+                                            <style>
+                                              <class name="bottom-1px"/>
+                                            </style>
                                           </object>
                                         </child>
                                         <child>
@@ -573,6 +576,9 @@
                                         <child>
                                           <object class="GtkImage">
                                             <property name="icon-name">xxx-row-symbolic</property>
+                                            <style>
+                                              <class name="bottom-1px"/>
+                                            </style>
                                           </object>
                                         </child>
                                         <child>
@@ -724,6 +730,9 @@
                                         <child>
                                           <object class="GtkImage">
                                             <property name="icon-name">xxx-filter-symbolic</property>
+                                            <style>
+                                              <class name="bottom-1px"/>
+                                            </style>
                                           </object>
                                         </child>
                                         <child>
@@ -785,45 +794,6 @@
                               <object class="GtkGrid">
                                 <property name="vexpand">true</property>
                                 <child>
-                                  <object class="GtkButton" id="JoinTablesQButton">
-                                    <property name="name">join-tables</property>
-                                    <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Join Tables</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'join-tables'</property>
-                                    <child>
-                                      <object class="GtkBox">
-                                        <property name="orientation">vertical</property>
-                                        <property name="homogeneous">true</property>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="icon-name">xxx-join-inner-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Join Tables</property>
-                                            <property name="vexpand">true</property>
-                                            <property name="valign">start</property>
-                                            <property name="lines">2</property>
-                                            <property name="wrap">true</property>
-                                            <property name="justify">center</property>
-                                            <property name="max-width-chars">0</property>
-                                          </object>
-                                        </child>
-                                      </object>
-                                    </child>
-                                    <layout>
-                                      <property name="column">0</property>
-                                      <property name="row">0</property>
-                                      <property name="row-span">2</property>
-                                    </layout>
-                                    <style>
-                                      <class name="flat"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                <child>
                                   <object class="GtkButton" id="GroupByQButton">
                                     <property name="name">group-by</property>
                                     <property name="vexpand">true</property>
@@ -875,6 +845,9 @@
                                         <child>
                                           <object class="GtkImage">
                                             <property name="icon-name">xxx-split-screen-symbolic</property>
+                                            <style>
+                                              <class name="bottom-1px"/>
+                                            </style>
                                           </object>
                                         </child>
                                         <child>
@@ -1025,6 +998,345 @@
                       </object>
                     </child>
 
+                    <!-- Combine Section -->
+                    <child>
+                      <object class="GtkBox" id="CombineSection">
+                        <property name="name">sort</property>
+                        <property name="orientation">horizontal</property>
+                        <property name="spacing">6</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <property name="vexpand">false</property>
+                            <property name="halign">start</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkGrid">
+                                <property name="vexpand">true</property>
+                                <child>
+                                  <object class="GtkButton" id="MergeTablesButton">
+                                    <property name="name">merge-tables</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Merge Tables</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'merge-tables'</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">vertical</property>
+                                        <property name="homogeneous">true</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-join-inner-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Merge Tables</property>
+                                            <property name="vexpand">true</property>
+                                            <property name="valign">start</property>
+                                            <property name="lines">2</property>
+                                            <property name="wrap">true</property>
+                                            <property name="justify">center</property>
+                                            <property name="max-width-chars">0</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">0</property>
+                                      <property name="row">0</property>
+                                      <property name="row-span">2</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkButton" id="AppendTablesButton">
+                                    <property name="name">append-tables</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Append Tables</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'append-tables'</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">vertical</property>
+                                        <property name="homogeneous">true</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-row-expand-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Append Tables</property>
+                                            <property name="vexpand">true</property>
+                                            <property name="valign">start</property>
+                                            <property name="lines">2</property>
+                                            <property name="wrap">true</property>
+                                            <property name="justify">center</property>
+                                            <property name="max-width-chars">0</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">1</property>
+                                      <property name="row">0</property>
+                                      <property name="row-span">2</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Combine</property>
+                                <style>
+                                  <class name="caption"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSeparator">
+                            <property name="orientation">vertical</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <!-- New Table Section -->
+                    <child>
+                      <object class="GtkBox" id="NewTableSection">
+                        <property name="name">manage-tables</property>
+                        <property name="orientation">horizontal</property>
+                        <property name="spacing">6</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <property name="vexpand">false</property>
+                            <property name="halign">start</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkGrid">
+                                <property name="vexpand">true</property>
+                                <child>
+                                  <object class="GtkButton" id="DuplicateTableButton">
+                                    <property name="name">duplicate-table</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Duplicate Table</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'duplicate-table'</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">vertical</property>
+                                        <property name="homogeneous">true</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-replicate-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Duplicate Table</property>
+                                            <property name="vexpand">true</property>
+                                            <property name="valign">start</property>
+                                            <property name="lines">2</property>
+                                            <property name="wrap">true</property>
+                                            <property name="justify">center</property>
+                                            <property name="max-width-chars">0</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">0</property>
+                                      <property name="row">0</property>
+                                      <property name="row-span">2</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkButton" id="ReferenceTableButton">
+                                    <property name="name">reference-table</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Reference Table</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'reference-table'</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">vertical</property>
+                                        <property name="homogeneous">true</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-data-table-reference-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Reference Table</property>
+                                            <property name="vexpand">true</property>
+                                            <property name="valign">start</property>
+                                            <property name="lines">2</property>
+                                            <property name="wrap">true</property>
+                                            <property name="justify">center</property>
+                                            <property name="max-width-chars">0</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">1</property>
+                                      <property name="row">0</property>
+                                      <property name="row-span">2</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">New Table</property>
+                                <style>
+                                  <class name="caption"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                        <object class="GtkSeparator">
+                          <property name="orientation">vertical</property>
+                        </object>
+                      </child>
+                      </object>
+                    </child>
+
+                    <!-- New Column Section -->
+                    <child>
+                      <object class="GtkBox" id="NewColumnSection">
+                        <property name="name">new-column</property>
+                        <property name="orientation">horizontal</property>
+                        <property name="spacing">6</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <property name="vexpand">false</property>
+                            <property name="halign">start</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkGrid">
+                                <property name="vexpand">true</property>
+                                <child>
+                                  <object class="GtkButton" id="DuplicateColumnButton">
+                                    <property name="name">duplicate-column</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Duplicate Column</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'duplicate-column'</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">vertical</property>
+                                        <property name="homogeneous">true</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-replicate-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Duplicate Column</property>
+                                            <property name="vexpand">true</property>
+                                            <property name="valign">start</property>
+                                            <property name="lines">2</property>
+                                            <property name="wrap">true</property>
+                                            <property name="justify">center</property>
+                                            <property name="max-width-chars">0</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">0</property>
+                                      <property name="row">0</property>
+                                      <property name="row-span">2</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkButton" id="ConditionalColumnButton">
+                                    <property name="name">conditional-column</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Conditional Column</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'conditional-column'</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">vertical</property>
+                                        <property name="homogeneous">true</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-condition-wait-point-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Conditional Column</property>
+                                            <property name="vexpand">true</property>
+                                            <property name="valign">start</property>
+                                            <property name="lines">2</property>
+                                            <property name="wrap">true</property>
+                                            <property name="justify">center</property>
+                                            <property name="max-width-chars">0</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">1</property>
+                                      <property name="row">0</property>
+                                      <property name="row-span">2</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">New Column</property>
+                                <style>
+                                  <class name="caption"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                        <object class="GtkSeparator">
+                          <property name="orientation">vertical</property>
+                        </object>
+                      </child>
+                      </object>
+                    </child>
+
                     <!-- Workflow Section -->
                     <child>
                       <object class="GtkBox" id="WorkflowSection">
@@ -1053,6 +1365,9 @@
                                         <child>
                                           <object class="GtkImage">
                                             <property name="icon-name">xxx-notebook-symbolic</property>
+                                            <style>
+                                              <class name="bottom-1px"/>
+                                            </style>
                                           </object>
                                         </child>
                                         <child>
@@ -1340,6 +1655,39 @@
                               <object class="GtkGrid">
                                 <property name="vexpand">true</property>
                                 <child>
+                                  <object class="GtkButton" id="RenameColumnsButton">
+                                    <property name="name">rename-columns</property>
+                                    <property name="vexpand">true</property>
+                                    <property name="tooltip-text" translatable="yes">Rename Columns</property>
+                                    <property name="action-name">win.toolbar</property>
+                                    <property name="action-target">'rename-columns'</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="orientation">horizontal</property>
+                                        <property name="spacing">6</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="icon-name">xxx-label-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Rename</property>
+                                            <property name="vexpand">true</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <layout>
+                                      <property name="column">0</property>
+                                      <property name="row">0</property>
+                                    </layout>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
                                   <object class="GtkButton" id="ChangeDataTypeButton">
                                     <property name="name">change-data-type</property>
                                     <property name="vexpand">true</property>
@@ -1358,39 +1706,6 @@
                                         <child>
                                           <object class="GtkLabel">
                                             <property name="label" translatable="yes">Change Type</property>
-                                            <property name="vexpand">true</property>
-                                          </object>
-                                        </child>
-                                      </object>
-                                    </child>
-                                    <layout>
-                                      <property name="column">0</property>
-                                      <property name="row">0</property>
-                                    </layout>
-                                    <style>
-                                      <class name="flat"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkButton" id="RenameColumnsButton">
-                                    <property name="name">rename-columns</property>
-                                    <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Rename</property>
-                                    <property name="action-name">win.toolbar</property>
-                                    <property name="action-target">'rename-columns'</property>
-                                    <child>
-                                      <object class="GtkBox">
-                                        <property name="orientation">horizontal</property>
-                                        <property name="spacing">6</property>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="icon-name">xxx-label-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Rename</property>
                                             <property name="vexpand">true</property>
                                           </object>
                                         </child>
@@ -1471,7 +1786,6 @@
                                     </style>
                                   </object>
                                 </child>
-                                <!--
                                 <child>
                                   <object class="GtkMenuButton" id="PivotColumnsButton">
                                     <property name="name">pivot-columns</property>
@@ -1489,7 +1803,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel">
-                                            <property name="label" translatable="yes">Pivot Columns&#x00A0;&#x2060;&#x2335;</property>
+                                            <property name="label" translatable="yes">Pivot &#x00A0;&#x2060;&#x2335;</property>
                                             <property name="vexpand">true</property>
                                             <property name="valign">start</property>
                                             <property name="lines">2</property>
@@ -1510,7 +1824,6 @@
                                     </style>
                                   </object>
                                 </child>
-                                -->
                               </object>
                             </child>
                             <child>
@@ -1559,6 +1872,9 @@
                                         <child>
                                           <object class="GtkImage">
                                             <property name="icon-name">xxx-split-screen-symbolic</property>
+                                            <style>
+                                              <class name="bottom-1px"/>
+                                            </style>
                                           </object>
                                         </child>
                                         <child>
@@ -1588,7 +1904,7 @@
                                   <object class="GtkMenuButton" id="FormatColumnButton">
                                     <property name="name">format-column</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Format</property>
+                                    <property name="tooltip-text" translatable="yes">Format Column</property>
                                     <property name="menu-model">FormatColumnMenu</property>
                                     <child>
                                       <object class="GtkBox">
@@ -1626,7 +1942,7 @@
                                   <object class="GtkButton" id="MergeColumnsButton">
                                     <property name="name">merge-columns</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Merge</property>
+                                    <property name="tooltip-text" translatable="yes">Merge Column</property>
                                     <property name="action-name">win.toolbar</property>
                                     <property name="action-target">'merge-columns'</property>
                                     <child>
@@ -1659,7 +1975,7 @@
                                   <object class="GtkMenuButton" id="ExtractColumnButton">
                                     <property name="name">extract-column</property>
                                     <property name="vexpand">true</property>
-                                    <property name="tooltip-text" translatable="yes">Extract</property>
+                                    <property name="tooltip-text" translatable="yes">Extract Column</property>
                                     <property name="menu-model">ExtractColumnMenu</property>
                                     <child>
                                       <object class="GtkBox">
@@ -2296,6 +2612,9 @@
                                         <child>
                                           <object class="GtkImage">
                                             <property name="icon-name">xxx-education-symbolic</property>
+                                            <style>
+                                              <class name="bottom-1px"/>
+                                            </style>
                                           </object>
                                         </child>
                                         <child>
@@ -2335,6 +2654,9 @@
                                         <child>
                                           <object class="GtkImage">
                                             <property name="icon-name">xxx-book-symbolic</property>
+                                            <style>
+                                              <class name="bottom-1px"/>
+                                            </style>
                                           </object>
                                         </child>
                                         <child>
