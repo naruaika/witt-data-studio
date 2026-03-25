@@ -33,6 +33,7 @@
     border-bottom-right-radius: 9px;
 }
 
+.name-box + menubutton button,
 .formula-box + button,
 .multiline-formula-bar + button {
     margin-left: 0;

@@ -340,6 +340,23 @@ class SheetEditor(Gtk.Box):
         create_action('change-case-to-'
                       'titlecase',              lambda *_: self._transform_table('change-case-to-titlecase'))
 
+        create_action('change-case-to-'
+                      'camel-case',             lambda *_: self._transform_table('change-case-to-camel-case'))
+        create_action('change-case-to-'
+                      'constant-case',          lambda *_: self._transform_table('change-case-to-constant-case'))
+        create_action('change-case-to-'
+                      'dot-case',               lambda *_: self._transform_table('change-case-to-dot-case'))
+        create_action('change-case-to-'
+                      'kebab-case',             lambda *_: self._transform_table('change-case-to-kebab-case'))
+        create_action('change-case-to-'
+                      'pascal-case',            lambda *_: self._transform_table('change-case-to-pascal-case'))
+        create_action('change-case-to-'
+                      'sentence-case',          lambda *_: self._transform_table('change-case-to-sentence-case'))
+        create_action('change-case-to-'
+                      'snake-case',             lambda *_: self._transform_table('change-case-to-snake-case'))
+        create_action('change-case-to-'
+                      'sponge-case',            lambda *_: self._transform_table('change-case-to-sponge-case'))
+
         create_action('trim-contents',          lambda *_: self._transform_table('trim-contents'))
         create_action('clean-contents',         lambda *_: self._transform_table('clean-contents'))
 
@@ -593,6 +610,31 @@ class SheetEditor(Gtk.Box):
                                                 context = 'table_focus and string_focus')
         create_command('add-prefix',            f"{_('Column')}: {get_title_from_layout('add-prefix')}...")
         create_command('add-suffix',            f"{_('Column')}: {get_title_from_layout('add-suffix')}...")
+
+        create_command('change-case-to-'
+                       'camel-case',            f"{_('Column')}: {get_title_from_layout('change-case-to-camel-case')}...",
+                                                context = 'table_focus and string_focus')
+        create_command('change-case-to-'
+                       'constant-case',         f"{_('Column')}: {get_title_from_layout('change-case-to-constant-case')}...",
+                                                context = 'table_focus and string_focus')
+        create_command('change-case-to-'
+                       'dot-case',              f"{_('Column')}: {get_title_from_layout('change-case-to-dot-case')}...",
+                                                context = 'table_focus and string_focus')
+        create_command('change-case-to-'
+                       'kebab-case',            f"{_('Column')}: {get_title_from_layout('change-case-to-kebab-case')}...",
+                                                context = 'table_focus and string_focus')
+        create_command('change-case-to-'
+                       'pascal-case',           f"{_('Column')}: {get_title_from_layout('change-case-to-pascal-case')}...",
+                                                context = 'table_focus and string_focus')
+        create_command('change-case-to-'
+                       'sentence-case',         f"{_('Column')}: {get_title_from_layout('change-case-to-sentence-case')}...",
+                                                context = 'table_focus and string_focus')
+        create_command('change-case-to-'
+                       'snake-case',            f"{_('Column')}: {get_title_from_layout('change-case-to-snake-case')}...",
+                                                context = 'table_focus and string_focus')
+        create_command('change-case-to-'
+                       'sponge-case',           f"{_('Column')}: {get_title_from_layout('change-case-to-sponge-case')}...",
+                                                context = 'table_focus and string_focus')
 
         create_command('merge-columns',         f"{_('Column')}: {get_title_from_layout('merge-columns')}...")
 
@@ -981,44 +1023,6 @@ class SheetEditor(Gtk.Box):
                                             column,
                                             row + row_span,
                                             follow_cursor = False)
-
-    def resize_sheet_locators(self) -> None:
-        """"""
-        if not self.display.show_locators:
-            return
-
-        from gi.repository import Pango
-
-        row_index = self.display.get_starting_row()
-        max_row_number = row_index
-
-        # Compute the last visible row number
-        y = self.display.get_top_locator_height()
-        while y < self.Canvas.get_height():
-            max_row_number = self.display.get_lrow_from_row(row_index)
-            y += self.display.DEFAULT_CELL_HEIGHT
-            row_index += 1
-
-        context = self.Canvas.get_pango_context()
-        font_desc = f'Monospace Normal Regular {self.display.FONT_SIZE}px'
-        font_desc = Pango.font_description_from_string(font_desc)
-
-        layout = Pango.Layout.new(context)
-        layout.set_text(str(max_row_number), -1)
-        layout.set_font_description(font_desc)
-
-        text_width = layout.get_size()[0] / Pango.SCALE
-        cell_padding = self.display.DEFAULT_CELL_PADDING
-        locator_width = int(text_width + cell_padding * 2 + 0.5)
-        locator_width = max(45, locator_width)
-
-        if locator_width != self.display.get_left_locator_width():
-            self.display.left_locator_width = locator_width
-            self.Canvas.cleanup()
-
-    def reposition_sheet_widgets(self) -> None:
-        """"""
-        self.document.reposition_table_widgets()
 
     def update_formula_bar(self) -> None:
         """"""

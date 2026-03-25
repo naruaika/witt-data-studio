@@ -410,8 +410,9 @@ class SheetView():
         self.is_panning_canvas = False
 
         editor = self.Canvas.get_editor()
-        editor.resize_sheet_locators()
-        editor.reposition_sheet_widgets()
+        editor.document.reposition_table_widgets()
+
+        self.Canvas.resize_sheet_locators()
 
         self.selection.update_by_scroll()
 

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="Adw" version="1.0"/>
+  <requires lib="gtk" version="4.0"/>
+  <template class="SheetTableColumnsPopover" parent="GtkPopover">
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">6</property>
+        <child>
+          <object class="GtkSearchEntry" id="SearchEntry">
+            <property name="hexpand">true</property>
+            <property name="placeholder-text">Search columns...</property>
+            <signal name="search-changed" handler="_on_search_entry_changed" swapped="no"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="vexpand">true</property>
+            <property name="overflow">hidden</property>
+            <property name="width-request">280</property>
+            <property name="min-content-height">68</property>
+            <property name="max-content-height">340</property>
+            <property name="propagate-natural-height">true</property>
+            <child>
+              <object class="GtkListView" id="ListView">
+                <property name="model">
+                  <object class="GtkNoSelection" id="Selection"/>
+                </property>
+                <style>
+                  <class name="popover-listview"/>
+                </style>
+              </object>
+            </child>
+            <style>
+              <class name="frame"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

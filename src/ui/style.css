@@ -235,6 +235,13 @@ windowhandle > box > widget:nth-child(2) > dropdown > .toggle {
     border-radius: 50%;
 }
 
+.font-normal {
+    font-weight: normal;
+}
+.font-bold {
+    font-weight: bold;
+}
+
 .rotate-90deg {
     transform: rotate(90deg);
 }

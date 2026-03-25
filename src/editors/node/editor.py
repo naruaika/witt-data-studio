@@ -329,6 +329,23 @@ class NodeEditor(Gtk.Overlay):
         create_action('change-case-to-'
                       'titlecase',              lambda *_: create_node('change-case-to-titlecase'))
 
+        create_action('change-case-to-'
+                      'camel-case',             lambda *_: create_node('change-case-to-camel-case'))
+        create_action('change-case-to-'
+                      'constant-case',          lambda *_: create_node('change-case-to-constant-case'))
+        create_action('change-case-to-'
+                      'dot-case',               lambda *_: create_node('change-case-to-dot-case'))
+        create_action('change-case-to-'
+                      'kebab-case',             lambda *_: create_node('change-case-to-kebab-case'))
+        create_action('change-case-to-'
+                      'pascal-case',            lambda *_: create_node('change-case-to-pascal-case'))
+        create_action('change-case-to-'
+                      'sentence-case',          lambda *_: create_node('change-case-to-sentence-case'))
+        create_action('change-case-to-'
+                      'snake-case',             lambda *_: create_node('change-case-to-snake-case'))
+        create_action('change-case-to-'
+                      'sponge-case',            lambda *_: create_node('change-case-to-sponge-case'))
+
         create_action('trim-contents',          lambda *_: create_node('trim-contents'))
         create_action('clean-contents',         lambda *_: create_node('clean-contents'))
 
@@ -561,6 +578,23 @@ class NodeEditor(Gtk.Overlay):
         create_command('clean-contents',        f"{_('Column')}: {_('Clean Contents')}")
         create_command('add-prefix',            f"{_('Column')}: {_('Add Prefix')}")
         create_command('add-suffix',            f"{_('Column')}: {_('Add Suffix')}")
+
+        create_command('change-case-to-'
+                       'camel-case',            f"{_('Column')}: {_('Change Case to Camel Case')}")
+        create_command('change-case-to-'
+                       'constant-case',         f"{_('Column')}: {_('Change Case to Constant Case')}")
+        create_command('change-case-to-'
+                       'dot-case',              f"{_('Column')}: {_('Change Case to Dot Case')}")
+        create_command('change-case-to-'
+                       'kebab-case',            f"{_('Column')}: {_('Change Case to Kebab Case')}")
+        create_command('change-case-to-'
+                       'pascal-case',           f"{_('Column')}: {_('Change Case to Pascal Case')}")
+        create_command('change-case-to-'
+                       'sentence-case',         f"{_('Column')}: {_('Change Case to Sentence Case')}")
+        create_command('change-case-to-'
+                       'snake-case',            f"{_('Column')}: {_('Change Case to Snake Case')}")
+        create_command('change-case-to-'
+                       'sponge-case',           f"{_('Column')}: {_('Change Case to Sponge Case')}")
 
         create_command('merge-columns',         f"{_('Column')}: {_('Merge Columns')}")
 

@@ -41,9 +41,9 @@ def unique_name(default_name: str,
     if not new_name:
         return do_generate(default_name)
 
-    # Remove characters `@$!:` to prevent from
-    # possible collision with internal naming.
-    new_name = new_name.strip().strip('@$!:')
+#   # Remove characters `@$!:` to prevent from
+#   # possible collision with internal naming.
+#   new_name = new_name.strip().strip('@$!:')
 
     # Generate a new column name if needed only
     if new_name != old_name and \

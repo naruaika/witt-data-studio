@@ -23,12 +23,15 @@ from gi.repository import GLib
 from gi.repository import Gtk
 from gi.repository import GtkSource
 
+from ....core.models.table import DataTable
+
 @Gtk.Template(resource_path = '/com/wittara/studio/editors/sheet/ui/formula_bar.ui')
 class SheetFormulaBar(Gtk.Box):
     __gtype_name__ = 'SheetFormulaBar'
 
     Container              = Gtk.Template.Child()
     NameBox                = Gtk.Template.Child()
+    TableColumnsButton     = Gtk.Template.Child()
     FormulaBox             = Gtk.Template.Child()
     MultilineFormulaBar    = Gtk.Template.Child()
     MultilineFormulaBox    = Gtk.Template.Child()
@@ -78,6 +81,10 @@ class SheetFormulaBar(Gtk.Box):
         controller = Gtk.EventControllerKey()
         controller.connect('key-pressed', self._on_name_box_key_pressed)
         self.NameBox.add_controller(controller)
+
+        from .popover_table_columns import SheetTableColumnsPopover
+        popover = SheetTableColumnsPopover(self)
+        self.TableColumnsButton.set_popover(popover)
 
     def _setup_formula_box(self) -> None:
         """"""
@@ -208,6 +215,18 @@ class SheetFormulaBar(Gtk.Box):
 
         buffer = self.MultilineFormulaBox.get_buffer()
         GLib.idle_add(buffer.set_text, cell_data)
+
+        editor = self.get_editor()
+        active = editor.selection.current_active_cell
+
+        lcolumn = editor.display.get_lcolumn_from_column(active.column)
+        lrow    = editor.display.get_lrow_from_row(active.row)
+
+        table = editor.document.get_table_by_position(lcolumn, lrow)
+        table_is_in_focus = (isinstance(table, DataTable) and
+                             not table.placeholder        and
+                             table.with_header)
+        self.TableColumnsButton.set_visible(table_is_in_focus)
 
     @Gtk.Template.Callback()
     def _on_name_box_activated(self,

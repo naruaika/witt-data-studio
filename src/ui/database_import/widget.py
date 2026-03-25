@@ -960,7 +960,7 @@ class DatabaseImportWindow(Adw.Window):
 
         for iidx in range(n_items):
             item = self.ListStore.get_item(iidx)
-            if query in item.cname:
+            if query.lower() in item.cname.lower():
                 new_list_store.append(item)
 
         self.Selection.set_model(new_list_store)

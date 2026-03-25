@@ -92,10 +92,11 @@ class Toolbar(Gtk.Box):
     ReverseRowsButton        = Gtk.Template.Child()
 
     AnyColumnSection         = Gtk.Template.Child()
-    RenameColumnsButton      = Gtk.Template.Child()
     ChangeDataTypeButton     = Gtk.Template.Child()
+    RenameColumnsButton      = Gtk.Template.Child()
     ReplaceValuesButton      = Gtk.Template.Child()
     FillBlankCellsButton     = Gtk.Template.Child()
+    MoveColumnsButton        = Gtk.Template.Child()
     PivotColumnsButton       = Gtk.Template.Child()
 
     TextColumnSection        = Gtk.Template.Child()
@@ -495,14 +496,14 @@ class Toolbar(Gtk.Box):
                         ),
                         [
                             (
-                                self.RenameColumnsButton,
+                                self.ChangeDataTypeButton,
                                 (
                                     NodeEditor,
                                     SheetEditor,
                                 ),
                             ),
                             (
-                                self.ChangeDataTypeButton,
+                                self.RenameColumnsButton,
                                 (
                                     NodeEditor,
                                     SheetEditor,
@@ -517,6 +518,13 @@ class Toolbar(Gtk.Box):
                             ),
                             (
                                 self.FillBlankCellsButton,
+                                (
+                                    NodeEditor,
+                                    SheetEditor,
+                                ),
+                            ),
+                            (
+                                self.MoveColumnsButton,
                                 (
                                     NodeEditor,
                                     SheetEditor,
@@ -1016,7 +1024,7 @@ class Toolbar(Gtk.Box):
         window = self.get_root()
         editor = window.get_selected_editor()
         editor.view.update_by_scroll()
-        editor.reposition_sheet_widgets()
+        editor.document.reposition_sheet_widgets()
 
     @Gtk.Template.Callback()
     def _on_formula_bar_toggled(self,

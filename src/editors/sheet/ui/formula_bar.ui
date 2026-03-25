@@ -11,13 +11,28 @@
         <property name="margin-start">6</property>
         <property name="margin-end">6</property>
         <child>
-          <object class="GtkEntry" id="NameBox">
-            <property name="tooltip-text" translatable="yes">Name Box</property>
-            <property name="halign">fill</property>
-            <property name="valign">start</property>
-            <signal name="activate" handler="_on_name_box_activated" swapped="no" />
+          <object class="GtkBox">
+            <property name="orientation">horizontal</property>
+            <child>
+              <object class="GtkEntry" id="NameBox">
+                <property name="tooltip-text" translatable="yes">Name Box</property>
+                <property name="halign">fill</property>
+                <property name="valign">start</property>
+                <signal name="activate" handler="_on_name_box_activated" swapped="no" />
+                <style>
+                  <class name="name-box"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuButton" id="TableColumnsButton">
+                <property name="icon-name">list-compact-symbolic</property>
+                <property name="tooltip-text" translatable="yes">Show Table Columns</property>
+                <property name="visible">false</property>
+              </object>
+            </child>
             <style>
-              <class name="name-box"/>
+              <class name="linked"/>
             </style>
           </object>
         </child>

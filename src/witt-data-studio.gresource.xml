@@ -42,11 +42,12 @@
     <file preprocess="xml-stripblanks">editors/sheet/editor.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/file_export/template.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/file_export/view_csv.ui</file>
-    <file preprocess="xml-stripblanks">editors/sheet/ui/file_export/view_parquet.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/file_export/view_json.ui</file>
+    <file preprocess="xml-stripblanks">editors/sheet/ui/file_export/view_parquet.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/filter_rows_window.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/formula_bar.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/merge_tables_window.ui</file>
+    <file preprocess="xml-stripblanks">editors/sheet/ui/popover_table_columns.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/ui/transform_window.ui</file>
     <file preprocess="xml-stripblanks">editors/sheet/widgets/table_filter.ui</file>
   </gresource>
@@ -63,6 +64,8 @@
     <file preprocess="xml-stripblanks">folder-open-symbolic.svg</file>
     <file preprocess="xml-stripblanks">go-next-symbolic.svg</file>
     <file preprocess="xml-stripblanks">go-previous-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">list-compact-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">list-drag-handle-symbolic.svg</file>
     <file preprocess="xml-stripblanks">logs-symbolic.svg</file>
     <file preprocess="xml-stripblanks">network-server-symbolic.svg</file>
     <file preprocess="xml-stripblanks">object-select-symbolic.svg</file>
@@ -73,8 +76,8 @@
     <file preprocess="xml-stripblanks">table-symbolic.svg</file>
     <file preprocess="xml-stripblanks">up-small-symbolic.svg</file>
     <file preprocess="xml-stripblanks">user-home-symbolic.svg</file>
-    <file preprocess="xml-stripblanks">value-increase-symbolic.svg</file>
     <file preprocess="xml-stripblanks">value-decrease-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">value-increase-symbolic.svg</file>
     <file preprocess="xml-stripblanks">vcal-symbolic.svg</file>
     <file preprocess="xml-stripblanks">view-conceal-symbolic.svg</file>
     <file preprocess="xml-stripblanks">view-fullscreen-symbolic.svg</file>

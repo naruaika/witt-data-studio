@@ -494,6 +494,102 @@ def get_layout(action_name: str) -> tuple[str, list]:
                 ],
             )
 
+        case 'change-case-to-camel-case':
+            return (
+                _('Change Case to Camel Case'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'change-case-to-constant-case':
+            return (
+                _('Change Case to Constant Case'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'change-case-to-dot-case':
+            return (
+                _('Change Case to Dot Case'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'change-case-to-kebab-case':
+            return (
+                _('Change Case to Kebab Case'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'change-case-to-pascal-case':
+            return (
+                _('Change Case to Pascal Case'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'change-case-to-sentence-case':
+            return (
+                _('Change Case to Sentence Case'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'change-case-to-snake-case':
+            return (
+                _('Change Case to Snake Case'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
+        case 'change-case-to-sponge-case':
+            return (
+                _('Change Case to Sponge Case'),
+                [
+                    (
+                        _('Column'),
+                        'combo',
+                        '$string-columns:use-column',
+                    ),
+                ],
+            )
+
         case 'trim-contents':
             return (
                 _('Trim Contents'),

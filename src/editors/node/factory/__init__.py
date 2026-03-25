@@ -74,6 +74,15 @@ from .change_case_to_lowercase import *
 from .change_case_to_uppercase import *
 from .change_case_to_titlecase import *
 
+from .change_case_to_camel_case    import *
+from .change_case_to_constant_case import *
+from .change_case_to_dot_case      import *
+from .change_case_to_kebab_case    import *
+from .change_case_to_pascal_case   import *
+from .change_case_to_sentence_case import *
+from .change_case_to_snake_case    import *
+from .change_case_to_sponge_case   import *
+
 from .trim_contents  import *
 from .clean_contents import *
 
@@ -231,6 +240,15 @@ _registered_nodes = [
     NodeChangeCaseToLowercase(),
     NodeChangeCaseToUppercase(),
     NodeChangeCaseToTitleCase(),
+
+    NodeChangeCaseToCamelCase(),
+    NodeChangeCaseToConstantCase(),
+    NodeChangeCaseToDotCase(),
+    NodeChangeCaseToKebabCase(),
+    NodeChangeCaseToPascalCase(),
+    NodeChangeCaseToSentenceCase(),
+    NodeChangeCaseToSnakeCase(),
+    NodeChangeCaseToSpongeCase(),
 
     NodeTrimContents(),
     NodeCleanContents(),
