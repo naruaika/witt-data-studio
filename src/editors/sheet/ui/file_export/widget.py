@@ -220,9 +220,15 @@ class FileExportWindow(Adw.Window):
                                   button: Gtk.Button,
                                   ) ->    None:
         """"""
+        file_format = 'csv'
+        if isinstance(self.View, FileExportJSONView):
+            file_format = 'json'
+        if isinstance(self.View, FileExportParquetView):
+            file_format = 'parquet'
+
         file_name = self.View.ExportAs.get_text()
         folder_path = self.View.ExportTo.get_text()
-        file_path = f'{folder_path}/{file_name}.csv'
+        file_path = f'{folder_path}/{file_name}.{file_format}'
 
         from pathlib import Path
         file_path = str(Path(file_path).expanduser())

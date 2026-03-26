@@ -968,6 +968,13 @@ class DatabaseImportWindow(Adw.Window):
         auto_select()
 
     @Gtk.Template.Callback()
+    def _on_export_button_clicked(self,
+                                  button: Gtk.Button,
+                                  ) ->    None:
+        """"""
+        pass # TODO
+
+    @Gtk.Template.Callback()
     def _on_import_button_clicked(self,
                                   button: Gtk.Button,
                                   ) ->    None:

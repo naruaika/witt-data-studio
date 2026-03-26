@@ -17,115 +17,119 @@
       </object>
     </child>
     <property name="content">
-      <object class="AdwTabOverview" id="TabOverview">
-        <property name="view">TabView</property>
-        <property name="child">
-          <object class="GtkOverlay" id="Container">
-            <property name="hexpand">true</property>
-            <property name="vexpand">true</property>
-            <child>
-              <object class="AdwToolbarView">
+      <object class="AdwToastOverlay" id="ToastOverlay">
+        <child>
+          <object class="AdwTabOverview" id="TabOverview">
+            <property name="view">TabView</property>
+            <property name="child">
+              <object class="GtkOverlay" id="Container">
                 <property name="hexpand">true</property>
                 <property name="vexpand">true</property>
+                <child>
+                  <object class="AdwToolbarView">
+                    <property name="hexpand">true</property>
+                    <property name="vexpand">true</property>
 
-                <!-- Window Title -->
-                <child type="top">
-                  <object class="GtkBox" id="TitleBar">
-                    <property name="orientation">horizontal</property>
-                    <property name="margin-top">6</property>
-                    <property name="margin-bottom">6</property>
-                    <child>
-                      <object class="GtkWindowControls">
-                        <property name="side">start</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkBox" id="TitleSpacer">
-                        <property name="hexpand">true</property>
-                        <property name="visible">false</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="AdwTabBar" id="TabBar">
-                        <property name="margin-end">6</property>
-                        <property name="hexpand">true</property>
-                        <property name="expand-tabs">false</property>
-                        <property name="autohide">false</property>
-                        <property name="view">TabView</property>
+                    <!-- Window Title -->
+                    <child type="top">
+                      <object class="GtkBox" id="TitleBar">
+                        <property name="orientation">horizontal</property>
+                        <property name="margin-top">6</property>
+                        <property name="margin-bottom">6</property>
+                        <child>
+                          <object class="GtkWindowControls">
+                            <property name="side">start</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox" id="TitleSpacer">
+                            <property name="hexpand">true</property>
+                            <property name="visible">false</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwTabBar" id="TabBar">
+                            <property name="margin-end">6</property>
+                            <property name="hexpand">true</property>
+                            <property name="expand-tabs">false</property>
+                            <property name="autohide">false</property>
+                            <property name="view">TabView</property>
+                            <style>
+                              <class name="inline"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwTabButton" id="TabButton">
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="visible">false</property>
+                            <property name="view">TabView</property>
+                            <signal name="clicked" handler="_on_tab_button_clicked"/>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuButton">
+                            <property name="margin-end">6</property>
+                            <property name="primary">true</property>
+                            <property name="icon-name">open-menu-symbolic</property>
+                            <property name="tooltip-text" translatable="yes">Main Menu</property>
+                            <property name="menu-model">PrimaryMenu</property>
+                            <style>
+                              <class name="flat"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkWindowControls">
+                            <property name="side">end</property>
+                          </object>
+                        </child>
                         <style>
-                          <class name="inline"/>
+                          <class name="mtitlebar"/>
                         </style>
                       </object>
                     </child>
-                    <child>
-                      <object class="AdwTabButton" id="TabButton">
-                        <property name="margin-start">6</property>
-                        <property name="margin-end">6</property>
-                        <property name="visible">false</property>
-                        <property name="view">TabView</property>
-                        <signal name="clicked" handler="_on_tab_button_clicked"/>
+
+                    <!-- Window Content -->
+                    <property name="content">
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkSeparator">
+                            <property name="orientation">horizontal</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="Toolbar" id="Toolbar"/>
+                        </child>
+                        <child>
+                          <object class="AdwTabView" id="TabView">
+                            <property name="valign">fill</property>
+                            <property name="halign">fill</property>
+                            <property name="hexpand">true</property>
+                            <property name="vexpand">true</property>
+                            <style>
+                              <class name="mtabview"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSeparator">
+                            <property name="orientation">horizontal</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="StatusBar" id="StatusBar"/>
+                        </child>
                       </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuButton">
-                        <property name="margin-end">6</property>
-                        <property name="primary">true</property>
-                        <property name="icon-name">open-menu-symbolic</property>
-                        <property name="tooltip-text" translatable="yes">Main Menu</property>
-                        <property name="menu-model">PrimaryMenu</property>
-                        <style>
-                          <class name="flat"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkWindowControls">
-                        <property name="side">end</property>
-                      </object>
-                    </child>
-                    <style>
-                      <class name="mtitlebar"/>
-                    </style>
+                    </property>
                   </object>
                 </child>
-
-                <!-- Window Content -->
-                <property name="content">
-                  <object class="GtkBox">
-                    <property name="orientation">vertical</property>
-                    <child>
-                      <object class="GtkSeparator">
-                        <property name="orientation">horizontal</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="Toolbar" id="Toolbar"/>
-                    </child>
-                    <child>
-                      <object class="AdwTabView" id="TabView">
-                        <property name="valign">fill</property>
-                        <property name="halign">fill</property>
-                        <property name="hexpand">true</property>
-                        <property name="vexpand">true</property>
-                        <style>
-                          <class name="mtabview"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparator">
-                        <property name="orientation">horizontal</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="StatusBar" id="StatusBar"/>
-                    </child>
-                  </object>
-                </property>
               </object>
-            </child>
+            </property>
           </object>
-        </property>
+        </child>
       </object>
     </property>
     <style>

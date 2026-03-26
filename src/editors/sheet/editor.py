@@ -890,21 +890,8 @@ class SheetEditor(Gtk.Box):
 
         if self.node:
             for tname, (coord, table) in tables.items():
-                # Find the related node content
-                contents = self.node.contents[1:-1]
-                for content in contents:
-                    box = content.Widget
-                    label = box.get_first_child()
-                    label = label.get_label()
-                    if label == tname:
-                        break
-
-                # Find the pair socket and node
-                self_content = content
-                self_socket  = self_content.Socket
-                link         = self_socket.links[0]
-                pair_socket  = link.in_socket
-                pair_node    = pair_socket.Frame
+                pair_node, pair_socket, link = \
+                    self._find_pair_node_by_table_name(tname)
 
                 # Collect sorted column names
                 if pair_node.parent.action == 'sort-rows':
@@ -1233,14 +1220,30 @@ class SheetEditor(Gtk.Box):
                       parameters: dict = {},
                       ) ->        None:
             """"""
+            pair_node, pair_socket, link = \
+                self._find_pair_node_by_table_name(table.tname)
+            table_data = pair_socket.Content.get_data()
+
             from ...backend.file import File
-            File.write(file_path, table.content, **parameters)
+            success = File.write(file_path, table_data, **parameters)
+
+            if success:
+                title = f'{_('Exported to')} {file_path}'
+                window.show_toast_message(title = title)
+
+        def callback(*args) -> None:
+            """"""
+            from threading import Thread
+            thread = Thread(target = do_export,
+                            args   = args,
+                            daemon = True)
+            thread.start()
 
         subtitle = f'{table.tname} @ {self.title}'
 
         from .ui.file_export.widget import FileExportWindow
         import_window = FileExportWindow(subtitle      = subtitle,
-                                         callback      = do_export,
+                                         callback      = callback,
                                          transient_for = window,
                                          application   = application)
         import_window.present()
@@ -1257,21 +1260,8 @@ class SheetEditor(Gtk.Box):
 
         window.history.grouping = True
 
-        # Find the related node content
-        contents = self.node.contents[1:-1]
-        for content in contents:
-            box = content.Widget
-            label = box.get_first_child()
-            label = label.get_label()
-            if label == table.tname:
-                break
-
-        # Find the pair socket
-        self_content = content
-        self_socket  = self_content.Socket
-        link         = self_socket.links[0]
-        pair_socket  = link.in_socket
-        pair_node    = pair_socket.Frame
+        pair_node, pair_socket, link = \
+            self._find_pair_node_by_table_name(table.tname)
 
         viewer = self._find_active_viewer_node()
 
@@ -1576,6 +1566,28 @@ class SheetEditor(Gtk.Box):
 
         return tables
 
+    def _find_pair_node_by_table_name(self,
+                                      table_name: str,
+                                      ) ->        tuple:
+        """"""
+        # Find the related node content
+        contents = self.node.contents[1:-1]
+        for content in contents:
+            box = content.Widget
+            label = box.get_first_child()
+            label = label.get_label()
+            if label == table_name:
+                break
+
+        # Find the pair node and socket
+        self_content = content
+        self_socket  = self_content.Socket
+        link         = self_socket.links[0]
+        pair_socket  = link.in_socket
+        pair_node    = pair_socket.Frame
+
+        return pair_node, pair_socket, link
+
     def _find_sheet_node_by_address(self,
                                     address: str,
                                     ) ->     NodeFrame:
@@ -1691,21 +1703,8 @@ class SheetEditor(Gtk.Box):
 
         window.history.grouping = True
 
-        # Find the related node content
-        contents = self.node.contents[1:-1]
-        for content in contents:
-            box = content.Widget
-            label = box.get_first_child()
-            label = label.get_label()
-            if label == table.tname:
-                break
-
-        # Find the pair node and socket
-        self_content = content
-        self_socket  = self_content.Socket
-        link         = self_socket.links[0]
-        pair_socket  = link.in_socket
-        pair_node    = pair_socket.Frame
+        pair_node, pair_socket, link = \
+            self._find_pair_node_by_table_name(table.tname)
 
         # Modify the existing node
         if pair_node.parent.action == 'sort-rows':
@@ -1748,21 +1747,8 @@ class SheetEditor(Gtk.Box):
 
         window.history.grouping = True
 
-        # Find the related node content
-        contents = self.node.contents[1:-1]
-        for content in contents:
-            box = content.Widget
-            label = box.get_first_child()
-            label = label.get_label()
-            if label == table.tname:
-                break
-
-        # Find the pair socket and node
-        self_content = content
-        self_socket  = self_content.Socket
-        link         = self_socket.links[0]
-        pair_socket  = link.in_socket
-        pair_node    = pair_socket.Frame
+        pair_node, pair_socket, link = \
+            self._find_pair_node_by_table_name(table.tname)
 
         # Modify the existing node
         if pair_node.parent.action == 'sort-rows':
@@ -1817,21 +1803,8 @@ class SheetEditor(Gtk.Box):
 
         window.history.grouping = True
 
-        # Find the related node content
-        contents = self.node.contents[1:-1]
-        for content in contents:
-            box = content.Widget
-            label = box.get_first_child()
-            label = label.get_label()
-            if label == table.tname:
-                break
-
-        # Find the pair socket and node
-        self_content = content
-        self_socket  = self_content.Socket
-        link         = self_socket.links[0]
-        pair_socket  = link.in_socket
-        pair_node    = pair_socket.Frame
+        pair_node, pair_socket, link = \
+            self._find_pair_node_by_table_name(table.tname)
 
         # Modify the existing node
         if pair_node.parent.action == 'filter-rows':
@@ -1873,21 +1846,11 @@ class SheetEditor(Gtk.Box):
         window = self.get_root()
         editor = window.node_editor
 
-        # Find the related node content
-        contents = self.node.contents[1:-1]
-        for content in contents:
-            box = content.Widget
-            label = box.get_first_child()
-            label = label.get_label()
-            if label == table.tname:
-                break
+        pair_node, pair_socket, link = \
+            self._find_pair_node_by_table_name(table.tname)
 
-        # Find the pair node and socket
-        self_content = content
-        self_socket  = self_content.Socket
-        link         = self_socket.links[0]
-        pair_socket  = link.in_socket
-        pair_node    = pair_socket.Frame
+        self_socket = link.out_socket
+        self_content = self_socket.Content
 
         # Create a new appropriate node
         x = self.node.x - 175 - 50

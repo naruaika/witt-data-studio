@@ -407,6 +407,13 @@ class Application(Adw.Application):
         list_str = settings.get_string('recent-files')
         list_obj = loads(list_str)
 
+#       # Filter out non-existence files
+#       from pathlib import Path
+#       for file_path in list_obj:
+#           if Path(file_path).is_file():
+#               list_obj.remove(file_path)
+#       settings.set_string('recent-files', list_str)
+
         return list_obj
 
     def insert_recent_file_list(self,

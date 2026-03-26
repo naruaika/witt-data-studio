@@ -313,6 +313,18 @@
                           </object>
                         </child>
                         <child>
+                          <object class="GtkButton" id="ExportButton">
+                            <property name="visible">false</property>
+                            <property name="valign">center</property>
+                            <property name="label" translatable="yes">Export</property>
+                            <signal name="clicked" handler="_on_export_button_clicked" swapped="no"/>
+                            <style>
+                              <class name="flat"/>
+                              <class name="image-button"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
                           <object class="GtkButton" id="ImportButton">
                             <property name="label" translatable="yes">Load</property>
                             <property name="sensitive">false</property>

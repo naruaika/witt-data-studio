@@ -153,13 +153,31 @@
                     <property name="margin-end">12</property>
                     <property name="visible">false</property>
                     <property name="end-widget">
-                      <object class="GtkButton" id="ImportButton">
-                        <property name="label" translatable="yes">Load</property>
-                        <signal name="clicked" handler="_on_import_button_clicked" swapped="no"/>
-                        <style>
-                          <class name="pill"/>
-                          <class name="suggested-action"/>
-                        </style>
+                      <object class="GtkBox">
+                        <property name="orientation">horizontal</property>
+                        <property name="spacing">10</property>
+                        <child>
+                          <object class="GtkButton" id="ExportButton">
+                            <property name="visible">false</property>
+                            <property name="valign">center</property>
+                            <property name="label" translatable="yes">Export</property>
+                            <signal name="clicked" handler="_on_export_button_clicked" swapped="no"/>
+                            <style>
+                              <class name="flat"/>
+                              <class name="image-button"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="ImportButton">
+                            <property name="label" translatable="yes">Load</property>
+                            <signal name="clicked" handler="_on_import_button_clicked" swapped="no"/>
+                            <style>
+                              <class name="pill"/>
+                              <class name="suggested-action"/>
+                            </style>
+                          </object>
+                        </child>
                       </object>
                     </property>
                   </object>

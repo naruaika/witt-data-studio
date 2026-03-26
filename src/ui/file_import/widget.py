@@ -77,6 +77,7 @@ class FileImportWindow(Adw.Window):
     Spinner          = Gtk.Template.Child()
     StatusBox        = Gtk.Template.Child()
     BottomToolbar    = Gtk.Template.Child()
+    ExportButton     = Gtk.Template.Child()
     ImportButton     = Gtk.Template.Child()
 
     PreferencesPage  = Gtk.Template.Child()
@@ -270,10 +271,13 @@ class FileImportWindow(Adw.Window):
                 kwargs['has_header']    = self.conf_widgets['has_header'].get_active()
                 kwargs['skip_rows']     = int(self.conf_widgets['from_row'].get_value() - 1)
                 kwargs['n_rows']        = int(self.conf_widgets['n_rows'].get_value()) or None
+
                 kwargs['separator']     = self.conf_widgets['separator'].get_selected()
                 kwargs['separator']     = list(SEPARATOR_OPTS.keys())[kwargs['separator']]
+
                 kwargs['quote_char']    = self.conf_widgets['quote_char'].get_selected()
                 kwargs['quote_char']    = list(QUOTE_CHAR_OPTS.keys())[kwargs['quote_char']]
+
                 kwargs['decimal_comma'] = self.conf_widgets['decimal_comma'].get_selected()
                 kwargs['decimal_comma'] = list(DECIMAL_COMMA_OPTS.keys())[kwargs['decimal_comma']]
 
@@ -300,6 +304,13 @@ class FileImportWindow(Adw.Window):
 
         window = self.get_transient_for()
         window.activate_action('app.open-file')
+
+    @Gtk.Template.Callback()
+    def _on_export_button_clicked(self,
+                                  button: Gtk.Button,
+                                  ) ->    None:
+        """"""
+        pass # TODO
 
     @Gtk.Template.Callback()
     def _on_import_button_clicked(self,

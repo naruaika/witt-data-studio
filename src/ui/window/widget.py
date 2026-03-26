@@ -47,14 +47,15 @@ class Window(Adw.ApplicationWindow):
 
     __gtype_name__ = 'Window'
 
-    TitleBar    = Gtk.Template.Child()
-    TabBar      = Gtk.Template.Child()
-    TabView     = Gtk.Template.Child()
-    TabButton   = Gtk.Template.Child()
-    TabOverview = Gtk.Template.Child()
-    Toolbar     = Gtk.Template.Child()
-    Container   = Gtk.Template.Child()
-    StatusBar   = Gtk.Template.Child()
+    ToastOverlay = Gtk.Template.Child()
+    TabOverview  = Gtk.Template.Child()
+    TitleBar     = Gtk.Template.Child()
+    TabBar       = Gtk.Template.Child()
+    TabView      = Gtk.Template.Child()
+    TabButton    = Gtk.Template.Child()
+    Toolbar      = Gtk.Template.Child()
+    Container    = Gtk.Template.Child()
+    StatusBar    = Gtk.Template.Child()
 
     def __init__(self, **kwargs) -> None:
         """"""
@@ -577,3 +578,11 @@ class Window(Adw.ApplicationWindow):
                 break
 
         self.present()
+
+    def show_toast_message(self,
+                           *args:    list,
+                           **kwargs: dict,
+                           ) ->      None:
+        """"""
+        toast = Adw.Toast(*args, **kwargs)
+        self.ToastOverlay.add_toast(toast)
