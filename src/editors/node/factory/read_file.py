@@ -140,11 +140,25 @@ class NodeReadFile(NodeTemplate):
         if not self.frame.data['refresh-cache']:
             return
 
+        from ....core.utils import get_file_format
+        file_format = get_file_format(file_path)
+        file_format = file_format or 'csv'
+
         kwargs = self.frame.data['kwargs']
         kwargs = deepcopy(kwargs)
 
         # Do not include the columns when taking a sample
         del kwargs['columns']
+
+        # Force to use lower memory for 2GB+ dataset
+        from pathlib import Path
+        if Path(file_path).is_file():
+            size_bytes = Path(file_path).stat().st_size
+            size_in_gb = size_bytes / (1024 ** 3)
+            if file_format in {'parquet'}:
+                kwargs['low_memory'] = size_in_gb > 1
+            else:
+                kwargs['low_memory'] = size_in_gb > 2
 
         has_error = False
         self.frame.ErrorButton.set_visible(False)
@@ -157,19 +171,13 @@ class NodeReadFile(NodeTemplate):
             if isinstance(result, LazyFrame):
                 result.head(1_000).collect()
 
-        except FileNotFoundError:
-            text = f'{_('File not found')}: {file_path}'
-            self.frame.ErrorButton.set_tooltip_text(text)
+        except Exception as e:
+            logger.error(e, exc_info = True)
+            self.frame.ErrorButton.set_tooltip_text(str(e))
             self.frame.ErrorButton.set_visible(True)
-            return
-        except:
             has_error = True
 
         if has_error:
-            from ....core.utils import get_file_format
-            file_format = get_file_format(file_path)
-            file_format = file_format or 'csv'
-
             # Unless it's a text file, we won't retry
             # to read the file after the last failure
             if file_format not in {'csv', 'tsv', 'txt'}:
@@ -187,6 +195,7 @@ class NodeReadFile(NodeTemplate):
                 has_error = False
 
             except Exception as e:
+                logger.error(e, exc_info = True)
                 self.frame.ErrorButton.set_tooltip_text(str(e))
                 self.frame.ErrorButton.set_visible(True)
 
@@ -206,6 +215,7 @@ class NodeReadFile(NodeTemplate):
                 has_error = False
 
             except Exception as e:
+                logger.error(e, exc_info = True)
                 self.frame.ErrorButton.set_tooltip_text(str(e))
                 self.frame.ErrorButton.set_visible(True)
 
@@ -249,9 +259,9 @@ class NodeReadFile(NodeTemplate):
             widget = self.frame.contents[-1].Widget
             widget.set_expanded(True)
 
-        self.frame.data['refresh-columns'] = False
-
         self.frame.data['table'] = result
+
+        self.frame.data['refresh-columns'] = False
 
         self.frame.data['refresh-cache'] = False
         self.frame.CacheButton.set_visible(True)
@@ -273,7 +283,6 @@ class NodeReadFile(NodeTemplate):
             all_columns = value['all-columns']
             kwargs      = value['kwargs']
             self.set_data(file_path, all_columns, **kwargs)
-
         except Exception as e:
             logger.error(e, exc_info = True)
             self.frame.ErrorButton.set_tooltip_text(str(e))

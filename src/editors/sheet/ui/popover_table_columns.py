@@ -184,7 +184,8 @@ class SheetTableColumnsPopover(Gtk.Popover):
         for cname, dtype in table.schema.items():
             if query.lower() not in cname.lower():
                 continue
-            list_item = SheetTableColumnListItem(cname, str(dtype))
+            dtype = dtype.__class__.__name__
+            list_item = SheetTableColumnListItem(cname, dtype)
             self.ListStore.append(list_item)
 
         self.Selection.set_model(self.ListStore)

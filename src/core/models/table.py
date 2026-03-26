@@ -73,6 +73,7 @@ class DataTable(DataFrame):
                  bounding_box:  BoundingBox,
                  placeholder:   bool  = False,
                  query_plan:    bytes = None,
+                 auto_limited:  bool  = False,
                  error_message: str   = None,
                  ) ->           None:
         """"""
@@ -84,4 +85,5 @@ class DataTable(DataFrame):
         self.bounding_box  = bounding_box
         self.placeholder   = placeholder
         self.query_plan    = query_plan
+        self.auto_limited  = auto_limited
         self.error_message = error_message

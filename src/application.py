@@ -518,6 +518,8 @@ class Application(Adw.Application):
 
         self._perform_save(window, file_path, data, on_finish)
 
+        self.insert_recent_file_list(file_path)
+
     def _build_save_data(self,
                          window: Window,
                          ) ->    dict:

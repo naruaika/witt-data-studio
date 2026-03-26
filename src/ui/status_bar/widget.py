@@ -131,6 +131,10 @@ class StatusBar(Gtk.Box):
                 label = f'{table.tname} ({n_row} x {n_col})'
             else:
                 label = f'{table.tname} ({_('Unknown size')})'
+
+            if table.auto_limited:
+                label += ' — Preview only'
+
             self.BoundaryContext.set_label(label)
 
     def _refresh_scene_selections(self) -> None:

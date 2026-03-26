@@ -180,21 +180,28 @@ class SheetDocument(Document):
         is_lazyframe = isinstance(content, LazyFrame)
 
         placeholder = is_lazyframe
+        auto_limited = False
         error_message = None
 
         if prefer_sync:
-            try:
-                if isinstance(content, LazyFrame):
+            placeholder = False
+            if is_lazyframe:
+                is_lazyframe = False
+
+                try:
+                    from polars import len as len_
+                    n_rows = content.select(len_()).collect().item()
+                    if n_rows > 1_048_576:
+                        content = content.limit(1_048_576)
+                        auto_limited = True
+
                     content = content.collect()
-                placeholder = False
 
-            except Exception as e:
-                logger.error(e, exc_info = True)
-                content = DataFrame({'#ERROR!': None}).head(0)
-                placeholder = True
-                error_message = str(e)
-
-            is_lazyframe = False
+                except Exception as e:
+                    logger.error(e, exc_info = True)
+                    content = DataFrame({'#ERROR!': None}).head(0)
+                    placeholder = True
+                    error_message = str(e)
 
         if is_lazyframe:
             to_load = content
@@ -205,6 +212,7 @@ class SheetDocument(Document):
             from polars import read_csv
             content_str = str(content).encode('utf-8')
             content_bytes = BytesIO(content_str)
+
             # We don't infer schema for non-tabular content,
             # meaning that all cell data are and will always
             # be stored as string.
@@ -213,8 +221,9 @@ class SheetDocument(Document):
                                    separator    = '\t',
                                    has_header   = True,
                                    infer_schema = True)
+
+            # Retry by ignoring any errors
             except Exception:
-                # Retry by ignoring any errors
                 content = read_csv(content_bytes,
                                    separator     = '\t',
                                    has_header    = True,
@@ -233,6 +242,7 @@ class SheetDocument(Document):
                               with_header   = with_header,
                               bounding_box  = bounding_box,
                               placeholder   = placeholder,
+                              auto_limited  = auto_limited,
                               error_message = error_message)
 
         self.tables.append(new_table)
@@ -243,14 +253,20 @@ class SheetDocument(Document):
 
         self._update_bounding_box(bounding_box)
 
-        async def do_load(old_table: DataTable,
-                          lazyframe: LazyFrame,
-                          ) ->       None:
+        async \
+        def do_load(old_table: DataTable,
+                    lazyframe: LazyFrame,
+                    ) ->       None:
             """"""
+            auto_limited = False
             error_message = None
 
             try:
+                lazyframe = lazyframe.limit(1_048_576)
                 dataframe = await lazyframe.collect_async()
+
+                if dataframe.height >= 1_048_576:
+                    auto_limited = True # estimation only
 
             except Exception as e:
                 logger.error(e, exc_info = True)
@@ -273,6 +289,7 @@ class SheetDocument(Document):
                 else:
                     table.query_plan = lazyframe.serialize()
                     table.placeholder = False
+                    table.auto_limited = auto_limited
 
                 if on_finish:
                     on_finish(table)
@@ -284,7 +301,7 @@ class SheetDocument(Document):
             asyncio.create_task(coroutine)
 
         else:
-            self.repopulate_table_widgets() # TODO: not efficient!
+            self.repopulate_table_widgets()
 
             if on_finish:
                 on_finish(new_table)
@@ -318,7 +335,7 @@ class SheetDocument(Document):
         if n_col_changed or n_row_changed:
             self._update_bounding_box(to_shrink = True)
 
-        self.repopulate_table_widgets() # TODO: not efficient!
+        self.repopulate_table_widgets()
 
         return SheetOperation.UPDATE_TABLE
 

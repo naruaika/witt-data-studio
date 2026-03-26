@@ -80,7 +80,7 @@ class Database():
                         file_path = temp_file.name
 
                         output.pl(lazy = True).sink_parquet(file_path)
-                        output = scan_parquet(file_path)
+                        output = scan_parquet(file_path, low_memory = True)
 
                         logger.debug(f'Created temporary file: {file_path}')
 

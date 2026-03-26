@@ -13,11 +13,11 @@
         <child>
           <object class="GtkBox">
             <property name="orientation">horizontal</property>
+            <property name="valign">start</property>
             <child>
               <object class="GtkEntry" id="NameBox">
-                <property name="tooltip-text" translatable="yes">Name Box</property>
                 <property name="halign">fill</property>
-                <property name="valign">start</property>
+                <property name="tooltip-text" translatable="yes">Name Box</property>
                 <signal name="activate" handler="_on_name_box_activated" swapped="no" />
                 <style>
                   <class name="name-box"/>

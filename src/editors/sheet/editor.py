@@ -1143,9 +1143,15 @@ class SheetEditor(Gtk.Box):
                                          .item(0, '$sample-text')
                 sample_text = str(sample_text)
 
+                # datetime.datetime and/or datetime.time objects when
+                # converted to string usually don't carry zero suffix
+                if isinstance(table.schema[col_name], (Datetime, Time)):
+                    sample_text = sample_text.removesuffix('.000000000')
+
             # Assumes that the column is non-arbitrary dtype,
             # which is most likely a series, list, or struct.
-            except Exception:
+            except Exception as e:
+                logger.warning(e, exc_info = True)
                 self.display.column_widths[col_index] = max_width
                 continue
 
@@ -1918,11 +1924,14 @@ class SheetEditor(Gtk.Box):
         # Manipulate so that the target node seem to be reconnected
         self_content.node_uid = id(target_node)
 
-        data_key = next((k for k in ('value', 'table') if k in pair_node.data), '')
-        keep_cache = bool(data_key)
+        data_key = next((k for k in ('table', 'value') if k in pair_node.data), '')
+        cache_it = bool(data_key)
+
+        if isinstance(node_data, DataTable) and node_data.auto_limited:
+            cache_it = False
 
         # Freeze pair node to prevent from potential data rebuilding
-        if keep_cache:
+        if cache_it:
             pair_node.is_with_cache = True
             value = pair_node.data[data_key]
             pair_node.data[data_key] = node_data
@@ -1930,7 +1939,7 @@ class SheetEditor(Gtk.Box):
         callback()
 
         # Restore the pair node state
-        if keep_cache:
+        if cache_it:
             pair_node.is_with_cache = False
             pair_node.data[data_key] = value
 
