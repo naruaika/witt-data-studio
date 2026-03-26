@@ -522,10 +522,9 @@ class Application(Adw.Application):
                 window.file_path  = file_path
                 window.file_saved = True
                 window.StatusBar.set_file_saved(True)
+                self.insert_recent_file_list(file_path)
 
         self._perform_save(window, file_path, data, on_finish)
-
-        self.insert_recent_file_list(file_path)
 
     def _build_save_data(self,
                          window: Window,
