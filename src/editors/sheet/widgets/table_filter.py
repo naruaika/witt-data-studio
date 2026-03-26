@@ -404,11 +404,11 @@ class SheetTabelFilterMenu(Gtk.PopoverMenu):
         list_item.hactive = item_data.bind_property('active',
                                                     check_button,
                                                     'active',
-                                                    GObject.BindingFlags.SYNC_CREATE)
+                                                    GObject.BindingFlags.BIDIRECTIONAL)
         list_item.hincons = item_data.bind_property('inconsistent',
                                                     check_button,
                                                     'inconsistent',
-                                                    GObject.BindingFlags.SYNC_CREATE)
+                                                    GObject.BindingFlags.BIDIRECTIONAL)
         self._is_toggling = False
 
         check_button.connect('toggled', self._on_filter_item_toggled, item_data)

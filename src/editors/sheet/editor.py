@@ -1263,6 +1263,9 @@ class SheetEditor(Gtk.Box):
         pair_node, pair_socket, link = \
             self._find_pair_node_by_table_name(table.tname)
 
+        self_socket  = link.out_socket
+        self_content = self_socket.Content
+
         viewer = self._find_active_viewer_node()
 
         # Create a new sheet node
@@ -1856,7 +1859,7 @@ class SheetEditor(Gtk.Box):
         pair_node, pair_socket, link = \
             self._find_pair_node_by_table_name(table.tname)
 
-        self_socket = link.out_socket
+        self_socket  = link.out_socket
         self_content = self_socket.Content
 
         # Create a new appropriate node
