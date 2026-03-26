@@ -151,9 +151,13 @@ class NodeFilterRows(NodeTemplate):
             return expr.is_not_null()
 
         if operator == 'equals':
+            if values[0] is None:
+                return expr.is_null()
             return expr == values[0]
 
         if operator == 'does-not-equal':
+            if values[0] is None:
+                return expr.is_not_null()
             return expr != values[0]
 
         if operator == 'begins-with':

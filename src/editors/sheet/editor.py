@@ -1770,6 +1770,7 @@ class SheetEditor(Gtk.Box):
         self.grab_focus()
 
     def _quick_filter_rows(self,
+                           active: bool,
                            values: Series,
                            ) ->    None:
         """"""
@@ -1780,7 +1781,13 @@ class SheetEditor(Gtk.Box):
 
         func_args = []
         for value in values:
-            func_args.append(['or', column_name, 'equals', value])
+            if active:
+                op_1 = 'or'
+                op_2 = 'equals'
+            else:
+                op_1 = 'and'
+                op_2 = 'does-not-equal'
+            func_args.append([op_1, column_name, op_2, value])
 
         window = self.get_root()
         window.history.grouping = True

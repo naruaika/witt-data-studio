@@ -631,8 +631,16 @@ class SheetTabelFilterMenu(Gtk.PopoverMenu):
     def _quick_filter_rows(self) -> None:
         """"""
         from polars import col
-        values = self.value_counts.filter(col('active') == True) \
+
+        active = True
+        values = self.value_counts.filter(col('active') == active) \
                                   .get_column('value')
-        self.editor._quick_filter_rows(values)
+
+        if values.len() > self.value_counts.height / 2:
+            active = False
+            values = self.value_counts.filter(col('active') == active) \
+                                      .get_column('value')
+
+        self.editor._quick_filter_rows(active, values)
 
 from ..editor import SheetEditor

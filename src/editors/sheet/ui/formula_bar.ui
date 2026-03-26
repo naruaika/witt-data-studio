@@ -17,7 +17,6 @@
             <child>
               <object class="GtkEntry" id="NameBox">
                 <property name="halign">fill</property>
-                <property name="tooltip-text" translatable="yes">Name Box</property>
                 <signal name="activate" handler="_on_name_box_activated" swapped="no" />
                 <style>
                   <class name="name-box"/>
@@ -43,7 +42,6 @@
                 <property name="orientation">horizontal</property>
                 <child>
                   <object class="GtkEntry" id="FormulaBox">
-                    <property name="tooltip-text" translatable="yes">Formula Bar</property>
                     <property name="halign">fill</property>
                     <property name="hexpand">true</property>
                     <property name="editable">false</property>
@@ -61,7 +59,7 @@
                     <property name="valign">fill</property>
                     <property name="halign">fill</property>
                     <property name="hexpand">true</property>
-                    <property name="height-request">145</property>
+                    <property name="height-request">142</property>
                     <property name="visible">false</property>
                     <child>
                       <object class="GtkSourceView" id="MultilineFormulaBox">
