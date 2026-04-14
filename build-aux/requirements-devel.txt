@@ -32,7 +32,7 @@ pycparser==3.0
 Pygments==2.19.2
 PyGObject==3.54.5
 pykdtree==1.4.3
-pytest==9.0.2
+pytest==9.0.3
 python-dateutil==2.9.0.post0
 PyYAML==6.0.3
 readme_renderer==44.0
