@@ -1,3 +1,9 @@
+> [!IMPORTANT]
+> **2026-04-14**: I've recently lost motivation on this project, mainly due to the difficulty in designing a specific efficient mechanism, which has been further delayed by my urgent activities in the past few weeks. If you'd like to discuss further development of the project, feel free to create [a new discussion](https://github.com/naruaika/witt-data-studio/discussions/new/choose) or contact me at hello@naruaika.me.
+
+> [!NOTE]
+> This project is hand-crafted by myself, so please refrain from opening pull requests that rely heavily on AI agents. If that's the case, please feel free to fork this repository and make your own edits. However, I'm very open to some exceptions in AI usage.
+
 <img src="data/icons/hicolor/scalable/apps/com.wittara.studio.svg" width="115px" align="left">
 
 # Witt Data Studio
