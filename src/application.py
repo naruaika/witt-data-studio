@@ -286,9 +286,7 @@ class Application(Adw.Application):
         asyncio.set_event_loop_policy(policy)
 
         from gi.repository import GtkSource
-        from gi.repository import WebKit
         GObject.type_register(GtkSource.View)
-        GObject.type_register(WebKit.WebView)
 
         from .ui.status_bar.widget         import StatusBar
         from .ui.toolbar.widget            import Toolbar

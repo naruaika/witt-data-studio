@@ -32,8 +32,11 @@ pkgdatadir = '@pkgdatadir@'
 
 sys.path.insert(1, pkgdatadir)
 signal.signal(signal.SIGINT, signal.SIG_DFL)
-locale.bindtextdomain('witt-data-studio', localedir)
-locale.textdomain('witt-data-studio')
+try:
+    locale.bindtextdomain('witt-data-studio', localedir)
+    locale.textdomain('witt-data-studio')
+except Exception as e:
+    print(f"FIXME — {e}")
 gettext.install('witt-data-studio', localedir)
 
 class _ColoredFormatter(logging.Formatter):
@@ -94,7 +97,6 @@ if __name__ == '__main__':
     gi.require_version('GObject',   '2.0')
     gi.require_version('Gtk',       '4.0')
     gi.require_version('GtkSource', '5')
-    gi.require_version('WebKit',    '6.0')
 
     from gi.repository import Gio
     resource_path = 'witt-data-studio.gresource'
