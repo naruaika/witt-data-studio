@@ -29,7 +29,7 @@ polars-runtime-32==1.38.1
 pyarrow==23.0.1
 pycairo==1.29.0
 pycparser==3.0
-Pygments==2.19.2
+Pygments==2.20.0
 PyGObject==3.54.5
 pykdtree==1.4.3
 pytest==9.0.2
