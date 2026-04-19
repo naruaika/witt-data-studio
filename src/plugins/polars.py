@@ -18,7 +18,6 @@
 
 from polars     import Expr
 from polars.api import register_expr_namespace
-from warnings   import deprecated
 
 import witt_strutil as strx
 
@@ -41,26 +40,6 @@ class ExpandedStringExpr:
                                         ) ->    Expr:
         """"""
         return strx.split_by_character_transition(self._expr, before, after)
-
-    @deprecated('Use split_by_character_transition instead')
-    def split_by_lowercase_to_uppercase(self) -> Expr:
-        """"""
-        return strx.split_by_lowercase_to_uppercase(self._expr)
-
-    @deprecated('Use split_by_character_transition instead')
-    def split_by_uppercase_to_lowercase(self) -> Expr:
-        """"""
-        return strx.split_by_uppercase_to_lowercase(self._expr)
-
-    @deprecated('Use split_by_character_transition instead')
-    def split_by_digit_to_nondigit(self) -> Expr:
-        """"""
-        return strx.split_by_digit_to_nondigit(self._expr)
-
-    @deprecated('Use split_by_character_transition instead')
-    def split_by_nondigit_to_digit(self) -> Expr:
-        """"""
-        return strx.split_by_nondigit_to_digit(self._expr)
 
     def to_sentence_case(self) -> Expr:
         """"""

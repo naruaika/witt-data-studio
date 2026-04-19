@@ -8,7 +8,7 @@ authors = [
   { name="Naufan Rusyda Faikar", email="hello@naruaika.me" },
 ]
 description = "A small utility package for using strings in Witt Data Studio"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 classifiers = [
   "Programming Language :: Rust",
   "Programming Language :: Python :: Implementation :: CPython",
@@ -16,8 +16,8 @@ classifiers = [
 ]
 dynamic = ["version"]
 readme = "README.md"
-license = "AGPL-3.0-or-later"
-license-files = ["LICEN[CS]E*"]
+license = "Apache-2.0"
+license-files = { paths = ["LICENSE"] }
 
 [project.urls]
 Homepage = "https://github.com/naruaika/witt-data-studio"

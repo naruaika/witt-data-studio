@@ -1,6 +1,8 @@
 __pycache__
+.flatpak-builder
 .pypirc
-dist/
+.pyenv
+dist
 *.backup
 *.bak
 *.bk

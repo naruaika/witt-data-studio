@@ -1,6 +1,6 @@
 [package]
 name = "witt-strutil"
-version = "0.1.3"
+version = "0.1.5"
 edition = "2021"
 
 [lib]
@@ -8,7 +8,7 @@ name = "witt_strutil"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "*", features = ["extension-module", "abi3-py313"] }
+pyo3 = { version = "*", features = ["extension-module", "abi3-py312"] }
 pyo3-polars = { version = "*", features = ["derive"] }
 serde = { version = "*", features = ["derive"] }
 polars = { version = "*", default-features = false }
